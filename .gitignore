@@ -1,0 +1,10 @@
+.vscode
+.idea/
+node_modules/
+.nyc_output/
+coverage/
+tests/test.pdf
+tests/testGW.pdf
+tests/unit/*/output/*.pdf
+.env
+reports/

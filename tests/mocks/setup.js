@@ -1,0 +1,7 @@
+process.env.KEY_VAULT_URL = '79f1c3812687dc996b7496376024558ad4ff4479c3378569bb952d627032b1c4eed1db7e29cd1224bd03189972f09481f7b38076981df8df4f4012ccabbf6d7357fad07d802f25c80f1e1a0cdd1e1a1e8e49f3e57542bbe85ccac1b893b8fbf79ce1e15a05d0fb8ac93bd3f4734c0200da2330a17e63f34513867778e7964bd35e1d01ce6760a74e';
+process.env.CLIENT_ID = 'f8aa699adf77fa7c941d57db321cc7bff9e46af20500dea76eee4f556d20869451cbe25c4924c7efd405082b0d011e6cb5229c9bd5fcebe987a80cb7d13a9c032fcf5680c8e9e875bdaecf6f2ddb05d5bab86b8c32640832b294dc3c12783d9a704c22aea2e95a6cce6c389a9b2f1a6cc0d55eeb14362ed5547f1e43d78d2e3700bd31c7';
+process.env.CLIENT_SECRET = '';
+process.env.AZURE_STORAGE_PROXY_URL = 'https://ukecc-snd.azure.defra.cloud';
+process.env.BASE_URL = 'https://ukecc-int-snd.azure.defra.cloud';
+process.env.SERVICE_URL = 'http://localhost:3001';
+process.env.BLOB_STORAGE_CONNECTION = 'BLOB_STORAGE_CONNECTION';
