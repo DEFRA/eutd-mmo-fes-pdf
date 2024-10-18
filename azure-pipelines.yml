@@ -22,7 +22,7 @@ resources:
   repositories:
     - repository: CentralAdoPipelineTemplates
       # endpoint: defradev
-      name: DEFRA-EUX-MMO/mmo-central-ado-pipeline-templates
+      name: DEFRA-MMO-FES/mmo-fes-central-ado-pipeline-templates
       type: git
       ref: main
 
