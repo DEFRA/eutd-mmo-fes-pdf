@@ -29,7 +29,7 @@ resources:
 stages:
 - stage: BuildPackage
   pool:
-    vmImage: 'ubuntu-latest'
+    name: DEFRA-COMMON-ubuntu2204-SSV3
   jobs:
   - job: Build
     steps:
