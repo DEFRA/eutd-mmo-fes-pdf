@@ -29,7 +29,7 @@ resources:
 stages:
 - stage: BuildPackage
   pool:
-    name: DEFRA-COMMON-ubuntu2204-SSV3
+    name: DEFRA-COMMON-ubuntu2204-SSV5
   jobs:
   - job: Build
     steps:
