@@ -1,13 +1,13 @@
-var muhammara = require('muhammara');
-var _ = require('lodash');
-function PDFInterpreter() {
+const muhammara = require('muhammara');
 
+function PDFInterpreter() {
+    // used as an export line 48
 }
 
 function interpretContentStream(objectParser,onOperatorHandler) {
         
-    var operandsStack = [];
-    var anObject = objectParser.parseNewObject();
+    let operandsStack = [];
+    let anObject = objectParser.parseNewObject();
     
     while(!!anObject) {
         if(anObject.getType() === muhammara.ePDFObjectSymbol) {
@@ -25,7 +25,7 @@ function interpretContentStream(objectParser,onOperatorHandler) {
 
 PDFInterpreter.prototype.interpretPageContents = function(pdfReader,pageObject,onOperatorHandler) {
     pageObject = pageObject.toPDFDictionary();
-    var contents = pageObject.exists('Contents') ? pdfReader.queryDictionaryObject(pageObject,('Contents')):null;
+    const contents = pageObject.exists('Contents') ? pdfReader.queryDictionaryObject(pageObject,('Contents')):null;
     if(!contents)
         return;
 

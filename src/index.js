@@ -1,4 +1,4 @@
-require('dotenv').load();
+require('dotenv').config();
 const pdfService = require('./pdfService');
 const pdfRenderer = require('./pdf/pdfRenderer');
 

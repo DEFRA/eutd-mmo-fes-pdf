@@ -76,7 +76,7 @@ const getType = (documentNumber) => {
 };
 
 const extractPdfText = async (data) => {
-    const pdfStream =  new muhammara.PDFRStreamForBuffer(Object.values(data));
+    const pdfStream = new muhammara.PDFRStreamForBuffer(data);
     let pdfReader = muhammara.createReader(pdfStream);
     return await extractText(pdfReader);
 };

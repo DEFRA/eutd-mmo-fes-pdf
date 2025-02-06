@@ -1,4 +1,4 @@
-var _ = require('lodash');
+const _ = require('lodash');
 
 function initTextState() {
     return  {
@@ -87,7 +87,7 @@ CollectionState.prototype.startTextElement = function() {
 CollectionState.prototype.endTextElement = function(placements) {
 
     // save text properties to persist after gone (some of them...)
-    var latestTextState = this.cloneCurrentTextState();
+    const latestTextState = this.cloneCurrentTextState();
     this.inTextElement = false;
     this.textElementTextStack = null;
 
@@ -98,7 +98,7 @@ CollectionState.prototype.endTextElement = function(placements) {
     this.texts = null;
 
     // copy persisted data to top text state
-    var persistingTextState =  this.currentTextState();
+    const persistingTextState =  this.currentTextState();
     ['charSpace','wordSpace','scale','leading','rise','font'].forEach((name)=> {
         persistingTextState[name] = latestTextState[name];
     });

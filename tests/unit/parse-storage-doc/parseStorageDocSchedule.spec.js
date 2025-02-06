@@ -1,6 +1,5 @@
 const {parsePdfBuffer} = require('../../../src/pdf/pdfParser');
 const fs = require('fs');
-const muhammara = require('muhammara');
 
 describe('parseStorageDoc', () => {
 

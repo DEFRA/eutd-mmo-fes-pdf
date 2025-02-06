@@ -1,5 +1,4 @@
-var fs = require('fs');
-var storage = jest.genMockFromModule('azure-storage');
+const storage = jest.genMockFromModule('azure-storage');
 
 function __setMockService() {
   mockService = {

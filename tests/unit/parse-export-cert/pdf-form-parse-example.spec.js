@@ -8,7 +8,7 @@ describe('PDFParser', function() {
 
     test('should complete without error', function() {
 
-        var data = fs.readFileSync('./tests/unit/parse-export-cert/fixtures/parse-export-cert.pdf');
+        const data = fs.readFileSync('./tests/unit/parse-export-cert/fixtures/parse-export-cert.pdf');
         let pdfReader = muhammara.createReader(new muhammara.PDFRStreamForBuffer(data));
 
         let form = new PDFDigitalForm(pdfReader);

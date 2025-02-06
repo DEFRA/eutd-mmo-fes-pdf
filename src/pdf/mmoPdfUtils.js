@@ -24,7 +24,11 @@ module.exports = {
         }
     },
     qrCode: function(doc, buff, startX, startY) {
-        doc.image(buff, startX, startY, {fit: [55, 55]});
+        doc.addStructure(doc.struct('Figure', {
+            alt: 'QR Code'
+        }, () => {
+            doc.image(buff, startX, startY, {fit: [55, 55]});
+        }));
         this.labelBold(doc, startX + 90,startY + 10,
             'Use the QR code');
         this.labelBold(doc, startX + 90,startY + 25,
@@ -85,21 +89,17 @@ module.exports = {
     field: function(doc, x, y, width, height, text, numberOfLines = 1) {
         if (!text || Array.isArray(text)) {
             this.cell(doc, x, y, width, height, text, true, false, '#767676', '#6B6B6B', '#f1f4ff', numberOfLines);
-            //this.cell(doc, x, y, width, height, text, true, false, '#767676', '#6B6B6B', '#ffffff');
         } else {
             let textArr = [text];
             this.cell(doc, x, y, width, height, textArr, true, false, '#767676', '#6B6B6B', '#f1f4ff', numberOfLines);
-            //this.cell(doc, x, y, width, height, textArr, true, false, '#767676', '#6B6B6B', '#ffffff');
         }
     },
     wrappedField: function(doc, x, y, width, height, text) {
         if (!text || Array.isArray(text)) {
             this.cell(doc, x, y, width, height, text, false, false, '#767676', '#6B6B6B', '#f1f4ff');
-            //this.cell(doc, x, y, width, height, text, true, false, '#767676', '#6B6B6B', '#ffffff');
         } else {
             let textArr = [text];
             this.cell(doc, x, y, width, height, textArr, false, false, '#767676', '#6B6B6B', '#f1f4ff');
-            //this.cell(doc, x, y, width, height, textArr, true, false, '#767676', '#6B6B6B', '#ffffff');
         }
     },
     cell: function(doc, x, y, width, height, textArr, trimWidth,
@@ -125,7 +125,7 @@ module.exports = {
 
             let txtFirstElement = textArr[0];
             if (trimWidth) {
-                txtFirstElement = this.constrainWidth(doc, textArr[0], width - 10, numberOfLines);
+                txtFirstElement = this.constrainWidth(doc, textArr[0], width - 4, numberOfLines);
             }
             doc.text(txtFirstElement, x + 4, yPos + 4, {
                 width: width - 4,
@@ -143,7 +143,7 @@ module.exports = {
                 doc.moveDown(1);
                 let txt = textArr[idx];
                 if (trimWidth) {
-                    txt = this.constrainWidth(doc, textArr[idx], width - 10);
+                    txt = this.constrainWidth(doc, textArr[idx], width - 4);
                 }
                 doc.text(txt, x + 4, yPos + 4, {
                     width: width - 4,
@@ -155,19 +155,26 @@ module.exports = {
     },
     heading: function(doc, text) {
         let imageFile = path.join(__dirname, '../resources/hmgovlogo.png');
-        doc.image(imageFile, /*PdfStyle.MARGIN.LEFT, PdfStyle.MARGIN.TOP,*/ {
-            width: 220
-        });
+        doc.addStructure(doc.struct('Figure', {
+            alt: 'HM Government logo'
+        }, () => {
+            doc.image(imageFile, /*PdfStyle.MARGIN.LEFT, PdfStyle.MARGIN.TOP,*/ {
+                width: 220
+            })
+        }));
+
         doc.fillColor('#353535');
         doc.fontSize(PdfStyle.FONT_SIZE.LARGEST);
         doc.font(PdfStyle.FONT.BOLD);
-
-        doc.text('UNITED KINGDOM', 450, PdfStyle.MARGIN.TOP);
-
+        doc.addStructure(doc.struct('H1', {}, () => {
+            doc.text('UNITED KINGDOM', 450, PdfStyle.MARGIN.TOP);
+        }))
         doc.fontSize(PdfStyle.FONT_SIZE.LARGE);
-        doc.text(text, 0, 75, {
-            align: 'center'
-        });
+        doc.addStructure(doc.struct('H2', {}, () => {
+            doc.text(text, 0, 75, {
+                align: 'center'
+            });
+        }))
     },
     subHeading: function(doc, x, y, text) {
         doc.fillColor('#353535');

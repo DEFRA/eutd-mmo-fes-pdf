@@ -1,35 +1,17 @@
-const PDFDocument = require('pdfkit');
 const path = require('path');
 const PdfStyle = require('./mmoPdfStyles');
 const PdfUtils = require('./mmoPdfUtils');
 const moment = require('moment');
+const CommonUtils = require('../utils/common-utils');
 
 const renderExportCert = async (data, isSample, uri, stream) => {
 
     let buff = null;
-    const sampleWatermarkImageFile = path.join(__dirname, '../resources/sample-watermark.png');
-
     if (!data.isBlankTemplate && !isSample) {
         buff = await PdfUtils.generateQRCode(uri);
     }
 
-    const doc = new PDFDocument({
-        layout: 'portrait',
-        size: 'A4',
-        lang: 'en_GB',
-        margins: {
-            top: PdfStyle.MARGIN.TOP,
-            bottom: PdfStyle.MARGIN.BOT,
-            left: PdfStyle.MARGIN.LEFT,
-            right: PdfStyle.MARGIN.RIGHT,
-        },
-        pdfVersion: "1.5",
-        tagged: true,
-        displayTitle: true,
-        info: {
-            Title: path.basename(uri).split`.`[0]
-        }
-    });
+    const doc = CommonUtils.createBaseDocument(uri);
     doc.pipe(stream);
 
     PdfUtils.heading(doc, 'Catch and Re-Export Certificate');
@@ -39,9 +21,7 @@ const renderExportCert = async (data, isSample, uri, stream) => {
     section4(doc, data, PdfStyle.MARGIN.TOP + 515);
     section5(doc, data, PdfStyle.MARGIN.TOP + 575);
     section6(doc, data, PdfStyle.MARGIN.TOP + 635);
-    if (isSample) {
-        doc.image(sampleWatermarkImageFile, PdfStyle.MARGIN.LEFT + 10, 120, {scale: 1});
-    }
+    isSample ?? CommonUtils.addSampleWatermark(doc);
     PdfUtils.endOfPage(doc, 1);
 
     doc.addPage();
@@ -51,9 +31,7 @@ const renderExportCert = async (data, isSample, uri, stream) => {
     section10(doc, data, PdfStyle.MARGIN.TOP + 260);
     section11(doc, data, PdfStyle.MARGIN.TOP + 285);
     section12(doc, data, PdfStyle.MARGIN.TOP + 415);
-    if (isSample) {
-        doc.image(sampleWatermarkImageFile, PdfStyle.MARGIN.LEFT + 10, 120, {scale: 1});
-    }
+    isSample ?? CommonUtils.addSampleWatermark(doc);
     PdfUtils.endOfPage(doc, 2);
 
     doc.addPage();
@@ -62,25 +40,34 @@ const renderExportCert = async (data, isSample, uri, stream) => {
     section15(doc, data, PdfStyle.MARGIN.TOP + 255);
     section16(doc, data, PdfStyle.MARGIN.TOP + 375);
     section17(doc, data, PdfStyle.MARGIN.TOP + 510);
-    if (isSample) {
-        doc.image(sampleWatermarkImageFile, PdfStyle.MARGIN.LEFT + 10, 120, {scale: 1});
-    }
+    isSample ?? CommonUtils.addSampleWatermark(doc);
     PdfUtils.endOfPage(doc, 3);
 
     doc.addPage();
     appendixHeading(doc, PdfStyle.MARGIN.TOP);
     appendixTransportDetails(doc, data, PdfStyle.MARGIN.TOP + 22);
     end(doc, PdfStyle.MARGIN.TOP + 310);
-    if (!data.isBlankTemplate && !isSample) {
+    const shouldGenerateQRCode =!data.isBlankTemplate && !isSample;
+    if (shouldGenerateQRCode) {
         PdfUtils.qrCode(doc, buff, PdfStyle.MARGIN.LEFT + 20, PdfStyle.MARGIN.TOP + 680);
     }
-    if (isSample) {
-        doc.image(sampleWatermarkImageFile, PdfStyle.MARGIN.LEFT + 10, 120, {scale: 1});
-    }
+    isSample ?? CommonUtils.addSampleWatermark(doc);
     PdfUtils.endOfPage(doc, 4);
+
+    const isDictionaryTabs = !doc.page.dictionary.Tabs;
 
     if (data.isBlankTemplate) {
         // add three blank schedule pages
+        processBlankTemplate(data, doc, isDictionaryTabs, isSample, buff);
+    } else {
+        // How many fishing vessels?
+        processMultiData(data, doc, isDictionaryTabs, isSample, buff);
+    }
+
+    doc.end();
+};
+
+function processBlankTemplate(data, doc, isDictionaryTabs, isSample, buff) {
         let pageSize = 14;
         let numPages = 3;
         for(let page = 1; page <= numPages; page++) {
@@ -98,13 +85,13 @@ const renderExportCert = async (data, isSample, uri, stream) => {
 
             multiVesselScheduleHeading(doc, data, isSample, buff, page, pageSize, PdfStyle.MARGIN.TOP);
 
-            if (!doc.page.dictionary.Tabs) {
+        if (isDictionaryTabs) {
               doc.page.dictionary.data.Tabs = 'S';
             }
         }
+}
 
-    } else {
-        // How many fishing vessels?
+function processMultiData(data, doc, isDictionaryTabs, isSample, buff) {
         const { catchLength } = getVesselCount(data.exportPayload);
         if (isMultiVessel(data.exportPayload)) {
             let pageSize = 8;
@@ -123,26 +110,20 @@ const renderExportCert = async (data, isSample, uri, stream) => {
                     layout: 'landscape'
                 });
                 multiVesselScheduleHeading(doc, data, isSample, buff, page, pageSize, PdfStyle.MARGIN.TOP);
-                if (isSample) {
-                    doc.image(sampleWatermarkImageFile, PdfStyle.MARGIN.LEFT + 70, 70, {scale: 1});
-                }
+            isSample ?? CommonUtils.addSampleWatermark(doc, 70, 70);
                 page += 1;
 
-                if (!doc.page.dictionary.Tabs) {
+            if (isDictionaryTabs) {
                   doc.page.dictionary.data.Tabs = 'S';
                 }
             }
         }
     }
 
-
-    doc.end();
-};
-
 function getVesselCount(exportPayload){
     let items = [];
 
-    if (exportPayload && exportPayload.items) {
+    if (exportPayload?.items) {
         items =  exportPayload.items;
     }
 
@@ -165,32 +146,29 @@ function isMultiVessel(exportPayload){
 }
 
 function getProductScheduleRows(exportPayload) {
-    let items = [];
-    if (exportPayload && exportPayload.items) {
-        items =  exportPayload.items;
-    }
+
+    let items = exportPayload?.items ?? [];
     let rows = [];
-    if (items.length > 0) {
         items.forEach((item) => {
             item.landings.forEach((landing) => {
                 const dateLanded = moment(landing.model.dateLanded).format('DD/MM/YYYY');
-                let faoArea = 'FAO27';
-                if (landing.model.faoArea && landing.model.faoArea.length > 0) {
-                    faoArea = landing.model.faoArea;
-                }
+                const faoArea = landing.model?.faoArea?.length > 0 ? landing.model.faoArea : 'FAO27';
 
-                let landingDetail = '';
-                if (landing.model.vessel.licenceNumber) {
-                    landingDetail = landing.model.vessel.licenceNumber;
-                    if (landing.model.vessel.licenceValidTo) {
+                let landingDetail = landing.model.vessel.licenceNumber || '';
+
+                if (landingDetail && landing.model.vessel.licenceValidTo) {
                         let dte = moment(landing.model.vessel.licenceValidTo).format('DD/MM/YYYY');
                         landingDetail = landingDetail + ' - ' + dte;
                     }
-                }
 
                 let imo = '';
                 if (landing.model.vessel.imoNumber) {
                     imo = landing.model.vessel.imoNumber;
+                }
+
+                let homePort = '';
+                if (landing.model.vessel.homePort) {
+                    homePort = landing.model.vessel.homePort;
                 }
 
                 rows.push({
@@ -204,20 +182,24 @@ function getProductScheduleRows(exportPayload) {
                     pln: landing.model.vessel.pln,
                     licenceDetail: landingDetail,
                     faoArea: faoArea,
+                    homePort: homePort,
                     imo: imo,
                     licenceHolder: landing.model.vessel.licenceHolder
                 });
             })
         });
-    }
     return rows;
 }
 
 const multiVesselScheduleHeading = (doc, data, isSample, buff, page, pageSize, startY) => {
     let imageFile = path.join(__dirname, '../resources/hmgovlogo.png');
-    doc.image(imageFile, /*PdfStyle.MARGIN.LEFT, PdfStyle.MARGIN.TOP,*/ {
-        width: 220
-    });
+    doc.addStructure(doc.struct('Figure', {
+        alt: 'HM Government logo'
+    }, () => {
+        doc.image(imageFile, /*PdfStyle.MARGIN.LEFT, PdfStyle.MARGIN.TOP,*/ {
+            width: 220
+        });
+    }));
     let cellHeight = PdfStyle.ROW.HEIGHT * 2;
     mvsHeadingCell(doc, PdfStyle.MARGIN.LEFT + 430, startY, 350, cellHeight, 'UNITED KINGDOM', true, PdfStyle.FONT_SIZE.LARGEST, 'center', '#767676', '#353535', '#ffcc00');
     let yPos = startY + cellHeight;
@@ -256,7 +238,6 @@ const multiVesselScheduleHeading = (doc, data, isSample, buff, page, pageSize, s
         todaysDate = PdfUtils.todaysDate();
     }
     mvsHeadingCell(doc, PdfStyle.MARGIN.LEFT + 90, yPos, 140, cellHeight, todaysDate, true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffffff');
-    //mvsHeadingCell(doc, PdfStyle.MARGIN.LEFT + 220, yPos, 70, cellHeight, 'Sign', true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffcc00');
     mvsHeadingCell(doc, PdfStyle.MARGIN.LEFT + 230, yPos, 270, cellHeight, undefined, true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffffff');
 
     if (!data.isBlankTemplate && !isSample) {
@@ -265,17 +246,94 @@ const multiVesselScheduleHeading = (doc, data, isSample, buff, page, pageSize, s
     yPos = yPos + cellHeight + 10;
     cellHeight = PdfStyle.ROW.HEIGHT * 2 - 5;
 
+    const myTable = doc.struct('Table');
+    doc.addStructure(myTable);
+
+    const tableHead = doc.struct('THead');
+    myTable.add(tableHead);
+
+    const tableHeadRow = doc.struct('TR');
+    tableHead.add(tableHeadRow);
+
+    const tableHeadOne = doc.struct('TH');
+    tableHeadRow.add(tableHeadOne);
+    const tableHeadOneContent = doc.markStructureContent('TH');
+    tableHeadOne.add(tableHeadOneContent);
     mvsTableCell(doc, PdfStyle.MARGIN.LEFT, yPos, 115, cellHeight, 'Species', true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
+    tableHeadOne.end();
+
+    const tableHeadTwo = doc.struct('TH');
+    tableHeadRow.add(tableHeadTwo);
+    const tableHeadTwoContent = doc.markStructureContent('TH');
+    tableHeadTwo.add(tableHeadTwoContent);
     mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 115, yPos, 80, cellHeight, ['Presentation'], true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
+    tableHeadTwo.end();
+
+    const tableHeadThree = doc.struct('TH');
+    tableHeadRow.add(tableHeadThree);
+    const tableHeadThreeContent = doc.markStructureContent('TH');
+    tableHeadThree.add(tableHeadThreeContent);
     mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 195, yPos, 50, cellHeight, ['Product', 'code'], true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
+    tableHeadThree.end();
+
+    const tableHeadFour = doc.struct('TH');
+    tableHeadRow.add(tableHeadFour);
+    const tableHeadFourContent = doc.markStructureContent('TH');
+    tableHeadFour.add(tableHeadFourContent);
     mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 245, yPos, 50, cellHeight, ['Date', 'Landed'], true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
+    tableHeadFour.end();
+
+    const tableHeadFive = doc.struct('TH');
+    tableHeadRow.add(tableHeadFive);
+    const tableHeadFiveContent = doc.markStructureContent('TH');
+    tableHeadFive.add(tableHeadFiveContent);
     mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 295, yPos, 55, cellHeight, ['Consigned', 'weight (kg)'], true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
+    tableHeadFive.end();
+
+    const tableHeadSix = doc.struct('TH');
+    tableHeadRow.add(tableHeadSix);
+    const tableHeadSixContent = doc.markStructureContent('TH');
+    tableHeadSix.add(tableHeadSixContent)
     mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 350, yPos, 90, cellHeight, ['Vessel', 'name'], true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
+    tableHeadSix.end();
+
+    const tableHeadSeven = doc.struct('TH');
+    tableHeadRow.add(tableHeadSeven);
+    const tableHeadSevenContent = doc.markStructureContent('TH');
+    tableHeadSeven.add(tableHeadSevenContent);
     mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 440, yPos, 60, cellHeight, ['PLN /', 'Callsign'], true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
+    tableHeadSeven.end();
+
+    const tableHeadEight = doc.struct('TH');
+    tableHeadRow.add(tableHeadEight);
+    const tableHeadEightContent = doc.markStructureContent('TH');
+    tableHeadEight.add(tableHeadEightContent)
     mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 500, yPos, 70, cellHeight, ['IMO / Lloyd\'s', 'Number'], true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
+    tableHeadEight.end();
+
+    const tableHeadNine = doc.struct('TH');
+    tableHeadRow.add(tableHeadNine);
+    const tableHeadNineContent = doc.markStructureContent('TH');
+    tableHeadNine.add(tableHeadNineContent)
     mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 570, yPos, 90, cellHeight, 'Master', true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
-    mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 660, yPos, 80, cellHeight, ['Licence', 'Number'], true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
+    tableHeadNine.end()
+
+    const tableHeadTen = doc.struct('TH');
+    tableHeadRow.add(tableHeadTen);
+    const tableHeadTenContent = doc.markStructureContent('TH');
+    tableHeadTen.add(tableHeadTenContent)
+    mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 660, yPos, 80, cellHeight, ['Licence Number /', 'Flag-Homeport'], true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
+    tableHeadTen.end()
+
+    const tableHeadEleven = doc.struct('TH');
+    tableHeadRow.add(tableHeadEleven);
+    const tableHeadElevenContent = doc.markStructureContent('TH');
+    tableHeadEleven.add(tableHeadElevenContent);
     mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 740, yPos, 40, cellHeight, ['FAO', 'AREA'], true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
+    tableHeadEleven.end();
+    tableHeadRow.end();
+    tableHead.end();
+
     yPos = yPos + cellHeight;
 
     let rows = getProductScheduleRows(data.exportPayload);
@@ -293,22 +351,105 @@ const multiVesselScheduleHeading = (doc, data, isSample, buff, page, pageSize, s
 
     cellHeight = (PdfStyle.ROW.HEIGHT * 3) - 3;
 
+    const tableBody = doc.struct('TBody');
+    myTable.add(tableBody);
+
     for (let rowIdx = fromIdx; rowIdx < (fromIdx + pageSize); rowIdx++) {
-        mvsTableCell(doc, PdfStyle.MARGIN.LEFT, yPos, 115, cellHeight, rowIdx < rowDataLimit ? `${rows[rowIdx].species}` : '', false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
-        mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 115, yPos, 80, cellHeight, rowIdx < rowDataLimit ? `${rows[rowIdx].presentation}` : '', false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
-        mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 195, yPos, 50, cellHeight, rowIdx < rowDataLimit ? `${rows[rowIdx].commodityCode}` : '', false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
-        mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 245, yPos, 50, cellHeight, rowIdx < rowDataLimit ? `${rows[rowIdx].dateLanded}` : '', false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
-        mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 295, yPos, 55, cellHeight, rowIdx < rowDataLimit ? `${rows[rowIdx].exportWeight}` : '', false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
-        mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 350, yPos, 90, cellHeight, rowIdx < rowDataLimit ? `${rows[rowIdx].vessel}` : '', false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
-        mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 440, yPos, 60, cellHeight, rowIdx < rowDataLimit ? `${rows[rowIdx].pln}` : '', false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
-        mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 500, yPos, 70, cellHeight, rowIdx < rowDataLimit ? `${rows[rowIdx].imo}` : '', false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
-        mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 570, yPos, 90, cellHeight, rowIdx < rowDataLimit ? `${rows[rowIdx].licenceHolder}` : '', false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
-        mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 660, yPos, 80, cellHeight, rowIdx < rowDataLimit ? `${rows[rowIdx].licenceDetail}` : '', false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
-        mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 740, yPos, 40, cellHeight, rowIdx < rowDataLimit ? `${rows[rowIdx].faoArea}` : '', false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
+        const tableBodyRow = doc.struct('TR');
+        tableBody.add(tableBodyRow);
+        generateMultiVesselTableRows(tableBodyRow, doc, yPos, cellHeight, rowIdx, rowDataLimit, rows);
+        tableBodyRow.end();
         yPos = yPos + cellHeight;
     }
+    doc.endMarkedContent();
 
-    mvsTableCell(doc, PdfStyle.MARGIN.LEFT, yPos, 780, PdfStyle.ROW.HEIGHT, 'Page ' + page + ' of ' + pageCount, true, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
+    const pageCountRow = doc.struct('TR', () => {
+        mvsTableCell(doc, PdfStyle.MARGIN.LEFT, yPos, 780, PdfStyle.ROW.HEIGHT, 'Page ' + page + ' of ' + pageCount, true, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
+    });
+    tableBody.add(pageCountRow);
+    pageCountRow.end();
+
+    tableBody.end();
+    myTable.end();
+};
+
+const generateMultiVesselTableRows = (tableBodyRow, doc, yPos, cellHeight, rowIdx, rowDataLimit, rows) => {
+    const TdOne = doc.struct('TD');
+    tableBodyRow.add(TdOne);
+    const TdOneContent = doc.markStructureContent('TD');
+    TdOne.add(TdOneContent);
+    mvsTableCell(doc, PdfStyle.MARGIN.LEFT, yPos, 115, cellHeight, rowIdx < rowDataLimit ? `${rows[rowIdx].species}` : '', false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
+    TdOne.end();
+
+    const TdTwo = doc.struct('TD');
+    tableBodyRow.add(TdTwo);
+    const TdTwoContent = doc.markStructureContent('TD');
+    TdTwo.add(TdTwoContent);
+    mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 115, yPos, 80, cellHeight, rowIdx < rowDataLimit ? `${rows[rowIdx].presentation}` : '', false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
+    TdTwo.end();
+
+    const TdThree = doc.struct('TD');
+    tableBodyRow.add(TdThree);
+    const TdThreeContent = doc.markStructureContent('TD');
+    TdThree.add(TdThreeContent);
+    mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 195, yPos, 50, cellHeight, rowIdx < rowDataLimit ? `${rows[rowIdx].commodityCode}` : '', false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
+    TdThree.end();
+
+    const TdFour = doc.struct('TD');
+    tableBodyRow.add(TdFour);
+    const TdFourContent = doc.markStructureContent('TD');
+    TdFour.add(TdFourContent);
+    mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 245, yPos, 50, cellHeight, rowIdx < rowDataLimit ? `${rows[rowIdx].dateLanded}` : '', false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
+    TdFour.end();
+
+    const TdFive = doc.struct('TD');
+    tableBodyRow.add(TdFive);
+    const TdFiveContent = doc.markStructureContent('TD');
+    TdFive.add(TdFiveContent);
+    mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 295, yPos, 55, cellHeight, rowIdx < rowDataLimit ? `${Number(rows[rowIdx].exportWeight).toFixed(2)}` : '', false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
+    TdFive.end();
+
+    const TdSix = doc.struct('TD');
+    tableBodyRow.add(TdSix);
+    const TdSixContent = doc.markStructureContent('TD');
+    TdSix.add(TdSixContent);
+    mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 350, yPos, 90, cellHeight, rowIdx < rowDataLimit ? `${rows[rowIdx].vessel}` : '', false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
+    TdSix.end();
+
+    const TdSeven = doc.struct('TD');
+    tableBodyRow.add(TdSeven);
+    const TdSevenContent = doc.markStructureContent('TD');
+    TdSeven.add(TdSevenContent);
+    mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 440, yPos, 60, cellHeight, rowIdx < rowDataLimit ? `${rows[rowIdx].pln}` : '', false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
+    TdSeven.end();
+
+    const TdEight = doc.struct('TD');
+    tableBodyRow.add(TdEight);
+    const TdEightContent = doc.markStructureContent('TD');
+    TdEight.add(TdEightContent);
+    mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 500, yPos, 70, cellHeight, rowIdx < rowDataLimit ? `${rows[rowIdx].imo}` : '', false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
+    TdEight.end();
+
+    const TdNine = doc.struct('TD');
+    tableBodyRow.add(TdNine);
+    const TdNineContent = doc.markStructureContent('TD');
+    TdNine.add(TdNineContent);
+    mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 570, yPos, 90, cellHeight, rowIdx < rowDataLimit ? `${rows[rowIdx].licenceHolder}` : '', false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
+    TdNine.end();
+
+    const TdTen = doc.struct('TD');
+    tableBodyRow.add(TdTen);
+    const TdTenContent = doc.markStructureContent('TD');
+    TdTen.add(TdTenContent)
+    mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 660, yPos, 80, cellHeight, rowIdx < rowDataLimit ? `${rows[rowIdx].licenceDetail} ${rows[rowIdx].homePort}` : '', false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
+    TdTen.end();
+
+    const TdEleven = doc.struct('TD');
+    tableBodyRow.add(TdEleven);
+    const TdElevenContent = doc.markStructureContent('TD');
+    TdEleven.add(TdElevenContent);
+    mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 740, yPos, 40, cellHeight, rowIdx < rowDataLimit ? `${rows[rowIdx].faoArea}` : '', false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
+    TdEleven.end();
 };
 
 const end = (doc, startY) => {
@@ -324,80 +465,56 @@ const end = (doc, startY) => {
 
 const appendixTransportDetails = (doc, data, startY) => {
     doc.font(PdfStyle.FONT.BOLD);
-    doc.fontSize(PdfStyle.FONT_SIZE.LARGE);
+    doc.fontSize(PdfStyle.FONT_SIZE.MEDIUM);
     doc.text('Transport Details', 0, startY, {
         align: 'center'
     });
     doc.font(PdfStyle.FONT.REGULAR);
     let yPos = startY + 20;
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT, yPos, 265, PdfStyle.ROW.HEIGHT, 'Country of exportation');
-    const countryOfExport = data.transport ? data.transport.exportedFrom ? data.transport.exportedFrom : 'United Kingdom' : 'United Kingdom'
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 265, yPos, 265, PdfStyle.ROW.HEIGHT, countryOfExport);
-    yPos = yPos + PdfStyle.ROW.HEIGHT;
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT, yPos, 265, PdfStyle.ROW.HEIGHT, 'Port/airport/other place of departure');
+    const countryOfExport = data.transport?.exportedFrom ? data.transport.exportedFrom : 'United Kingdom';
 
-    let departurePlace = '';
-    if (data.transport) {
-        if (data.transport.cmr === 'true') {
-            departurePlace = 'See attached transport documents';
-        } else {
-            departurePlace = data.transport.departurePlace;
-        }
-    }
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 265, yPos, 265, PdfStyle.ROW.HEIGHT, departurePlace);
-    yPos = yPos + PdfStyle.ROW.HEIGHT;
+    const departurePlace = getDeparturePlace(data);
 
-    let vcDetails = '';
-    if (data.transport && data.transport.vehicle) {
-        if (data.transport.vehicle.toUpperCase() === 'CONTAINERVESSEL') {
-            if (data.transport.vesselName) {
-                vcDetails = vcDetails + data.transport.vesselName + ' ';
-            }
-            if (data.transport.flagState) {
-                vcDetails = vcDetails + data.transport.flagState;
-            }
-        } else if (data.transport.vehicle.toUpperCase() === 'DIRECTLANDING') {
-            if (data.exportPayload?.items[0].landings[0].model.vessel.vesselName) {
-                vcDetails = vcDetails + data.exportPayload.items[0].landings[0].model.vessel.vesselName + ' ';
-            }
-            if (data.exportPayload?.items[0].landings[0].model.vessel.pln) {
-                vcDetails = vcDetails + '(' + data.exportPayload.items[0].landings[0].model.vessel.pln + ')';
-            }
-        }
-    }
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT, yPos, 265, PdfStyle.ROW.HEIGHT, 'Vessel name and flag');
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 265, yPos, 265, PdfStyle.ROW.HEIGHT, vcDetails);
+    const vcDetails = getVcDetails(data);
 
-    yPos = yPos + PdfStyle.ROW.HEIGHT;
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT, yPos, 265, PdfStyle.ROW.HEIGHT, 'Flight number/airway bill number');
-    let flightNumber = '';
-    if (data.transport) {
-        flightNumber = data.transport.flightNumber;
-    }
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 265, yPos, 265, PdfStyle.ROW.HEIGHT, flightNumber);
-    yPos = yPos + PdfStyle.ROW.HEIGHT;
-    let truckDetails = '';
-    if (data.transport && data.transport.vehicle && data.transport.vehicle.toUpperCase() === 'TRUCK') {
-        if (data.transport.nationalityOfVehicle) {
-            truckDetails = truckDetails + data.transport.nationalityOfVehicle + ' ';
-        }
-        if (data.transport.registrationNumber) {
-            truckDetails = truckDetails + data.transport.registrationNumber;
-        }
-    }
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT, yPos, 265, PdfStyle.ROW.HEIGHT, 'Truck nationality and registration number');
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 265, yPos, 265, PdfStyle.ROW.HEIGHT, truckDetails);
-    yPos = yPos + PdfStyle.ROW.HEIGHT;
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT, yPos, 265, PdfStyle.ROW.HEIGHT, 'Railway bill number');
-    let railwayBillNumber = '';
-    if (data.transport) {
-        railwayBillNumber = data.transport.railwayBillNumber;
-    }
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 265, yPos, 265, PdfStyle.ROW.HEIGHT, railwayBillNumber);
-    yPos = yPos + PdfStyle.ROW.HEIGHT;
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT, yPos, 265, PdfStyle.ROW.HEIGHT, 'Other transport document');
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 265, yPos, 265, PdfStyle.ROW.HEIGHT);
-    yPos = yPos + PdfStyle.ROW.HEIGHT + 7;
+    const flightNumber = getFlightDetails(data);
+
+    const truckDetails = getTruckDetails(data);
+
+    const railwayBillNumber = getRailwayBillNumber(data);
+
+    doc.addStructure(doc.struct('Table', [
+        doc.struct('TR', [
+            doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT, yPos, 265, PdfStyle.ROW.HEIGHT, 'Country of exportation')),
+            doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 265, yPos, 265, PdfStyle.ROW.HEIGHT, countryOfExport)),
+        ]),
+        doc.struct('TR', [
+            doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT, yPos +  PdfStyle.ROW.HEIGHT, 265, PdfStyle.ROW.HEIGHT, 'Port/airport/other place of departure')),
+            doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 265, yPos +  PdfStyle.ROW.HEIGHT, 265, PdfStyle.ROW.HEIGHT, departurePlace)),
+        ]),
+        doc.struct('TR', [
+            doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT, yPos + (PdfStyle.ROW.HEIGHT * 2), 265, PdfStyle.ROW.HEIGHT, 'Vessel name and flag')),
+            doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 265, yPos + (PdfStyle.ROW.HEIGHT * 2), 265, PdfStyle.ROW.HEIGHT, vcDetails)),
+        ]),
+        doc.struct('TR', [
+            doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT, yPos + (PdfStyle.ROW.HEIGHT * 3), 265, PdfStyle.ROW.HEIGHT, 'Flight number/airway bill number')),
+            doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 265, yPos + (PdfStyle.ROW.HEIGHT * 3), 265, PdfStyle.ROW.HEIGHT, flightNumber)),
+        ]),
+        doc.struct('TR', [
+            doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT, yPos + (PdfStyle.ROW.HEIGHT * 4), 265, PdfStyle.ROW.HEIGHT, 'Truck nationality and registration number')),
+            doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 265, yPos + (PdfStyle.ROW.HEIGHT * 4), 265, PdfStyle.ROW.HEIGHT, truckDetails)),
+        ]),
+        doc.struct('TR', [
+            doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT, yPos + (PdfStyle.ROW.HEIGHT * 5), 265, PdfStyle.ROW.HEIGHT, 'Railway bill number')),
+            doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 265, yPos + (PdfStyle.ROW.HEIGHT * 5), 265, PdfStyle.ROW.HEIGHT, railwayBillNumber)),
+        ]),
+        doc.struct('TR', [
+            doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT, yPos + (PdfStyle.ROW.HEIGHT * 6), 265, PdfStyle.ROW.HEIGHT, 'Other transport document')),
+            doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 265, yPos + (PdfStyle.ROW.HEIGHT * 6), 265, PdfStyle.ROW.HEIGHT)),
+        ])
+    ]));
+
+    yPos = yPos + (PdfStyle.ROW.HEIGHT * 6) + PdfStyle.ROW.HEIGHT + 7;
 
     doc.fontSize(PdfStyle.FONT_SIZE.LARGE);
     PdfUtils.label(doc, PdfStyle.MARGIN.LEFT, yPos, 'Container number(s) list attached');
@@ -421,27 +538,90 @@ const appendixTransportDetails = (doc, data, startY) => {
         exporterCompanyName = data.exporter.exporterCompanyName;
     }
 
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 270, yPos, 100, PdfStyle.ROW.HEIGHT + 5, 'Name');
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 370, yPos, 160, PdfStyle.ROW.HEIGHT + 5, exporterFullName);
-    yPos = yPos + PdfStyle.ROW.HEIGHT + 5;
     cellHeight = PdfStyle.ROW.HEIGHT * 8 + 5;
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 270, yPos, 100, cellHeight, 'Address');
-    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 370, yPos, 160, cellHeight, [exporterCompanyName, exporterAddress]);
-    yPos = yPos + cellHeight;
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 270, yPos, 100, cellHeight, 'Signature');
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 370, yPos, 160, cellHeight);
 
-    PdfUtils.separator(doc, yPos + cellHeight + 10);
+    doc.addStructure(doc.struct('Table', [
+        doc.struct('TR', [
+            doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 270, yPos, 100, PdfStyle.ROW.HEIGHT + 5, 'Name')),
+            doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 370, yPos, 160, PdfStyle.ROW.HEIGHT + 5, exporterFullName)),
+        ]),
+        doc.struct('TR', [
+            doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 270, yPos + PdfStyle.ROW.HEIGHT + 5, 100, cellHeight, 'Address')),
+            doc.struct('TD', ()=> PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 370, yPos + PdfStyle.ROW.HEIGHT + 5, 160, cellHeight, [exporterCompanyName, exporterAddress])),
+        ]),
+        doc.struct('TR', [
+            doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 270, yPos + PdfStyle.ROW.HEIGHT + 5 + cellHeight, 100, cellHeight, 'Signature')),
+            doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 370, yPos + PdfStyle.ROW.HEIGHT + 5 + cellHeight, 160, cellHeight)),
+        ])
+    ]));
+
+    PdfUtils.separator(doc, yPos + PdfStyle.ROW.HEIGHT + 5 + (cellHeight * 2) + 10);
 };
+
+const getVcDetails = (data) => {
+    let vcDetails = '';
+    if (data.transport?.vehicle) {
+        const vehicleType = data.transport.vehicle.toUpperCase();
+
+        if (vehicleType === 'CONTAINERVESSEL') {
+            vcDetails += (data.transport.vesselName ? `${data.transport.vesselName} ` : '') +
+                        (data.transport.flagState || '');
+        } else if (vehicleType === 'DIRECTLANDING') {
+            const vessel = data.exportPayload?.items[0].landings[0].model.vessel;
+            vcDetails += (vessel?.vesselName ? `${vessel.vesselName} ` : '') +
+                        (vessel?.pln ? `(${vessel.pln})` : '');
+        }
+    }
+    return vcDetails;
+}
+
+const getDeparturePlace = (data) => {
+    let departurePlace = '';
+
+    if (data.transport) {
+        departurePlace = data.transport.cmr === 'true' ? 'See attached transport documents' : data.transport.departurePlace;
+    }
+    return departurePlace;
+}
+
+const getFlightDetails = (data) => {
+    let flightNumber = '';
+    if (data.transport) {
+        flightNumber = data.transport.flightNumber;
+    }
+    return flightNumber;
+}
+
+const getTruckDetails = (data) => {
+    let truckDetails = '';
+
+    if (data.transport?.vehicle?.toUpperCase() === 'TRUCK') {
+        truckDetails += (data.transport.nationalityOfVehicle ? `${data.transport.nationalityOfVehicle} ` : '') +
+                (data.transport.registrationNumber || '');
+    }
+
+    return truckDetails;
+}
+
+const getRailwayBillNumber = (data) => {
+    let railwayBillNumber = '';
+    if (data.transport) {
+        railwayBillNumber = data.transport.railwayBillNumber;
+    }
+
+    return railwayBillNumber;
+}
 
 const appendixHeading = (doc, startY) => {
 
     doc.fillColor('#353535');
-    doc.fontSize(PdfStyle.FONT_SIZE.LARGEST);
+    doc.fontSize(PdfStyle.FONT_SIZE.LARGE);
     doc.font(PdfStyle.FONT.BOLD);
-    doc.text('Appendix I', 0, startY, {
-        align: 'center'
-    });
+    doc.addStructure(doc.struct('H2', {}, () => {
+        doc.text('Appendix I', 0, startY, {
+            align: 'center'
+        });
+    }));
 };
 
 const section17 = (doc, data, startY) => {
@@ -449,20 +629,26 @@ const section17 = (doc, data, startY) => {
     let yPos = startY + 12;
     let cellHeight = PdfStyle.ROW.HEIGHT * 2 - 3;
 
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 155, cellHeight, 'Place');
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 170, yPos, 110, cellHeight, 'Re-export authorised (*)');
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 280, yPos, 110, cellHeight, 'Verification requested (*)');
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 390, yPos, 140, cellHeight, ['Re-export declaration', 'number and date']);
+    doc.addStructure(doc.struct('Table', [
+        doc.struct('THead', [
+            doc.struct('TR', [
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 155, cellHeight, 'Place')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 170, yPos, 110, cellHeight, 'Re-export authorised (*)')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 280, yPos, 110, cellHeight, 'Verification requested (*)')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 390, yPos, 140, cellHeight, ['Re-export declaration', 'number and date']))
+            ])
+        ]),
+        doc.struct('TBody', [
+            doc.struct('TR', [
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos + cellHeight, 155, PdfStyle.ROW.HEIGHT * 6)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 170, yPos + cellHeight, 110, PdfStyle.ROW.HEIGHT * 6)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 280, yPos + cellHeight, 110, PdfStyle.ROW.HEIGHT * 6)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 390, yPos + cellHeight, 140, PdfStyle.ROW.HEIGHT * 6))
+            ])
+        ])
+    ]));
 
-    yPos += cellHeight;
-    cellHeight = PdfStyle.ROW.HEIGHT * 6;
-
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 155, cellHeight);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 170, yPos, 110, cellHeight);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 280, yPos, 110, cellHeight);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 390, yPos, 140, cellHeight);
-
-    yPos += cellHeight + 5;
+    yPos += cellHeight + PdfStyle.ROW.HEIGHT * 6 + 5;
     doc.text('* Tick as appropriate', PdfStyle.MARGIN.LEFT + 15, yPos);
 
     PdfUtils.separator(doc, yPos + 15);
@@ -471,21 +657,28 @@ const section17 = (doc, data, startY) => {
 const section16 = (doc, data, startY) => {
     PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '3    Authority');
     let yPos = startY + 12;
-
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 210, PdfStyle.ROW.HEIGHT, 'Name / title');
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 225, yPos, 110, PdfStyle.ROW.HEIGHT, 'Signature');
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 335, yPos, 95, PdfStyle.ROW.HEIGHT, 'Date');
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 430, yPos, 100, PdfStyle.ROW.HEIGHT, 'Seal');
-
-    yPos += PdfStyle.ROW.HEIGHT;
     let cellHeight = PdfStyle.ROW.HEIGHT * 6;
 
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 210, cellHeight);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 225, yPos, 110, cellHeight);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 335, yPos, 95, cellHeight);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 430, yPos, 100, cellHeight);
+    doc.addStructure(doc.struct('Table', [
+        doc.struct('THead', [
+            doc.struct('TR', [
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 210, PdfStyle.ROW.HEIGHT, 'Name / title')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 225, yPos, 110, PdfStyle.ROW.HEIGHT, 'Signature')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 335, yPos, 95, PdfStyle.ROW.HEIGHT, 'Date')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 430, yPos, 100, PdfStyle.ROW.HEIGHT, 'Seal'))
+            ])
+        ]),
+        doc.struct('TBody', [
+            doc.struct('TR', [
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos + PdfStyle.ROW.HEIGHT, 210, cellHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 225, yPos + PdfStyle.ROW.HEIGHT, 110, cellHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 335, yPos + PdfStyle.ROW.HEIGHT, 95, cellHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 430, yPos + PdfStyle.ROW.HEIGHT, 100, cellHeight))
+            ])
+        ])
+    ]));
 
-    PdfUtils.separator(doc, yPos + cellHeight + 8);
+    PdfUtils.separator(doc, yPos + PdfStyle.ROW.HEIGHT + cellHeight + 8);
 };
 
 const section15 = (doc, data, startY) => {
@@ -495,19 +688,26 @@ const section15 = (doc, data, startY) => {
 
     let cellHeight = PdfStyle.ROW.HEIGHT * 6;
 
-    PdfUtils.tableHeaderCellBold(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 140, PdfStyle.ROW.HEIGHT, 'Name of re-exporter');
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 155, yPos, 215, PdfStyle.ROW.HEIGHT, 'Address');
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 370, yPos, 90, PdfStyle.ROW.HEIGHT, 'Signature');
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 460, yPos, 70, PdfStyle.ROW.HEIGHT, 'Date');
+    doc.addStructure(doc.struct('Table', [
+        doc.struct('THead', [
+            doc.struct('TR', [
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCellBold(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 140, PdfStyle.ROW.HEIGHT, 'Name of re-exporter')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 155, yPos, 215, PdfStyle.ROW.HEIGHT, 'Address')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 370, yPos, 90, PdfStyle.ROW.HEIGHT, 'Signature')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 460, yPos, 70, PdfStyle.ROW.HEIGHT, 'Date'))
+            ])
+        ]),
+        doc.struct('TBody', [
+            doc.struct('TR', [
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos + PdfStyle.ROW.HEIGHT, 140, cellHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 155, yPos + PdfStyle.ROW.HEIGHT, 215, cellHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 370, yPos + PdfStyle.ROW.HEIGHT, 90, cellHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 460, yPos + PdfStyle.ROW.HEIGHT, 70, cellHeight))
+            ])
+        ])
+    ]));
 
-    yPos += PdfStyle.ROW.HEIGHT;
-
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 140, cellHeight);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 155, yPos, 215, cellHeight);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 370, yPos, 90, cellHeight);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 460, yPos, 70, cellHeight);
-
-    PdfUtils.separator(doc, yPos + cellHeight + 8);
+    PdfUtils.separator(doc, yPos + PdfStyle.ROW.HEIGHT + cellHeight + 8);
 };
 
 const section14 = (doc, data, startY) => {
@@ -517,24 +717,32 @@ const section14 = (doc, data, startY) => {
     yPos += 12;
     let cellHeight = PdfStyle.ROW.HEIGHT * 2 - 3;
 
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 205, cellHeight, 'Species');
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 220, yPos, 150, cellHeight, 'Product code');
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 370, yPos, 160, cellHeight, ['Balance from total quantity declared', 'in the catch certificate']);
+    doc.addStructure(doc.struct('Table', [
+        doc.struct('THead', [
+            doc.struct('TR', [
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 205, cellHeight, 'Species')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 220, yPos, 150, cellHeight, 'Product code')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 370, yPos, 160, cellHeight, ['Balance from total quantity declared', 'in the catch certificate'])),
+            ])
+        ]),
+        doc.struct('TBody', [
+            doc.struct('TR', [
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos + cellHeight, 205, PdfStyle.ROW.HEIGHT * 10)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 220, yPos + cellHeight, 150, PdfStyle.ROW.HEIGHT * 10)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 370, yPos + cellHeight, 160, PdfStyle.ROW.HEIGHT * 10)),
+            ])
+        ])
+    ]));
 
-    yPos += cellHeight;
-    cellHeight = PdfStyle.ROW.HEIGHT * 10;
-
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 205, cellHeight);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 220, yPos, 150, cellHeight);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 370, yPos, 160, cellHeight);
-
-    PdfUtils.separator(doc, yPos + cellHeight + 8);
+    PdfUtils.separator(doc, (yPos + cellHeight) + (PdfStyle.ROW.HEIGHT * 10) + 8);
 };
 
 const section13 = (doc, data, startY) => {
 
     doc.fontSize(PdfStyle.FONT_SIZE.MEDIUM);
-    doc.text('(ii) RE-EXPORT CERTIFICATE', PdfStyle.MARGIN.LEFT, startY);
+    doc.addStructure(doc.struct('H3', {}, () => {
+        doc.text('(ii) RE-EXPORT CERTIFICATE', PdfStyle.MARGIN.LEFT, startY);
+    }));
     doc.lineWidth(2);
     doc.moveTo(180, startY + 4).lineTo(560, startY + 4).stroke();
 
@@ -554,40 +762,52 @@ const section12 = (doc, data, startY) => {
     let yPos = startY + PdfStyle.ROW.HEIGHT * 3;
     PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, yPos, '12');
 
-    let cellHeight = PdfStyle.ROW.HEIGHT * 2 - 3;
+    const headerHeight =  PdfStyle.ROW.HEIGHT * 2 - 3;
+    const rowHeight = PdfStyle.ROW.HEIGHT * 7;
 
-    PdfUtils.tableHeaderCellBold(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 150, cellHeight, 'Import Control Authority');
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 165, yPos, 105, cellHeight, 'Place');
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 270, yPos, 80, cellHeight, ['Importation', 'authorised*']);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 350, yPos, 80, cellHeight, ['Importation', 'suspended*']);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 430, yPos, 100, cellHeight, ['Verification requested', '– date']);
+    doc.addStructure(doc.struct('Table', [
+        doc.struct('THead', [
+            doc.struct('TR', [
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCellBold(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 150, headerHeight, 'Import Control Authority')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 165, yPos, 105, headerHeight, 'Place')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 270, yPos, 80, headerHeight, ['Importation', 'authorised*'])),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 350, yPos, 80, headerHeight, ['Importation', 'suspended*'])),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 430, yPos, 100, headerHeight, ['Verification requested', '– date']))
+            ])
+        ]),
+        doc.struct('TBody', [
+            doc.struct('TR', [
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos + headerHeight, 150, rowHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 165, yPos + headerHeight, 105, rowHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 270, yPos + headerHeight, 80, rowHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 350, yPos + headerHeight, 80, rowHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 430, yPos + headerHeight, 100, rowHeight))
+            ])
+        ])
+    ]));
 
-    yPos += cellHeight;
-    cellHeight = PdfStyle.ROW.HEIGHT * 7;
+    yPos += headerHeight + rowHeight;
 
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 150, cellHeight);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 165, yPos, 105, cellHeight);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 270, yPos, 80, cellHeight);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 350, yPos, 80, cellHeight);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 430, yPos, 100, cellHeight);
+    doc.addStructure(doc.struct('Table', [
+        doc.struct('THead', [
+            doc.struct('TR', [
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 150, headerHeight, 'Customs declaration (if issued)')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 165, yPos, 185, headerHeight, 'Number')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 350, yPos, 80, headerHeight, 'Date')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 430, yPos, 100, headerHeight, 'Place')),
+            ])
+        ]),
+        doc.struct('TBody', [
+            doc.struct('TR', [
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos + headerHeight, 150,  rowHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 165, yPos + headerHeight, 185,  rowHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 350, yPos + headerHeight, 80,  rowHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 430, yPos + headerHeight, 100,  rowHeight)),
+            ])
+        ])
+    ]));
 
-    yPos += cellHeight;
-    cellHeight = PdfStyle.ROW.HEIGHT * 2 - 3;
-
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 150, cellHeight, 'Customs declaration (if issued)');
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 165, yPos, 185, cellHeight, 'Number');
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 350, yPos, 80, cellHeight, 'Date');
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 430, yPos, 100, cellHeight, 'Place');
-
-    yPos += cellHeight;
-    cellHeight = PdfStyle.ROW.HEIGHT * 7;
-
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 150, cellHeight);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 165, yPos, 185, cellHeight);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 350, yPos, 80, cellHeight);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 430, yPos, 100, cellHeight);
-
-    yPos += cellHeight + 5;
+    yPos += headerHeight + rowHeight + 5;
 
     doc.text('* Tick as appropriate', PdfStyle.MARGIN.LEFT + 15, yPos);
 };
@@ -597,28 +817,42 @@ const section11 = (doc, data, startY) => {
     let yPos = startY + PdfStyle.ROW.HEIGHT * 3 + 12;
     let cellHeight = PdfStyle.ROW.HEIGHT * 3;
 
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 150, PdfStyle.ROW.HEIGHT, 'Name and address of Importer');
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 165, yPos, 95, PdfStyle.ROW.HEIGHT, 'Signature');
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 260, yPos, 95, PdfStyle.ROW.HEIGHT, 'Date');
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 355, yPos, 80, PdfStyle.ROW.HEIGHT, 'Seal');
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 435, yPos, 95, PdfStyle.ROW.HEIGHT, 'Product CN code');
+    doc.addStructure(doc.struct('Table', [
+        doc.struct('THead', [
+            doc.struct('TR', [
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 150, PdfStyle.ROW.HEIGHT, 'Name and address of Importer')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 165, yPos, 95, PdfStyle.ROW.HEIGHT, 'Signature')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 260, yPos, 95, PdfStyle.ROW.HEIGHT, 'Date')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 355, yPos, 80, PdfStyle.ROW.HEIGHT, 'Seal')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 435, yPos, 95, PdfStyle.ROW.HEIGHT, 'Product CN code'))
 
-    yPos += PdfStyle.ROW.HEIGHT;
+            ])
+        ]),
+        doc.struct('TBody', [
+            doc.struct('TR', [
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos + PdfStyle.ROW.HEIGHT, 150, cellHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 165, yPos + PdfStyle.ROW.HEIGHT, 95, cellHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 260, yPos + PdfStyle.ROW.HEIGHT, 95, cellHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 355, yPos + PdfStyle.ROW.HEIGHT, 80, cellHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 435, yPos + PdfStyle.ROW.HEIGHT, 95, cellHeight))
 
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 150, cellHeight);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 165, yPos, 95, cellHeight);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 260, yPos, 95, cellHeight);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 355, yPos, 80, cellHeight);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 435, yPos, 95, cellHeight);
+            ])
+        ])
+    ]));
 
-    yPos += cellHeight;
+    yPos += cellHeight + PdfStyle.ROW.HEIGHT;
 
     cellHeight = PdfStyle.ROW.HEIGHT * 3 - 8;
 
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 150, cellHeight,
-        ['Documents under Articles', '14(1), (2) of Regulation (EC)', 'No. 1005/2008']);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 165, yPos, 70, cellHeight, 'References');
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 225, yPos, 305, cellHeight);
+    doc.addStructure(doc.struct('Table', [
+        doc.struct('TR', [
+            doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 150, cellHeight,
+                ['Documents under Articles', '14(1), (2) of Regulation (EC)', 'No. 1005/2008'])),
+            doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 165, yPos, 70, cellHeight, 'References')),
+            doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 225, yPos, 305, cellHeight)),
+
+        ])
+    ]));
 
     doc.lineWidth(1.5);
     doc.undash();
@@ -639,14 +873,26 @@ const section9 = (doc, data, isSample, buff, startY) => {
     if (!data.isBlankTemplate && !isSample) {
         PdfUtils.qrCode(doc, buff, PdfStyle.MARGIN.LEFT + 330, yPos - PdfStyle.ROW.HEIGHT);
     }
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 250, PdfStyle.ROW.HEIGHT, 'Date Issued');
-    yPos += PdfStyle.ROW.HEIGHT;
+
     let dateIssued = PdfUtils.todaysDate();
     if (data.isBlankTemplate) {
         dateIssued = '';
     }
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 250, cellHeight, dateIssued);
-    PdfUtils.separator(doc, yPos  + 2 * PdfStyle.ROW.HEIGHT + 12);
+
+    doc.addStructure(doc.struct('Table', [
+        doc.struct('THead', [
+            doc.struct('TR', [
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 250, PdfStyle.ROW.HEIGHT, 'Date Issued')),
+            ])
+        ]),
+        doc.struct('TBody', [
+            doc.struct('TR', [
+                doc.struct('TD', ()=>  PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos + PdfStyle.ROW.HEIGHT, 250, cellHeight, dateIssued)),
+            ])
+        ])
+    ]));
+
+    PdfUtils.separator(doc, (yPos + PdfStyle.ROW.HEIGHT)  + 2 * PdfStyle.ROW.HEIGHT + 12);
 };
 
 const section8 = (doc, data, startY) => {
@@ -655,13 +901,6 @@ const section8 = (doc, data, startY) => {
     PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, yPos, '8');
 
     let cellHeight = PdfStyle.ROW.HEIGHT * 7 + 2;
-
-    PdfUtils.tableHeaderCellBold(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 230, PdfStyle.ROW.HEIGHT, 'Name and address of Exporter');
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 245, yPos, 115, PdfStyle.ROW.HEIGHT, 'Signature');
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 360, yPos, 95, PdfStyle.ROW.HEIGHT, 'Date of acceptance(*)');
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 455, yPos, 75, PdfStyle.ROW.HEIGHT, 'Seal');
-
-    yPos += PdfStyle.ROW.HEIGHT;
 
     let exporterAddress = '';
     let exporterFullName = '';
@@ -678,13 +917,28 @@ const section8 = (doc, data, startY) => {
         dateOfAcceptance = '';
     }
 
-    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 230, cellHeight,
-        [exporterFullName, exporterCompanyName, exporterAddress]);
-    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 245, yPos, 115, cellHeight, exporterFullName);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 360, yPos, 95, cellHeight, dateOfAcceptance);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 455, yPos, 75, cellHeight);
 
-    yPos += cellHeight + 5;
+    doc.addStructure(doc.struct('Table', [
+        doc.struct('THead', [
+            doc.struct('TR', [
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCellBold(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 230, PdfStyle.ROW.HEIGHT, 'Name and address of Exporter')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 245, yPos, 115, PdfStyle.ROW.HEIGHT, 'Signature')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 360, yPos, 95, PdfStyle.ROW.HEIGHT, 'Date of acceptance(*)')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 455, yPos, 75, PdfStyle.ROW.HEIGHT, 'Seal'))
+            ])
+        ]),
+        doc.struct('TBody', [
+            doc.struct('TR', [
+                doc.struct('TD', ()=> PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 15, yPos + PdfStyle.ROW.HEIGHT, 230, cellHeight,
+                    [exporterFullName, exporterCompanyName, exporterAddress])),
+                doc.struct('TD', ()=> PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 245, yPos + PdfStyle.ROW.HEIGHT, 115, cellHeight, exporterFullName)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 360, yPos + PdfStyle.ROW.HEIGHT, 95, cellHeight, dateOfAcceptance)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 455, yPos + PdfStyle.ROW.HEIGHT, 75, cellHeight))
+            ])
+        ])
+    ]));
+
+    yPos += cellHeight + 5 + PdfStyle.ROW.HEIGHT;
     doc.text('* Date of acceptance by exporter of the veracity of the contents of this document', PdfStyle.MARGIN.LEFT + 15, yPos);
 
     PdfUtils.separator(doc, yPos + PdfStyle.ROW.HEIGHT );
@@ -696,27 +950,34 @@ const section7 = (doc, data, startY) => {
     let yPos = startY + 12;
     let cellHeight = PdfStyle.ROW.HEIGHT * 2 - 3;
 
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 65, cellHeight, 'Name');
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 80, yPos, 60, cellHeight, 'Authority');
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 140, yPos, 60, cellHeight, 'Signature');
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 200, yPos, 65, cellHeight, 'Address');
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 265, yPos, 60, cellHeight, 'Tel.');
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 325, yPos, 75, cellHeight, 'Port of Landing');
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 400, yPos, 60, cellHeight, 'Date of Landing');
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 460, yPos, 70, cellHeight, 'Seal (Stamp)');
+    doc.addStructure(doc.struct('Table', [
+        doc.struct('THead', [
+            doc.struct('TR', [
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 65, cellHeight, 'Name')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 80, yPos, 60, cellHeight, 'Authority')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 140, yPos, 60, cellHeight, 'Signature')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 200, yPos, 65, cellHeight, 'Address')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 265, yPos, 60, cellHeight, 'Tel.')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 325, yPos, 75, cellHeight, 'Port of Landing')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 400, yPos, 60, cellHeight, 'Date of Landing')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 460, yPos, 70, cellHeight, 'Seal (Stamp)'))
+            ])
+        ]),
+        doc.struct('TBody', [
+            doc.struct('TR', [
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos + cellHeight, 65, cellHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 80, yPos + cellHeight, 60, cellHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 140, yPos + cellHeight, 60, cellHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 200, yPos + cellHeight, 65, cellHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 265, yPos + cellHeight, 60, cellHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 325, yPos + cellHeight, 75, cellHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 400, yPos + cellHeight, 60, cellHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 460, yPos + cellHeight, 70, cellHeight))
+            ])
+        ])
+    ]));
 
-    yPos += cellHeight;
-
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 65, cellHeight);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 80, yPos, 60, cellHeight);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 140, yPos, 60, cellHeight);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 200, yPos, 65, cellHeight);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 265, yPos, 60, cellHeight);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 325, yPos, 75, cellHeight);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 400, yPos, 60, cellHeight);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 460, yPos, 70, cellHeight);
-
-    PdfUtils.separator(doc, yPos + 35);
+    PdfUtils.separator(doc, yPos + 35 + cellHeight);
 };
 
 const section6 = (doc, data, startY) => {
@@ -726,34 +987,48 @@ const section6 = (doc, data, startY) => {
 
     let cellHeight = PdfStyle.ROW.HEIGHT * 2 - 3;
 
-    PdfUtils.tableHeaderCellBold(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 220, cellHeight, ['Declaration of Transhipment at Sea', 'Name of Master of Fishing Vessel']);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 235, yPos, 100, cellHeight, ['Signature', 'and Date']);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 335, yPos, 115, cellHeight, ['Transhipment', 'Date/Area/Position']);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 450, yPos, 80, cellHeight, 'Estimated weight (kg)');
+    doc.addStructure(doc.struct('Table', [
+        doc.struct('THead', [
+            doc.struct('TR', [
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCellBold(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 220, cellHeight, ['Declaration of Transhipment at Sea', 'Name of Master of Fishing Vessel'])),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 235, yPos, 100, cellHeight, ['Signature', 'and Date'])),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 335, yPos, 115, cellHeight, ['Transhipment', 'Date/Area/Position'])),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 450, yPos, 80, cellHeight, 'Estimated weight (kg)'))
+            ])
+        ]),
+        doc.struct('TBody', [
+            doc.struct('TR', [
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos + cellHeight, 220, cellHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 235, yPos + cellHeight, 100, cellHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 335, yPos + cellHeight, 115, cellHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 450, yPos + cellHeight, 80, cellHeight))
+            ])
+        ])
+    ]));
 
-    yPos += cellHeight;
+    yPos += cellHeight + 33;
 
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 220, cellHeight);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 235, yPos, 100, cellHeight);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 335, yPos, 115, cellHeight);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 450, yPos, 80, cellHeight);
+    doc.addStructure(doc.struct('Table', [
+        doc.struct('THead', [
+            doc.struct('TR', [
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 120, cellHeight, ['Master of Receiving', 'Vessel'])),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 135, yPos, 110, cellHeight, 'Signature')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 245, yPos, 90, cellHeight, 'Vessel Name')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 335, yPos, 100, cellHeight, 'Call Sign')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 435, yPos, 95, cellHeight, ['IMO/Lloyds Number', '(if issued)']))
+            ])
+        ]),
+        doc.struct('TBody', [
+            doc.struct('TR', [
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos + cellHeight, 120, cellHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 135, yPos + cellHeight, 110, cellHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 245, yPos + cellHeight, 90, cellHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 335, yPos + cellHeight, 100, cellHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 435, yPos + cellHeight, 95, cellHeight))
 
-    yPos += 33;
-
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 120, cellHeight, ['Master of Receiving', 'Vessel']);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 135, yPos, 110, cellHeight, 'Signature');
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 245, yPos, 90, cellHeight, 'Vessel Name');
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 335, yPos, 100, cellHeight, 'Call Sign');
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 435, yPos, 95, cellHeight, ['IMO/Lloyds Number', '(if issued)']);
-
-    yPos += cellHeight;
-
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 120, cellHeight);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 135, yPos, 110, cellHeight);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 245, yPos, 90, cellHeight);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 335, yPos, 100, cellHeight);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 435, yPos, 95, cellHeight);
-
+            ])
+        ])
+    ]));
 };
 
 const section5 = (doc, data, startY) => {
@@ -782,9 +1057,9 @@ const section4 = (doc, data, startY) => {
 };
 
 function getLicenceHolder(exportPayload) {
-    if (exportPayload && exportPayload.items && exportPayload.items.length > 0) {
+    if (exportPayload?.items && exportPayload.items.length > 0) {
         const landings = exportPayload.items[0].landings;
-        return landings && landings.length > 0 && landings[0].model && landings[0].model.vessel ? landings[0].model.vessel.licenceHolder : ''
+        return landings && landings.length > 0 && landings[0].model?.vessel ? landings[0].model.vessel.licenceHolder : ''
     }
 
     return '';
@@ -793,7 +1068,7 @@ function getLicenceHolder(exportPayload) {
 function getDescOfProductRows(exportPayload) {
 
     let items = [];
-    if (exportPayload && exportPayload.items) {
+    if (exportPayload?.items) {
         items =  exportPayload.items;
     }
     let accum = {};
@@ -824,6 +1099,10 @@ function getDescOfProductRows(exportPayload) {
     return Object.values(accum);
 }
 
+function getExportWeight(weight) {
+    return `${Number(weight).toFixed(2) > 9999999.99 ? parseInt(weight) : Number(weight).toFixed(2)}`;
+}
+
 const section3 = (doc, data, startY) => {
 
     PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '3    Description of Product');
@@ -831,39 +1110,154 @@ const section3 = (doc, data, startY) => {
     PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, startY + 26, 515, PdfStyle.ROW.HEIGHT);
 
     let cellHeight = PdfStyle.ROW.HEIGHT * 3 - 7;
-
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, startY + 48, 145, cellHeight, 'Species');
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 160, startY + 48, 55, cellHeight, 'Product Code');
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 215, startY + 48, 60, cellHeight, ['Catch', 'Area(s)']);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 275, startY + 48, 70, cellHeight, ['Dates', 'Landed']);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 345, startY + 48, 50, cellHeight, 'Estimated live weight(kg)');
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 395, startY + 48, 55, cellHeight, 'Estimated weight to be landed(kg)');
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 450, startY + 48, 80, cellHeight, 'Verified weight landed(kg) where appropriate');
-
     let rowData = getDescOfProductRows(data.exportPayload);
+    let arrLength = rowData.length;
+    const allRowsLength = getProductScheduleRows(data.exportPayload).length;
+
+    const myTable = doc.struct('Table');
+    doc.addStructure(myTable);
+
+    const tableHead = doc.struct('THead');
+    myTable.add(tableHead);
+
+    const tableHeadRow = doc.struct('TR');
+    tableHead.add(tableHeadRow);
+
+    const tableHeadOne = doc.struct('TH');
+    tableHeadRow.add(tableHeadOne);
+    const headOneContent = doc.markStructureContent('TH');
+    tableHeadOne.add(headOneContent)
+    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, startY + 48, 145, cellHeight, 'Species');
+    tableHeadOne.end();
+
+    const tableHeadTwo = doc.struct('TH');
+    tableHeadRow.add(tableHeadTwo);
+    const headTwoContent = doc.markStructureContent('TH');
+    tableHeadTwo.add(headTwoContent);
+    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 160, startY + 48, 55, cellHeight, 'Product Code');
+    tableHeadTwo.end();
+
+    const tableHeadThree = doc.struct('TH');
+    tableHeadRow.add(tableHeadThree);
+    const headThreeContent = doc.markStructureContent('TH');
+    tableHeadThree.add(headThreeContent);
+    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 215, startY + 48, 60, cellHeight, ['Catch', 'Area(s)']);
+    tableHeadThree.end();
+
+    const tableHeadFour = doc.struct('TH');
+    tableHeadRow.add(tableHeadFour);
+    const headFourContent = doc.markStructureContent('TH');
+    tableHeadFour.add(headFourContent);
+    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 275, startY + 48, 70, cellHeight, ['Dates', 'Landed']);
+    tableHeadFour.end();
+
+    const tableHeadFive = doc.struct('TH');
+    tableHeadRow.add(tableHeadFive);
+    const headFiveContent =  doc.markStructureContent('TH');
+    tableHeadFive.add(headFiveContent)
+    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 345, startY + 48, 50, cellHeight, 'Estimated live weight(kg)');
+    tableHeadFive.end();
+
+    const tableHeadSix = doc.struct('TH');
+    tableHeadRow.add(tableHeadSix);
+    const headSixContent =  doc.markStructureContent('TH');
+    tableHeadSix.add(headSixContent);
+    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 395, startY + 48, 55, cellHeight, 'Estimated weight to be landed(kg)');
+    tableHeadSix.end();
+
+    const tableHeadSeven = doc.struct('TH');
+    tableHeadRow.add(tableHeadSeven);
+    const headSevenContent = doc.markStructureContent('TH');
+    tableHeadSeven.add(headSevenContent);
+    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 450, startY + 48, 80, cellHeight, 'Verified weight landed(kg) where appropriate');
+    tableHeadSeven.end();
+
+    tableHeadRow.end();
+    tableHead.end();
+
+    const tableBody = doc.struct('TBody');
+    myTable.add(tableBody);
 
     let y = startY + 86;
-    let arrLength = rowData.length;
     let listLimit = 6;
     if (arrLength > 6) {
         listLimit = 0;
     }
 
     for (let rowIdx = 0; rowIdx < listLimit; rowIdx++) {
+        const tableBodyRow = doc.struct('TR');
+        tableBody.add(tableBodyRow);
+
+        const TdOne = doc.struct('TD');
+        tableBodyRow.add(TdOne);
+        const TdOneContent = doc.markStructureContent('TD');
+        TdOne.add(TdOneContent);
         PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, y, 145, PdfStyle.ROW.HEIGHT, rowIdx < arrLength ? `${rowData[rowIdx].species}` : '');
+        TdOne.end();
+
+        const TdTwo = doc.struct('TD');
+        tableBodyRow.add(TdTwo);
+        const TdTwoContent = doc.markStructureContent('TD');
+        TdTwo.add(TdTwoContent);
         PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 160, y, 55, PdfStyle.ROW.HEIGHT, rowIdx < arrLength ? `${rowData[rowIdx].commodityCode}` : '');
+        TdTwo.end();
+
+        const TdThree = doc.struct('TD');
+        tableBodyRow.add(TdThree);
+        const TdThreeContent = doc.markStructureContent('TD');
+        TdThree.add(TdThreeContent);
         PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 215, y, 60, PdfStyle.ROW.HEIGHT, rowIdx < arrLength ? `${rowData[rowIdx].catchAreas}` : '');
+        TdThree.end();
+
+        const TdFour = doc.struct('TD');
+        tableBodyRow.add(TdFour);
+        const TdFourContent = doc.markStructureContent('TD');
+        TdFour.add(TdFourContent);
         PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 275, y, 70, PdfStyle.ROW.HEIGHT, rowIdx < arrLength ? `${rowData[rowIdx].dates}` : '');
+        TdFour.end();
+
+        const TdFive = doc.struct('TD');
+        tableBodyRow.add(TdFive);
+        const TdFiveContent = doc.markStructureContent('TD');
+        TdFive.add(TdFiveContent);
         PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 345, y, 50, PdfStyle.ROW.HEIGHT);
-        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 395, y, 55, PdfStyle.ROW.HEIGHT, rowIdx < arrLength ? `${Number(rowData[rowIdx].exportWeight).toFixed(2)}` : '');
+        TdFive.end();
+
+        const TdSix = doc.struct('TD');
+        tableBodyRow.add(TdSix);
+        const TdSixContent = doc.markStructureContent('TD');
+        TdSix.add(TdSixContent);
+        let exportWeightText = '';
+        if (rowIdx < arrLength) {
+          exportWeightText = getExportWeight(rowData[rowIdx].exportWeight);
+        }
+        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 395, y, 55, PdfStyle.ROW.HEIGHT, exportWeightText);
+        TdSix.end();
+
+        const TdSeven = doc.struct('TD');
+        tableBodyRow.add(TdSeven);
+        const TdSevenContent = doc.markStructureContent('TD');
+        TdSeven.add(TdSevenContent);
         PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 450, y, 80, PdfStyle.ROW.HEIGHT);
+        TdSeven.end();
+
+        tableBodyRow.end();
         y += PdfStyle.ROW.HEIGHT;
     }
+    doc.endMarkedContent();
+
+
     if (arrLength > 6) {
         cellHeight = PdfStyle.ROW.HEIGHT * 6;
-        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, y, 515, cellHeight, 'SEE SCHEDULE (' + arrLength + ' rows)');
+        const seeScheduleRow = doc.struct('TR', () => {
+            PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, y, 515, cellHeight, 'SEE SCHEDULE (' + allRowsLength + ' rows)');
+        });
+        tableBody.add(seeScheduleRow);
+        seeScheduleRow.end();
     }
 
+    tableBody.end();
+    myTable.end();
     PdfUtils.separator(doc, startY + 185);
 };
 
@@ -871,7 +1265,7 @@ const section2 = (doc, data, startY) => {
     // How many fishing vessels?
     let vesselCounts = {};
     let items = [];
-    if (data.exportPayload && data.exportPayload.items) {
+    if (data.exportPayload?.items) {
         items =  data.exportPayload.items;
     }
 
@@ -935,9 +1329,10 @@ const section2 = (doc, data, startY) => {
 };
 
 const section1 = (doc, data, isSample, startY) => {
-
     doc.fontSize(PdfStyle.FONT_SIZE.MEDIUM);
-    doc.text('(i) CATCH CERTIFICATE', PdfStyle.MARGIN.LEFT, startY);
+    doc.addStructure(doc.struct('H3', {}, () => {
+        doc.text('(i) CATCH CERTIFICATE', PdfStyle.MARGIN.LEFT, startY);
+    }));
     doc.lineWidth(2);
     doc.moveTo(153, startY + 4).lineTo(560, startY + 4).stroke();
 
@@ -982,10 +1377,10 @@ const mvsHeadingCell = (doc, x, y, width, height, text, isBold, fontSize, align,
 
 const mvsTableCell = (doc, x, y, width, height, text, isBold, fontSize, align, lineColor, textColor, bgColour) => {
     if (!text || Array.isArray(text)) {
-        mvsCell(doc, x, y, width, height, 4, text, isBold, fontSize, align, lineColor, textColor, bgColour);
+        return mvsCell(doc, x, y, width, height, 4, text, isBold, fontSize, align, lineColor, textColor, bgColour);
     } else {
         let textArr = [text];
-        mvsCell(doc, x, y, width, height, 4, textArr, isBold, fontSize, align, lineColor, textColor, bgColour);
+       return mvsCell(doc, x, y, width, height, 4, textArr, isBold, fontSize, align, lineColor, textColor, bgColour);
     }
 };
 

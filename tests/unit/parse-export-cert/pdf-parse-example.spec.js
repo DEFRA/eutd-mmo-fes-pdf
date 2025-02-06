@@ -1,39 +1,38 @@
 const muhammara = require('muhammara');
-// var assert = require('chai').assert;
-var fs = require('fs');
+const fs = require('fs');
 
 describe('PDFParser', function() {
 
     jest.setTimeout(60000);
 
     test('should complete without error', function() {
-        var mTabLevel = 0;
-        var mIteratedObjectIDs = {};
-        var outputFile = fs.openSync(__dirname + '/output/parseLog.txt','w');
+        let mTabLevel = 0;
+        let mIteratedObjectIDs = {};
+        let outputFile = fs.openSync(__dirname + '/output/parseLog.txt','w');
         function logToFile(inString) {
             fs.writeSync(outputFile,addTabs() + inString + '\r\n');
         }
 
         function addTabs() {
-            var output='';
-            for (var i=0;i<mTabLevel;++i) {
+            let output='';
+            for (let i=0;i<mTabLevel;++i) {
                 output+=' ';
             }
             return output;
         }
 
         function iterateObjectTypes(inObject,inReader) {
-            var output = '';
+            let output = '';
 
             if (inObject.getType() == muhammara.ePDFObjectIndirectObjectReference) {
                 output+= 'Indirect object reference:';
                 logToFile(output);
-                var objectID = inObject.toPDFIndirectObjectReference().getObjectID();
+                let objectID = inObject.toPDFIndirectObjectReference().getObjectID();
                 if (!mIteratedObjectIDs.hasOwnProperty(objectID)) {
                     mIteratedObjectIDs[objectID] = true;
                     iterateObjectTypes(inReader.parseNewObject(objectID),inReader);
                 }
-                for (var i=0;i<mTabLevel;++i) {
+                for (let i=0;i<mTabLevel;++i) {
                     output+=' ';
                 }
                 output+='was parsed already';
@@ -48,7 +47,7 @@ describe('PDFParser', function() {
                 output+= muhammara.getTypeLabel(inObject.getType());
                 logToFile(output);
                 ++mTabLevel;
-                var aDictionary = inObject.toPDFDictionary().toJSObject();
+                let aDictionary = inObject.toPDFDictionary().toJSObject();
 
                 Object.getOwnPropertyNames(aDictionary).forEach(function(element,index,array)
                 {
@@ -67,17 +66,11 @@ describe('PDFParser', function() {
         }
 
 
-        // var pdfReader = muhammara.createReader(__dirname + '/TestMaterials/XObjectContent.PDF');
-
-        var data = fs.readFileSync('./tests/unit/parse-export-cert/fixtures/parse-export-cert.pdf');
-        // var pdfReader = muhammara.createReader(new inputStream(buff));
+        const data = fs.readFileSync('./tests/unit/parse-export-cert/fixtures/parse-export-cert.pdf');
 
         let pdfReader = muhammara.createReader(new muhammara.PDFRStreamForBuffer(data));
 
-
-        // assert.equal(pdfReader.getPDFLevel(), 1.6, 'getPDFLevel');
-        // assert.equal(pdfReader.getPagesCount(), 7, 'getPagesCount');
-        var catalog = pdfReader.queryDictionaryObject(pdfReader.getTrailer(),'Root');
+        const catalog = pdfReader.queryDictionaryObject(pdfReader.getTrailer(),'Root');
         iterateObjectTypes(catalog,pdfReader);
         fs.closeSync(outputFile);
     });

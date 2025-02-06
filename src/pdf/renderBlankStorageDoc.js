@@ -1,24 +1,23 @@
 const path = require('path');
 const PdfStyle = require('./mmoPdfStyles');
 const PdfUtils = require('./mmoPdfUtils');
-const moment = require ('moment');
 const muhammara = require('muhammara');
 const PDFStreamForNodeJsStream = require('./PDFStreamForNodeJsStream');
-const PDFStreamForImageBuffer = require('./PDFStreamForImageBuffer');
 
 const renderBlankStorageDoc = async (data, isSample, uri, stream, pathToTemplate) => {
     const inStream = new muhammara.PDFRStreamForFile(pathToTemplate + 'storage-doc-blank.pdf');
     const pdfStream = new PDFStreamForNodeJsStream(stream);
-    var pdfWriter = muhammara.createWriterToModify(inStream, pdfStream);
+    let pdfWriter = muhammara.createWriterToModify(inStream, pdfStream);
+    let watermarkStreamImageXObject, imageXObject;
     if (isSample) {
         const sampleWatermarkStream = new muhammara.PDFRStreamForFile(pathToTemplate + 'sample-watermark.png'); // './src/resources/export-cert-blank.pdf'
-        var watermarkStreamImageXObject = pdfWriter.createFormXObjectFromPNG(sampleWatermarkStream);
+        watermarkStreamImageXObject = pdfWriter.createFormXObjectFromPNG(sampleWatermarkStream);
     } else {
         const qrCodeBuffer = await PdfUtils.generateQRCode(uri);
-        const PdfImgStream = new muhammara.PDFRStreamForBuffer(Object.values(qrCodeBuffer));
-        var imageXObject = pdfWriter.createFormXObjectFromPNG(PdfImgStream);
+        const PdfImgStream = new muhammara.PDFRStreamForBuffer(qrCodeBuffer);
+        imageXObject = pdfWriter.createFormXObjectFromPNG(PdfImgStream);
     }
-    var pageModifier = new muhammara.PDFPageModifier(pdfWriter,0);
+    let pageModifier = new muhammara.PDFPageModifier(pdfWriter,0);
     let ctx = pageModifier.startContext().getContext();
     let docNumber = data.documentNumber;
 

@@ -1,23 +1,23 @@
-var muhammara = require('muhammara');
-var _ = require('lodash');
-var PDFInterpreter = require('./pdf-interpreter');
-var MultiDictHelper = require('./multi-dict-helper');
+const muhammara = require('muhammara');
+const _ = require('lodash');
+const PDFInterpreter = require('./pdf-interpreter');
+const MultiDictHelper = require('./multi-dict-helper');
 
 function parseInterestingResources(resourcesDicts,pdfReader,readResources) {
-    var forms = {};
-    var result = {forms};
+    let forms = {};
+    let result = {forms};
 
     if(!!resourcesDicts) {
         if(resourcesDicts.exists('XObject')) {
-            var xobjects = resourcesDicts.queryDictionaryObject('XObject',pdfReader);
+            let xobjects = resourcesDicts.queryDictionaryObject('XObject',pdfReader);
             if(!!xobjects) {
-                var xobjectsJS = xobjects.toJSObject();
+                let xobjectsJS = xobjects.toJSObject();
                 _.forOwn(xobjectsJS,(xobjectReference,xobjectName)=>{
-                    var xobjectObjectId = xobjectReference.toPDFIndirectObjectReference().getObjectID();
-                    var xobject = pdfReader.parseNewObject(xobjectObjectId);
+                    let xobjectObjectId = xobjectReference.toPDFIndirectObjectReference().getObjectID();
+                    let xobject = pdfReader.parseNewObject(xobjectObjectId);
                     if(xobject.getType() == muhammara.ePDFObjectStream) {
-                        var xobjectStream = xobject.toPDFStream();
-                        var xobjectDict = xobjectStream.getDictionary();
+                        let xobjectStream = xobject.toPDFStream();
+                        let xobjectDict = xobjectStream.getDictionary();
                         if(xobjectDict.queryObject('Subtype').value == 'Form') {
                             // got a form!
                             forms[xobjectName] = {
@@ -48,14 +48,14 @@ function getResourcesDictionary(anObject,pdfReader) {
 function getResourcesDictionaries(anObject,pdfReader) {
     // gets an array of resources dictionaries, going up parents. should
     // grab 1 for forms, and 1 or more for pages
-    var resourcesDicts = [];
+    let resourcesDicts = [];
     while(!!anObject) {
-        var dict = getResourcesDictionary(anObject,pdfReader);
+        let dict = getResourcesDictionary(anObject,pdfReader);
         if(dict)
             resourcesDicts.push(dict);
 
         if(anObject.exists('Parent')) {
-            var parentDict = pdfReader.queryDictionaryObject(anObject,'Parent');
+            let parentDict = pdfReader.queryDictionaryObject(anObject,'Parent');
             if(parentDict.getType() === muhammara.ePDFObjectDictionary)
                 anObject = parentDict.toPDFDictionary();
             else
@@ -68,16 +68,16 @@ function getResourcesDictionaries(anObject,pdfReader) {
 }
 
 function inspectPages(pdfReader,collectPlacements,readResources) {
-    var formsUsed = {};
-    var pagesPlacements = [];
+    let formsUsed = {};
+    let pagesPlacements = [];
     // iterate pages, fetch placements, and mark forms for later additional inspection
-    for(var i=0;i<pdfReader.getPagesCount();++i) {
-        var pageDictionary = pdfReader.parsePageDictionary(i);
+    for(let i=0;i<pdfReader.getPagesCount();++i) {
+        let pageDictionary = pdfReader.parsePageDictionary(i);
 
-        var placements = [];
+        let placements = [];
         pagesPlacements.push(placements);
 
-        var interpreter = new PDFInterpreter();
+        let interpreter = new PDFInterpreter();
         interpreter.interpretPageContents(pdfReader,pageDictionary,collectPlacements(
             parseInterestingResources(getResourcesDictionaries(pageDictionary,pdfReader),pdfReader,readResources),
             placements,
@@ -97,9 +97,9 @@ function inspectForms(formsToProcess,pdfReader,formsBacklog,collectPlacements,re
     // add fresh entries to backlog for the sake of registering the forms as discovered,
     // and to provide structs for filling with placement data
     formsBacklog = _.extend(formsBacklog,_.mapValues(formsToProcess,()=>{return []}));
-    var formsUsed = {};
+    let formsUsed = {};
     _.forOwn(formsToProcess,(form,formId)=> {
-        var interpreter = new PDFInterpreter();
+        let interpreter = new PDFInterpreter();
         interpreter.interpretXObjectContents(pdfReader,form,collectPlacements(
             parseInterestingResources(getResourcesDictionaries(form.getDictionary(),pdfReader),pdfReader,readResources),
             formsBacklog[formId],
@@ -107,7 +107,7 @@ function inspectForms(formsToProcess,pdfReader,formsBacklog,collectPlacements,re
         ));
     });
 
-    var newUsedForms = _.pickBy(formsUsed,(form,formId)=> {
+    let newUsedForms = _.pickBy(formsUsed,(form,formId)=> {
         return !formsBacklog[formId];
     });
     // recurse to new forms
@@ -119,9 +119,9 @@ function inspectForms(formsToProcess,pdfReader,formsBacklog,collectPlacements,re
 
 
 function extractPlacements(pdfReader,collectPlacements,readResources) {
-    var {pagesPlacements,formsUsed} = inspectPages(pdfReader,collectPlacements,readResources);
+    let {pagesPlacements,formsUsed} = inspectPages(pdfReader,collectPlacements,readResources);
 
-    var formsPlacements = inspectForms(formsUsed,pdfReader,null,collectPlacements,readResources);
+    let formsPlacements = inspectForms(formsUsed,pdfReader,null,collectPlacements,readResources);
     return {
         pagesPlacements,
         formsPlacements

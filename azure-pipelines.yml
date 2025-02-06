@@ -10,11 +10,11 @@ trigger:
   branches:
     include:
       # in order as per GitFlow Branching strategy
-      - 'main'
-      - 'hotfix/FI0-*'
-      - 'release/*'
-      - 'develop'
-      - 'feature/FI0-*'
+      - "main"
+      - "hotfix/FI0-*"
+      - "release/*"
+      - "develop"
+      - "feature/FI0-*"
 
 # variables:
 
@@ -27,54 +27,54 @@ resources:
       ref: main
 
 stages:
-- stage: BuildPackage
-  pool:
-    name: DEFRA-COMMON-ubuntu2204-SSV5
-  jobs:
-  - job: Build
-    steps:
-      - task: NodeTool@0
-        inputs:
-          versionSpec: '18.16.1'
-        displayName: 'Install Node.js'
-      - task: Npm@1
-        inputs:
-          command: 'custom'
-          customCommand: 'install -g npm-audit-ci'
-        displayName: 'NPM install audit-ci'
-      - task: Npm@1
-        inputs:
-          command: 'ci'
-        displayName: 'npm ci'
-      - task: Npm@1
-        inputs:
-          command: 'custom'
-          customCommand: 'test'
-        displayName: 'Test'
-      - task: Bash@3
-        inputs:
-          targetType: 'inline'
-          script: |
-            echo "Running audit checks - should fail on critical issues only"
-            npm-audit-ci -c
-        displayName: 'Audit'
-      - task: PublishTestResults@2
-        displayName: 'Publish Test Results'
-        inputs:
-          testResultsFiles: '$(Build.SourcesDirectory)/reports/junit.xml'        
-      - task: PublishPipelineArtifact@1
-        displayName: Publish code coverage
-        condition: succeeded()
-        inputs:
-          targetPath: '$(Build.SourcesDirectory)/coverage'
-          artifact: 'coverage'
-          publishLocation: 'pipeline'
-      - task: PublishCodeCoverageResults@1
-        displayName: 'Publish Code Coverage Results'
-        inputs:
-          codeCoverageTool: Cobertura
-          summaryFileLocation: '$(System.DefaultWorkingDirectory)/**/cobertura-coverage.xml'
-          reportDirectory: '$(System.DefaultWorkingDirectory)/**/coverage'          
+  - stage: BuildPackage
+    pool:
+      vmImage: "ubuntu-latest"
+    jobs:
+      - job: Build
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: "18.16.1"
+            displayName: "Install Node.js"
+          - task: Npm@1
+            inputs:
+              command: "custom"
+              customCommand: "install -g npm-audit-ci"
+            displayName: "NPM install audit-ci"
+          - task: Npm@1
+            inputs:
+              command: "ci"
+            displayName: "npm ci"
+          - task: Npm@1
+            inputs:
+              command: "custom"
+              customCommand: "test"
+            displayName: "Test"
+          - task: Bash@3
+            inputs:
+              targetType: "inline"
+              script: |
+                echo "Running audit checks - should fail on critical issues only"
+                npm-audit-ci -c
+            displayName: "Audit"
+          - task: PublishTestResults@2
+            displayName: "Publish Test Results"
+            inputs:
+              testResultsFiles: "$(Build.SourcesDirectory)/reports/junit.xml"
+          - task: PublishPipelineArtifact@1
+            displayName: Publish code coverage
+            condition: succeeded()
+            inputs:
+              targetPath: "$(Build.SourcesDirectory)/coverage"
+              artifact: "coverage"
+              publishLocation: "pipeline"
+          - task: PublishCodeCoverageResults@1
+            displayName: "Publish Code Coverage Results"
+            inputs:
+              codeCoverageTool: Cobertura
+              summaryFileLocation: "$(System.DefaultWorkingDirectory)/**/cobertura-coverage.xml"
+              reportDirectory: "$(System.DefaultWorkingDirectory)/**/coverage"
 
-# Central mmo-central-ado-pipeline-templates reference
-- template: /includes/sonar-integration-template.yml@CentralAdoPipelineTemplates 
+  # Central mmo-central-ado-pipeline-templates reference
+  - template: /includes/sonar-integration-template.yml@CentralAdoPipelineTemplates

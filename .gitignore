@@ -8,4 +8,4 @@ tests/testGW.pdf
 tests/unit/*/output/*.pdf
 .env
 reports/
-.DS_STORE
+.DS_Store

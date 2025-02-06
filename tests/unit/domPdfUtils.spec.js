@@ -23,7 +23,9 @@ const doc = {
     dictionary: {
       data: []
     }
-  }
+  },
+  struct: jest.fn((element, options, child) => child ? child() : options()),
+  addStructure: jest.fn(value => value)
 };
 
 describe('dom pdf utils', () => {

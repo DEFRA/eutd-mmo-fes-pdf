@@ -61,17 +61,15 @@ const parseExportCert = async (pdfJson, buffer) => {
         result.errors = result.errors.concat(validateSingleVessel(singleVessel));
         // and that catch info from the first page
         extractFrontPageExportPayload(raw, singleVessel, result);
-    } else {
-        // Parse schedule pages
-        if ((raw[FP_SPECIES_KEY_PREFIX + '1'] &&  raw[FP_SPECIES_KEY_PREFIX + '1'].trim().length > 0)
+    } else if ((raw[FP_SPECIES_KEY_PREFIX + '1'] &&  raw[FP_SPECIES_KEY_PREFIX + '1'].trim().length > 0)
                 || (raw[FP_PROD_CODE_KEY_PREFIX + '1'] &&  raw[FP_PROD_CODE_KEY_PREFIX + '1'].trim().length > 0)
                 || (raw[FP_SPECIES_KEY_PREFIX + '2'] &&  raw[FP_SPECIES_KEY_PREFIX + '2'].trim().length > 0)
                 || (raw[FP_PROD_CODE_KEY_PREFIX + '2'] &&  raw[FP_PROD_CODE_KEY_PREFIX + '2'].trim().length > 0)) {
-            // cant have items in schedule and front page product details
-            result.errors = result.errors.concat('Export payload details have been added to both the front page and the schedule');
-        } else {
-            extractScheduleExportPayload(raw, result);
-        }
+        // cant have items in schedule and front page product details
+        result.errors = result.errors.concat('Export payload details have been added to both the front page and the schedule');
+    }
+    else {
+        extractScheduleExportPayload(raw, result);
     }
 
     result.transport = parseTransport(raw);
@@ -136,8 +134,8 @@ const extractScheduleExportItemProduct = (pageIdx, rowIdx, raw) => {
         label: raw[presKey]
     };
     if ((!product.commodityCode || product.commodityCode.trim().length === 0)
-        && (!product.species || !product.species.label || product.species.label.trim().length === 0)
-        && (!product.presentation || !product.presentation.label || product.presentation.label.trim().length === 0)) {
+        && (!product.species?.label || product.species.label.trim().length === 0)
+        && (!product.presentation?.label || product.presentation.label.trim().length === 0)) {
         return null;
     } else {
         return product;
@@ -218,7 +216,7 @@ const extractFrontPageExportItemProduct = (i, raw) => {
         label: raw[FP_SPECIES_KEY_PREFIX + (i + 1)]
     };
     if ((!product.commodityCode || product.commodityCode.trim().length === 0)
-            && (!product.species || !product.species.label || product.species.label.trim().length === 0)) {
+            && (!product.species?.label || product.species.label.trim().length === 0)) {
         return null;
     } else {
         return product;
@@ -243,29 +241,29 @@ const parseTransport = (raw) => {
     let vehicle = '';
     let transport = {};
 
-    if (raw[TRANSPORT_FLIGHT_NO_KEY] && raw[TRANSPORT_FLIGHT_NO_KEY].trim().length > 0) {
+    if (raw?.[TRANSPORT_FLIGHT_NO_KEY]?.trim()?.length > 0) {
         vehicle = 'plane';
         transport.flightNumber = raw[TRANSPORT_FLIGHT_NO_KEY];
     }
-    if (raw[TRANSPORT_REG_NO_KEY] && raw[TRANSPORT_REG_NO_KEY].trim().length > 0) {
+    if (raw?.[TRANSPORT_REG_NO_KEY]?.trim()?.length > 0) {
         vehicle = 'truck';
         transport.registrationNumber = raw[TRANSPORT_REG_NO_KEY];
     }
-    if (raw[TRANSPORT_RAILWAY_BILL_NO_KEY] && raw[TRANSPORT_RAILWAY_BILL_NO_KEY].trim().length > 0) {
+    if (raw?.[TRANSPORT_RAILWAY_BILL_NO_KEY]?.trim()?.length > 0) {
         vehicle = 'train';
         transport.railwayBillNumber = raw[TRANSPORT_RAILWAY_BILL_NO_KEY];
     }
-    if (raw[TRANSPORT_VESSEL_KEY] && raw[TRANSPORT_VESSEL_KEY].trim().length > 0) {
+    if (raw?.[TRANSPORT_VESSEL_KEY]?.trim().length > 0) {
         vehicle = 'containerVessel';
         transport.vesselName = raw[TRANSPORT_VESSEL_KEY];
     }
     if ('' === vehicle) {
         vehicle = 'directLanding';
     }
-    if (raw[TRANSPORT_PLACE_OF_DEPARTURE_KEY] && raw[TRANSPORT_PLACE_OF_DEPARTURE_KEY].trim().length > 0) {
+    if (raw?.[TRANSPORT_PLACE_OF_DEPARTURE_KEY]?.trim()?.length > 0) {
         transport.departurePlace = raw[TRANSPORT_PLACE_OF_DEPARTURE_KEY];
     }
-    if (raw[TRANSPORT_CONTAINER_NUMS_KEY] && raw[TRANSPORT_CONTAINER_NUMS_KEY].trim().length > 0) {
+    if (raw?.[TRANSPORT_CONTAINER_NUMS_KEY] && raw[TRANSPORT_CONTAINER_NUMS_KEY].trim().length > 0) {
         transport.containerNumber = raw[TRANSPORT_CONTAINER_NUMS_KEY];
     }
     if (raw[TRANSPORT_OTHER_DOCS_KEY] && raw[TRANSPORT_OTHER_DOCS_KEY].trim().length > 0) {
@@ -303,35 +301,39 @@ const parseSingleVessel = (raw, result) => {
     return vessel;
 };
 
+const verifyExportItemLabel = (label) => {
+    return !label || label?.trim()?.length === 0
+}
+
 const validateScheduleExportItem = (pageIdx, rowIdx, item) => {
 
     const errors = [];
-    if (!item.product.species.label || item.product.species.label.trim().length === 0) {
+    if (verifyExportItemLabel(item.product.species.label)) {
         errors.push('Species required on schedule page ' + pageIdx + ' row ' + rowIdx);
     }
-    if (!item.product.presentation.label || item.product.presentation.label.trim().length === 0) {
+    if (verifyExportItemLabel(item.product.presentation.label)) {
         errors.push('Presentation required on schedule page ' + pageIdx + ' row ' + rowIdx);
     }
-    if (!item.product.commodityCode || item.product.commodityCode.trim().length === 0) {
+    if (verifyExportItemLabel(item.product.commodityCode)) {
         errors.push('Product code required on schedule page ' + pageIdx + ' row ' + rowIdx);
     }
-    if (!item.landings[0].model.dateLanded || item.landings[0].model.dateLanded.trim().length === 0) {
+    if (verifyExportItemLabel(item.landings[0].model.dateLanded)) {
         errors.push('Dates landed required on schedule page ' + pageIdx + ' row ' + rowIdx);
     }
-    if (!item.landings[0].model.exportWeight || item.landings[0].model.exportWeight.trim().length === 0) {
+    if (verifyExportItemLabel(item.landings[0].model.exportWeight)) {
         errors.push('Consigned weight (kg) required on schedule page ' + pageIdx + ' row ' + rowIdx);
     }
 
-    if (!item.landings[0].model.vessel || !item.landings[0].model.vessel.vesselName || item.landings[0].model.vessel.vesselName.trim().length === 0) {
+    if (!item.landings[0].model.vessel || verifyExportItemLabel(item.landings[0].model.vessel.vesselName)) {
         errors.push('Vessel name is required on schedule page ' + pageIdx + ' row ' + rowIdx);
     }
-    if (!item.landings[0].model.vessel || !item.landings[0].model.vessel.pln || item.landings[0].model.vessel.pln.trim().length === 0) {
+    if (!item.landings[0].model.vessel || verifyExportItemLabel(item.landings[0].model.vessel.pln)) {
         errors.push('PLN / Call Sign is required on schedule page ' + pageIdx + ' row ' + rowIdx);
     }
-    if (!item.landings[0].model.vessel || !item.landings[0].model.vessel.imoNumber || item.landings[0].model.vessel.imoNumber.trim().length === 0) {
+    if (!item.landings[0].model.vessel || verifyExportItemLabel(item.landings[0].model.vessel.imoNumber)) {
         errors.push('IMO / Lloyd’s number is required on schedule page ' + pageIdx + ' row ' + rowIdx);
     }
-    if (!item.landings[0].model.vessel || !item.landings[0].model.vessel.licenceNumber || item.landings[0].model.vessel.licenceNumber.trim().length === 0) {
+    if (!item.landings[0].model.vessel || verifyExportItemLabel(item.landings[0].model.vessel.licenceNumber)) {
         errors.push('Fishing licence number is required on schedule page ' + pageIdx + ' row ' + rowIdx);
     }
     return errors;
@@ -359,13 +361,13 @@ const validateFrontPageExportItem = (idx, item) => {
 
 const validateSingleVessel = (vessel) => {
     const errors = [];
-    if (!vessel || !vessel.vesselName || vessel.vesselName.trim().length === 0) {
+    if (!vessel?.vesselName || vessel.vesselName.trim().length === 0) {
         errors.push('Vessel name is required');
     }
-    if (!vessel || !vessel.pln || vessel.pln.trim().length === 0) {
+    if (!vessel?.pln || vessel.pln.trim().length === 0) {
         errors.push('Vessel Call Sign / PLN is required');
     }
-    if (!vessel || !vessel.licenceNumber || vessel.licenceNumber.trim().length === 0) {
+    if (!vessel?.licenceNumber || vessel.licenceNumber.trim().length === 0) {
         errors.push('Fishing licence number is required');
     }
     return errors;

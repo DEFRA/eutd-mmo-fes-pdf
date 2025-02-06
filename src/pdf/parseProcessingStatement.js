@@ -71,19 +71,17 @@ const parseProcessingStatement = async (pdfJson, buffer) => {
     if (raw[SCHED_CATCHES_CC_NUM_KEY_PREFIX + '1'] === null || raw[SCHED_CATCHES_CATCH_DESC_KEY_PREFIX + '1'].trim().length === 0) {
         // no schedule extract catch details from first page
         extractFrontPageCatchDetails(raw, result);
+    } else if ((raw[FP_CATCHES_CATCH_DESC_KEY_PREFIX + '0'] &&  raw[FP_CATCHES_CATCH_DESC_KEY_PREFIX + '0'].trim().length > 0)
+        || (raw[FP_CATCHES_CC_NUM_KEY_PREFIX + '10'] &&  raw[FP_CATCHES_CC_NUM_KEY_PREFIX + '10'].trim().length > 0)
+        || (raw[FP_CATCHES_TOTAL_LANDED_WEIGHT_KEY_PREFIX + '0'] && raw[FP_CATCHES_TOTAL_LANDED_WEIGHT_KEY_PREFIX + '0'].trim().length > 0)
+        || (raw[FP_CATCHES_CATCH_PROCESSED_WEIGHT_KEY_PREFIX] &&  raw[FP_CATCHES_CATCH_PROCESSED_WEIGHT_KEY_PREFIX].trim().length > 0)
+        || (raw[FP_CATCHES_PROCESSED_WEIGHT_KEY_PREFIX] &&  raw[FP_CATCHES_PROCESSED_WEIGHT_KEY_PREFIX].trim().length > 0)) {
+        // cant have items in schedule and front page product details
+        result.errors = result.errors.concat('Catch details have been added to both the front page and the schedule');
     } else {
-        // Parse schedule pages
-        if ((raw[FP_CATCHES_CATCH_DESC_KEY_PREFIX + '0'] &&  raw[FP_CATCHES_CATCH_DESC_KEY_PREFIX + '0'].trim().length > 0)
-            || (raw[FP_CATCHES_CC_NUM_KEY_PREFIX + '10'] &&  raw[FP_CATCHES_CC_NUM_KEY_PREFIX + '10'].trim().length > 0)
-            || (raw[FP_CATCHES_TOTAL_LANDED_WEIGHT_KEY_PREFIX + '0'] && raw[FP_CATCHES_TOTAL_LANDED_WEIGHT_KEY_PREFIX + '0'].trim().length > 0)
-            || (raw[FP_CATCHES_CATCH_PROCESSED_WEIGHT_KEY_PREFIX] &&  raw[FP_CATCHES_CATCH_PROCESSED_WEIGHT_KEY_PREFIX].trim().length > 0)
-            || (raw[FP_CATCHES_PROCESSED_WEIGHT_KEY_PREFIX] &&  raw[FP_CATCHES_PROCESSED_WEIGHT_KEY_PREFIX].trim().length > 0)) {
-            // cant have items in schedule and front page product details
-            result.errors = result.errors.concat('Catch details have been added to both the front page and the schedule');
-        } else {
-            extractScheduleCatchDetails(raw, result);
-        }
+        extractScheduleCatchDetails(raw, result);
     }
+    
     return result;
 };
 

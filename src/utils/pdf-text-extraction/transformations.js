@@ -4,8 +4,8 @@ module.exports = {
             if(!inMatrix)
                 return inVector;
             
-            var fX;
-            var fY;
+            let fX;
+            let fY;
             
             fX = inMatrix[0]*inVector[0] + inMatrix[2]*inVector[1] + inMatrix[4];
             fY = inMatrix[1]*inVector[0] + inMatrix[3]*inVector[1] + inMatrix[5];
@@ -18,13 +18,13 @@ module.exports = {
             if(!inMatrix)
                 return inMatrix;
             
-            var a = inMatrix[0];
-            var b = inMatrix[1];
-            var c = inMatrix[2];
-            var d = inMatrix[3];
-            var t1 = inMatrix[4];
-            var t2 = inMatrix[5];
-            var det = a*d-b*c;
+            let a = inMatrix[0];
+            let b = inMatrix[1];
+            let c = inMatrix[2];
+            let d = inMatrix[3];
+            let t1 = inMatrix[4];
+            let t2 = inMatrix[5];
+            let det = a*d-b*c;
             
             return [
               d/det,
@@ -66,18 +66,18 @@ module.exports = {
             if(!inMatrix)
                 return inBox;
             
-            var t = new Array(4);
+            let t = new Array(4);
             t[0] = this.transformVector([inBox[0],inBox[1]],inMatrix);
             t[1] = this.transformVector([inBox[0],inBox[3]],inMatrix);
             t[2] = this.transformVector([inBox[2],inBox[3]],inMatrix);
             t[3] = this.transformVector([inBox[2],inBox[1]],inMatrix);
             
-            var minX,minY,maxX,maxY;
+            let minX,minY,maxX,maxY;
             
             minX = maxX = t[0][0];
             minY = maxY = t[0][1];
             
-            for(var i=1;i<4;++i)
+            for(let i=1;i<4;++i)
             {
                 if(minX > t[i][0])
                     minX = t[i][0];

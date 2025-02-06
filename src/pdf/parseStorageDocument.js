@@ -46,20 +46,17 @@ const parseStorageDocument = async (pdfJson, buffer) => {
             && (raw[SCHED_CONS_CODE_KEY_PREFIX + '1'] === null || raw[SCHED_CONS_CODE_KEY_PREFIX + '1'].trim().length === 0)) {
         // no schedule extract catch details from first page
         extractFrontPageConsDetails(raw, result);
-    } else {
-        // Parse schedule pages
-        if ((raw[FP_CONS_PROD_KEY] &&  raw[FP_CONS_PROD_KEY].trim().length > 0)
-            || (raw[FP_CONS_CODE_KEY] &&  raw[FP_CONS_CODE_KEY].trim().length > 0)
-            || (raw[FP_CONS_CC_KEY] && raw[FP_CONS_CC_KEY].trim().length > 0)
-            || (raw[FP_CONS_WEIGHT_KEY] &&  raw[FP_CONS_WEIGHT_KEY].trim().length > 0)
-            || (raw[FP_CONS_DATE_KEY] &&  raw[FP_CONS_DATE_KEY].trim().length > 0)
-            || (raw[FP_CONS_PLACE_KEY] &&  raw[FP_CONS_PLACE_KEY].trim().length > 0)
-            || (raw[FP_CONS_TRANSPORT_KEY] &&  raw[FP_CONS_TRANSPORT_KEY].trim().length > 0)) {
+    } else if (raw?.[FP_CONS_PROD_KEY]?.trim()?.length > 0
+            || raw?.[FP_CONS_CODE_KEY]?.trim()?.length > 0
+            || raw[FP_CONS_CC_KEY]?.trim()?.length > 0
+            || raw?.[FP_CONS_WEIGHT_KEY]?.trim()?.length > 0
+            || raw?.[FP_CONS_DATE_KEY]?.trim()?.length > 0
+            || raw?.[FP_CONS_PLACE_KEY]?.trim()?.length > 0
+            || raw?.[FP_CONS_TRANSPORT_KEY]?.trim()?.length > 0) {
             // cant have items in schedule and front page product details
             result.errors = result.errors.concat('Consignment details have been added to both the front page and the schedule');
-        } else {
-            extractScheduleConsDetails(raw, result);
-        }
+    } else {
+        extractScheduleConsDetails(raw, result);
     }
 
     extractDepartureDetails(raw, result);
@@ -74,17 +71,14 @@ const parseStorageDocument = async (pdfJson, buffer) => {
     {
         // no schedule - extract facility details from first page
         extractFrontPageFacilityDetails(raw, result);
-    } else {
-        // Parse schedule pages
-        if (/*(raw[FP_STORAGE_FAC_NAME_KEY] &&  raw[FP_STORAGE_FAC_NAME_KEY].trim().length > 0)
-            || */(raw[FP_STORAGE_FAC_ADDRESS_KEY] &&  raw[FP_STORAGE_FAC_ADDRESS_KEY].trim().length > 0)
+    } else if (/*(raw[FP_STORAGE_FAC_NAME_KEY] &&  raw[FP_STORAGE_FAC_NAME_KEY].trim().length > 0)
+            || */raw?.[FP_STORAGE_FAC_ADDRESS_KEY]?.trim()?.length > 0
             )
-        {
-            // cant have items in schedule and front page facility details
-            result.errors = result.errors.concat('Storage facility details have been added to both the front page and the schedule');
-        } else {
-            extractScheduleFacilityDetails(raw, result);
-        }
+    {
+        // cant have items in schedule and front page facility details
+        result.errors = result.errors.concat('Storage facility details have been added to both the front page and the schedule');
+    } else {
+        extractScheduleFacilityDetails(raw, result);
     }
 
     result.dateIssued = raw[DATE_ISSUED_KEY];
@@ -154,17 +148,19 @@ const extractScheduleConsDetailItem = (pageIdx, rIdx, raw) => {
     let item = {};
 
     // the editable pdf fieldnames are whack...
-    if (pageIdx === 2 && rowIdx > 3) {
-        rowIdx++;
-    }
-    if (pageIdx === 2 && rowIdx > 6) {
-        rowIdx++;
-    }
-    if (pageIdx === 2 && rowIdx > 9) {
-        rowIdx++;
-    }
-    if (pageIdx === 2 && rowIdx > 12) {
-        rowIdx++;
+    if (pageIdx === 2) {
+        if (rowIdx > 3) {
+            rowIdx++;
+        }
+        if (rowIdx > 6) {
+            rowIdx++;
+        }
+        if (rowIdx > 9) {
+            rowIdx++;
+        }
+        if (rowIdx > 12) {
+            rowIdx++;
+        }
     }
 
     let productKey = SCHED_CONS_PROD_KEY_PREFIX + rowIdx;
@@ -193,13 +189,8 @@ const extractScheduleConsDetailItem = (pageIdx, rIdx, raw) => {
     item.placeOfUnloading = raw[placeKey];
     item.transportUnloadedFrom = raw[transportKey];
 
-    if ((!item.product || item.product.trim().length === 0)
-        && (!item.commodityCode || item.commodityCode.trim().length === 0)
-        && (!item.certificateNumber || item.certificateNumber.trim().length === 0)
-        && (!item.productWeight || item.productWeight.trim().length === 0)
-        && (!item.dateOfUnloading || item.dateOfUnloading.trim().length === 0)
-        && (!item.placeOfUnloading || item.placeOfUnloading.trim().length === 0)
-        && (!item.transportUnloadedFrom || item.transportUnloadedFrom.trim().length === 0)) {
+    if (!item?.product?.trim() && !item?.commodityCode?.trim() && !item?.certificateNumber?.trim() && !item?.productWeight?.trim()
+        && !item?.dateOfUnloading?.trim() && !item?.placeOfUnloading?.trim() && !item?.transportUnloadedFrom?.trim()) {
         return null;
     } else {
         return item;
