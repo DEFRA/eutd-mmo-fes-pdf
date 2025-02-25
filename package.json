@@ -26,8 +26,9 @@
     "npm": "~8.19.2"
   },
   "scripts": {
-    "pretest": "rm -rf coverage/ && rm -rf reports/",
-    "test": "cross-env jest tests/unit/ --coverage",
+    "pretest": "rm -rf coverage/ && rm -rf test-results/",
+    "test": "cross-env JEST_JUNIT_OUTPUT_DIR=test-results JEST_JUNIT_OUTPUT_NAME=test-results.xml jest tests/unit/ --coverage",
+    "test:ci": "cross-env JEST_JUNIT_OUTPUT_DIR=test-results JEST_JUNIT_OUTPUT_NAME=junit.xml jest --runInBand --watchAll=false --reporters=default --reporters=jest-junit --coverage --ci",
     "test-vstack": "cross-env jest tests/unit/ --coverage --silent",
     "test:integration": "env AZURE_STORAGE_CONNECTION_STRING='DefaultEndpointsProtocol=https;AccountName=devmmoinfsto001;AccountKey=KPG/IZQ2fKjJd4+igG7cbYRsF34yVuIzlE8/+oC4BaxmSPPcjMyc0bbwpdKIcSZ4xi4kExgugj421DVxTzmXOA==;EndpointSuffix=core.windows.net' jest --coverage"
   },
@@ -64,8 +65,5 @@
         "statements": 93
       }
     }
-  },
-  "jest-junit": {
-    "outputDirectory": "./reports"
   }
 }
