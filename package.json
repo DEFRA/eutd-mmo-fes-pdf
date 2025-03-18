@@ -1,6 +1,6 @@
 {
   "name": "mmo-ecc-pdf-svc",
-  "version": "2.1.38",
+  "version": "2.2.1",
   "description": "",
   "main": "src/index.js",
   "dependencies": {
@@ -22,8 +22,8 @@
     "jest-junit": "16.0.0"
   },
   "engines": {
-    "node": "~18.16.1",
-    "npm": "~8.19.2"
+    "node": "~22.13.1",
+    "npm": "~10.9.2"
   },
   "scripts": {
     "pretest": "rm -rf coverage/ && rm -rf test-results/",

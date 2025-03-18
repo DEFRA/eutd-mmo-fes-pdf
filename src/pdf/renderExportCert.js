@@ -201,16 +201,16 @@ const multiVesselScheduleHeading = (doc, data, isSample, buff, page, pageSize, s
         });
     }));
     let cellHeight = PdfStyle.ROW.HEIGHT * 2;
-    mvsHeadingCell(doc, PdfStyle.MARGIN.LEFT + 430, startY, 350, cellHeight, 'UNITED KINGDOM', true, PdfStyle.FONT_SIZE.LARGEST, 'center', '#767676', '#353535', '#ffcc00');
+    mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 430, y: startY, width: 350, height: cellHeight, text: 'UNITED KINGDOM'}, true, PdfStyle.FONT_SIZE.LARGEST, 'center', '#767676', '#353535', '#ffcc00');
     let yPos = startY + cellHeight;
-    mvsHeadingCell(doc, PdfStyle.MARGIN.LEFT, yPos, 230, PdfStyle.ROW.HEIGHT, 'AUTHORITY USE ONLY', true, PdfStyle.FONT_SIZE.SMALL, 'left', '#767676', '#353535', '#ffcc00');
-    mvsHeadingCell(doc, PdfStyle.MARGIN.LEFT + 230, yPos, 550, PdfStyle.ROW.HEIGHT,
-        'Schedule for multiple vessel landings as permitted by Article 12 (3) of Council Regulation (EC) No 1005/2008',
+    mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT, y: yPos, width: 230, height: PdfStyle.ROW.HEIGHT, text: 'AUTHORITY USE ONLY'}, true, PdfStyle.FONT_SIZE.SMALL, 'left', '#767676', '#353535', '#ffcc00');
+    mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 230, y: yPos, width: 550, height: PdfStyle.ROW.HEIGHT,
+        text: 'Schedule for multiple vessel landings as permitted by Article 12 (3) of Council Regulation (EC) No 1005/2008'},
         true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffffff');
     yPos = yPos + PdfStyle.ROW.HEIGHT;
 
     cellHeight = PdfStyle.ROW.HEIGHT * 2 + 20;
-    mvsHeadingCell(doc, PdfStyle.MARGIN.LEFT, yPos, 90, cellHeight, ['Catch Certificate', 'Number'], true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffcc00');
+    mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT, y: yPos, width: 90, height: cellHeight, text: ['Catch Certificate', 'Number']}, true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffcc00');
 
     let documentNumber = '';
     if (!data.isBlankTemplate) {
@@ -221,24 +221,24 @@ const multiVesselScheduleHeading = (doc, data, isSample, buff, page, pageSize, s
         }
     }
 
-    mvsHeadingCell(doc, PdfStyle.MARGIN.LEFT + 90, yPos, 140, cellHeight, documentNumber, true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffffff');
-    mvsHeadingCell(doc, PdfStyle.MARGIN.LEFT + 230, yPos, 270, cellHeight, undefined, true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffffff');
+    mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 90, y: yPos, width: 140, height: cellHeight, text: documentNumber}, true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffffff');
+    mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 230, y: yPos, width: 270, height: cellHeight, text: undefined}, true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffffff');
 
     cellHeight = PdfStyle.ROW.HEIGHT * 4 + 25;
 
-    mvsHeadingCell(doc, PdfStyle.MARGIN.LEFT + 500, yPos, 80, cellHeight, ['UK Authority', 'QR Code'], true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffcc00');
-    mvsHeadingCell(doc, PdfStyle.MARGIN.LEFT + 580, yPos, 200, cellHeight, undefined, true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffffff');
+    mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 500, y: yPos, width: 80, height: cellHeight, text: ['UK Authority', 'QR Code']}, true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffcc00');
+    mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 580, y: yPos, width: 200, height: cellHeight, text: undefined}, true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffffff');
 
     yPos = yPos + PdfStyle.ROW.HEIGHT * 2 + 20;
     cellHeight = PdfStyle.ROW.HEIGHT * 2 + 5;
 
-    mvsHeadingCell(doc, PdfStyle.MARGIN.LEFT, yPos, 90, cellHeight, 'Date', true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffcc00');
+    mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT, y: yPos, width: 90, height: cellHeight, text: 'Date'}, true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffcc00');
     let todaysDate = '';
     if (!data.isBlankTemplate) {
         todaysDate = PdfUtils.todaysDate();
     }
-    mvsHeadingCell(doc, PdfStyle.MARGIN.LEFT + 90, yPos, 140, cellHeight, todaysDate, true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffffff');
-    mvsHeadingCell(doc, PdfStyle.MARGIN.LEFT + 230, yPos, 270, cellHeight, undefined, true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffffff');
+    mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 90, y: yPos, width: 140, height: cellHeight, text: todaysDate}, true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffffff');
+    mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 230, y: yPos, width: 270, height: cellHeight, text: undefined}, true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffffff');
 
     if (!data.isBlankTemplate && !isSample) {
         PdfUtils.qrCode(doc, buff, PdfStyle.MARGIN.LEFT + 590, yPos - 45);
@@ -259,77 +259,77 @@ const multiVesselScheduleHeading = (doc, data, isSample, buff, page, pageSize, s
     tableHeadRow.add(tableHeadOne);
     const tableHeadOneContent = doc.markStructureContent('TH');
     tableHeadOne.add(tableHeadOneContent);
-    mvsTableCell(doc, PdfStyle.MARGIN.LEFT, yPos, 115, cellHeight, 'Species', true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
+    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT, y: yPos, width: 115, height: cellHeight, text: 'Species'}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
     tableHeadOne.end();
 
     const tableHeadTwo = doc.struct('TH');
     tableHeadRow.add(tableHeadTwo);
     const tableHeadTwoContent = doc.markStructureContent('TH');
     tableHeadTwo.add(tableHeadTwoContent);
-    mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 115, yPos, 80, cellHeight, ['Presentation'], true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
+    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 115, y: yPos, width: 80, height: cellHeight, text: ['Presentation']}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
     tableHeadTwo.end();
 
     const tableHeadThree = doc.struct('TH');
     tableHeadRow.add(tableHeadThree);
     const tableHeadThreeContent = doc.markStructureContent('TH');
     tableHeadThree.add(tableHeadThreeContent);
-    mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 195, yPos, 50, cellHeight, ['Product', 'code'], true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
+    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 195, y: yPos, width: 50, height: cellHeight, text: ['Product', 'code']}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
     tableHeadThree.end();
 
     const tableHeadFour = doc.struct('TH');
     tableHeadRow.add(tableHeadFour);
     const tableHeadFourContent = doc.markStructureContent('TH');
     tableHeadFour.add(tableHeadFourContent);
-    mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 245, yPos, 50, cellHeight, ['Date', 'Landed'], true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
+    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 245, y: yPos, width: 50, height: cellHeight, text: ['Date', 'Landed']}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
     tableHeadFour.end();
 
     const tableHeadFive = doc.struct('TH');
     tableHeadRow.add(tableHeadFive);
     const tableHeadFiveContent = doc.markStructureContent('TH');
     tableHeadFive.add(tableHeadFiveContent);
-    mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 295, yPos, 55, cellHeight, ['Consigned', 'weight (kg)'], true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
+    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 295, y: yPos, width: 55, height: cellHeight, text: ['Consigned', 'weight (kg)']}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
     tableHeadFive.end();
 
     const tableHeadSix = doc.struct('TH');
     tableHeadRow.add(tableHeadSix);
     const tableHeadSixContent = doc.markStructureContent('TH');
     tableHeadSix.add(tableHeadSixContent)
-    mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 350, yPos, 90, cellHeight, ['Vessel', 'name'], true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
+    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 350, y: yPos, width: 90, height: cellHeight, text: ['Vessel', 'name']}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
     tableHeadSix.end();
 
     const tableHeadSeven = doc.struct('TH');
     tableHeadRow.add(tableHeadSeven);
     const tableHeadSevenContent = doc.markStructureContent('TH');
     tableHeadSeven.add(tableHeadSevenContent);
-    mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 440, yPos, 60, cellHeight, ['PLN /', 'Callsign'], true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
+    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 440, y: yPos, width: 60, height: cellHeight, text: ['PLN /', 'Callsign']}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
     tableHeadSeven.end();
 
     const tableHeadEight = doc.struct('TH');
     tableHeadRow.add(tableHeadEight);
     const tableHeadEightContent = doc.markStructureContent('TH');
     tableHeadEight.add(tableHeadEightContent)
-    mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 500, yPos, 70, cellHeight, ['IMO / Lloyd\'s', 'Number'], true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
+    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 500, y: yPos, width: 70, height: cellHeight, text: ['IMO / Lloyd\'s', 'Number']}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
     tableHeadEight.end();
 
     const tableHeadNine = doc.struct('TH');
     tableHeadRow.add(tableHeadNine);
     const tableHeadNineContent = doc.markStructureContent('TH');
     tableHeadNine.add(tableHeadNineContent)
-    mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 570, yPos, 90, cellHeight, 'Master', true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
+    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 570, y: yPos, width: 90, height: cellHeight, text: 'Master'}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
     tableHeadNine.end()
 
     const tableHeadTen = doc.struct('TH');
     tableHeadRow.add(tableHeadTen);
     const tableHeadTenContent = doc.markStructureContent('TH');
     tableHeadTen.add(tableHeadTenContent)
-    mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 660, yPos, 80, cellHeight, ['Licence Number /', 'Flag-Homeport'], true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
+    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 660, y: yPos, width: 80, height: cellHeight, text: ['Licence Number /', 'Flag-Homeport']}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
     tableHeadTen.end()
 
     const tableHeadEleven = doc.struct('TH');
     tableHeadRow.add(tableHeadEleven);
     const tableHeadElevenContent = doc.markStructureContent('TH');
     tableHeadEleven.add(tableHeadElevenContent);
-    mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 740, yPos, 40, cellHeight, ['FAO', 'AREA'], true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
+    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 740, y: yPos, width: 40, height: cellHeight, text: ['FAO', 'AREA']}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
     tableHeadEleven.end();
     tableHeadRow.end();
     tableHead.end();
@@ -364,7 +364,7 @@ const multiVesselScheduleHeading = (doc, data, isSample, buff, page, pageSize, s
     doc.endMarkedContent();
 
     const pageCountRow = doc.struct('TR', () => {
-        mvsTableCell(doc, PdfStyle.MARGIN.LEFT, yPos, 780, PdfStyle.ROW.HEIGHT, 'Page ' + page + ' of ' + pageCount, true, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
+        mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT, y: yPos, width: 780, height: PdfStyle.ROW.HEIGHT, text: 'Page ' + page + ' of ' + pageCount}, true, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
     });
     tableBody.add(pageCountRow);
     pageCountRow.end();
@@ -378,77 +378,77 @@ const generateMultiVesselTableRows = (tableBodyRow, doc, yPos, cellHeight, rowId
     tableBodyRow.add(TdOne);
     const TdOneContent = doc.markStructureContent('TD');
     TdOne.add(TdOneContent);
-    mvsTableCell(doc, PdfStyle.MARGIN.LEFT, yPos, 115, cellHeight, rowIdx < rowDataLimit ? `${rows[rowIdx].species}` : '', false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
+    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT, y: yPos, width: 115, height: cellHeight, text: rowIdx < rowDataLimit ? `${rows[rowIdx].species}` : ''}, false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
     TdOne.end();
 
     const TdTwo = doc.struct('TD');
     tableBodyRow.add(TdTwo);
     const TdTwoContent = doc.markStructureContent('TD');
     TdTwo.add(TdTwoContent);
-    mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 115, yPos, 80, cellHeight, rowIdx < rowDataLimit ? `${rows[rowIdx].presentation}` : '', false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
+    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 115, y: yPos, width: 80, height: cellHeight, text: rowIdx < rowDataLimit ? `${rows[rowIdx].presentation}` : ''}, false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
     TdTwo.end();
 
     const TdThree = doc.struct('TD');
     tableBodyRow.add(TdThree);
     const TdThreeContent = doc.markStructureContent('TD');
     TdThree.add(TdThreeContent);
-    mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 195, yPos, 50, cellHeight, rowIdx < rowDataLimit ? `${rows[rowIdx].commodityCode}` : '', false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
+    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 195, y: yPos, width: 50, height: cellHeight, text: rowIdx < rowDataLimit ? `${rows[rowIdx].commodityCode}` : ''}, false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
     TdThree.end();
 
     const TdFour = doc.struct('TD');
     tableBodyRow.add(TdFour);
     const TdFourContent = doc.markStructureContent('TD');
     TdFour.add(TdFourContent);
-    mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 245, yPos, 50, cellHeight, rowIdx < rowDataLimit ? `${rows[rowIdx].dateLanded}` : '', false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
+    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 245, y: yPos, width: 50, height: cellHeight, text: rowIdx < rowDataLimit ? `${rows[rowIdx].dateLanded}` : ''}, false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
     TdFour.end();
 
     const TdFive = doc.struct('TD');
     tableBodyRow.add(TdFive);
     const TdFiveContent = doc.markStructureContent('TD');
     TdFive.add(TdFiveContent);
-    mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 295, yPos, 55, cellHeight, rowIdx < rowDataLimit ? `${Number(rows[rowIdx].exportWeight).toFixed(2)}` : '', false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
+    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 295, y: yPos, width: 55, height: cellHeight, text: rowIdx < rowDataLimit ? `${Number(rows[rowIdx].exportWeight).toFixed(2)}` : ''}, false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
     TdFive.end();
 
     const TdSix = doc.struct('TD');
     tableBodyRow.add(TdSix);
     const TdSixContent = doc.markStructureContent('TD');
     TdSix.add(TdSixContent);
-    mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 350, yPos, 90, cellHeight, rowIdx < rowDataLimit ? `${rows[rowIdx].vessel}` : '', false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
+    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 350, y: yPos, width: 90, height: cellHeight, text: rowIdx < rowDataLimit ? `${rows[rowIdx].vessel}` : ''}, false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
     TdSix.end();
 
     const TdSeven = doc.struct('TD');
     tableBodyRow.add(TdSeven);
     const TdSevenContent = doc.markStructureContent('TD');
     TdSeven.add(TdSevenContent);
-    mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 440, yPos, 60, cellHeight, rowIdx < rowDataLimit ? `${rows[rowIdx].pln}` : '', false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
+    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 440, y: yPos, width: 60, height: cellHeight, text: rowIdx < rowDataLimit ? `${rows[rowIdx].pln}` : ''}, false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
     TdSeven.end();
 
     const TdEight = doc.struct('TD');
     tableBodyRow.add(TdEight);
     const TdEightContent = doc.markStructureContent('TD');
     TdEight.add(TdEightContent);
-    mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 500, yPos, 70, cellHeight, rowIdx < rowDataLimit ? `${rows[rowIdx].imo}` : '', false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
+    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 500, y: yPos, width: 70, height: cellHeight, text: rowIdx < rowDataLimit ? `${rows[rowIdx].imo}` : ''}, false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
     TdEight.end();
 
     const TdNine = doc.struct('TD');
     tableBodyRow.add(TdNine);
     const TdNineContent = doc.markStructureContent('TD');
     TdNine.add(TdNineContent);
-    mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 570, yPos, 90, cellHeight, rowIdx < rowDataLimit ? `${rows[rowIdx].licenceHolder}` : '', false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
+    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 570, y: yPos, width: 90, height: cellHeight, text: rowIdx < rowDataLimit ? `${rows[rowIdx].licenceHolder}` : ''}, false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
     TdNine.end();
 
     const TdTen = doc.struct('TD');
     tableBodyRow.add(TdTen);
     const TdTenContent = doc.markStructureContent('TD');
     TdTen.add(TdTenContent)
-    mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 660, yPos, 80, cellHeight, rowIdx < rowDataLimit ? `${rows[rowIdx].licenceDetail} ${rows[rowIdx].homePort}` : '', false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
+    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 660, y: yPos, width: 80, height: cellHeight, text: rowIdx < rowDataLimit ? `${rows[rowIdx].licenceDetail} ${rows[rowIdx].homePort}` : ''}, false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
     TdTen.end();
 
     const TdEleven = doc.struct('TD');
     tableBodyRow.add(TdEleven);
     const TdElevenContent = doc.markStructureContent('TD');
     TdEleven.add(TdElevenContent);
-    mvsTableCell(doc, PdfStyle.MARGIN.LEFT + 740, yPos, 40, cellHeight, rowIdx < rowDataLimit ? `${rows[rowIdx].faoArea}` : '', false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
+    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 740, y: yPos, width: 40, height: cellHeight, text: rowIdx < rowDataLimit ? `${rows[rowIdx].faoArea}` : ''}, false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
     TdEleven.end();
 };
 
@@ -1317,10 +1317,10 @@ const section2 = (doc, data, startY) => {
             lvt = moment(items[0].landings[0].model.vessel.licenceValidTo, 'YYYY-MM-DD[T]HH:mm:ss').format('DD/MM/YYYY');
         }
     }
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 120, startY + 52, 220, PdfStyle.ROW.HEIGHT, (ln)?ln:'');
+    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 120, startY + 52, 220, PdfStyle.ROW.HEIGHT, ln ?? '');
 
     PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 355, startY + 54, 'Valid to');
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 400, startY + 52, 130, PdfStyle.ROW.HEIGHT, (lvt)?lvt:'');
+    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 400, startY + 52, 130, PdfStyle.ROW.HEIGHT, lvt ?? '');
 
     PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 15, startY + 77, 'Inmarsat No. Telefax No. Telephone No. E-mail address (if issued)');
     PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, startY + 89, 515, PdfStyle.ROW.HEIGHT);
@@ -1366,25 +1366,25 @@ const section1 = (doc, data, isSample, startY) => {
 
 };
 
-const mvsHeadingCell = (doc, x, y, width, height, text, isBold, fontSize, align, lineColor, textColor, bgColour) => {
+const mvsHeadingCell = ({doc, x, y, width, height, text}, isBold, fontSize, align, lineColor, textColor, bgColour) => {
     if (!text || Array.isArray(text)) {
-        mvsCell(doc, x, y, width, height, height / 3, text, isBold, fontSize, align, lineColor, textColor, bgColour);
+        mvsCell({doc, x, y, width, height, topPad: height / 3, textArr: text}, isBold, fontSize, align, lineColor, textColor, bgColour);
     } else {
         let textArr = [text];
-        mvsCell(doc, x, y, width, height, height / 3, textArr, isBold, fontSize, align, lineColor, textColor, bgColour);
+        mvsCell({doc, x, y, width, height, topPad: height / 3, textArr}, isBold, fontSize, align, lineColor, textColor, bgColour);
     }
 };
 
-const mvsTableCell = (doc, x, y, width, height, text, isBold, fontSize, align, lineColor, textColor, bgColour) => {
+const mvsTableCell = ({doc, x, y, width, height, text}, isBold, fontSize, align, lineColor, textColor, bgColour) => {
     if (!text || Array.isArray(text)) {
-        return mvsCell(doc, x, y, width, height, 4, text, isBold, fontSize, align, lineColor, textColor, bgColour);
+        return mvsCell({doc, x, y, width, height, topPad: 4, textArr: text}, isBold, fontSize, align, lineColor, textColor, bgColour);
     } else {
         let textArr = [text];
-       return mvsCell(doc, x, y, width, height, 4, textArr, isBold, fontSize, align, lineColor, textColor, bgColour);
+       return mvsCell({doc, x, y, width, height, topPad: 4, textArr}, isBold, fontSize, align, lineColor, textColor, bgColour);
     }
 };
 
-const mvsCell = (doc, x, y, width, height, topPad, textArr, isBold, fontSize, align, lineColor, textColor, bgColour) => {
+const mvsCell = ({doc, x, y, width, height, topPad, textArr}, isBold, fontSize, align, lineColor, textColor, bgColour) => {
     let yPos = y;
     doc.undash();
     doc.lineWidth(0.75);

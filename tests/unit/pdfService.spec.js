@@ -63,7 +63,7 @@ describe('test the pdfService itself', () => {
 
   test('should get an azure blob stream', async () => {
     const result = await pdfService.getAzureBlobStream('asdf', 'asdf');
-    expect(Object.keys(result)).toEqual(["_readableState", "_events", "_eventsCount", "_maxListeners", "_writableState", "allowHalfOpen"]);
+    expect(Object.keys(result)).toEqual(["_events", "_readableState", "_writableState", "allowHalfOpen", "_maxListeners", "_eventsCount"]);
   });
   test('should check the journey from document', async () => {
     

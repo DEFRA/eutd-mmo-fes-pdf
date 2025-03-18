@@ -72,38 +72,38 @@ module.exports = {
     },
     tableHeaderCell: function(doc, x, y, width, height, text) {
         if (!text || Array.isArray(text)) {
-            this.cell(doc, x, y, width, height, text, false, false, '#767676', '#353535');
+            this.cell({doc, x, y, width, height, textArr: text, trimWidth: false, isBold: false, lineColor: '#767676', textColor: '#353535', bgColour: '', numberOfLines: 1 });
         } else {
             let textArr = [text];
-            this.cell(doc, x, y, width, height, textArr, false, false, '#767676', '#353535');
+            this.cell({doc, x, y, width, height, textArr, trimWidth: false, isBold: false, lineColor: '#767676', textColor: '#353535', bgColour: '', numberOfLines: 1 });
         }
     },
     tableHeaderCellBold: function(doc, x, y, width, height, text) {
         if (!text || Array.isArray(text)) {
-            this.cell(doc, x, y, width, height, text, false, true, '#767676', '#353535');
+            this.cell({doc, x, y, width, height, textArr: text, trimWidth: false, isBold: true, lineColor: '#767676', textColor: '#353535', bgColour: '', numberOfLines: 1 });
         } else {
             let textArr = [text];
-            this.cell(doc, x, y, width, height, textArr, false, true, '#767676', '#353535');
+            this.cell({doc, x, y, width, height, textArr, trimWidth: false, isBold: true, lineColor: '#767676', textColor: '#353535', bgColour: '', numberOfLines: 1 });
         }
     },
     field: function(doc, x, y, width, height, text, numberOfLines = 1) {
         if (!text || Array.isArray(text)) {
-            this.cell(doc, x, y, width, height, text, true, false, '#767676', '#6B6B6B', '#f1f4ff', numberOfLines);
+            this.cell({doc, x, y, width, height, textArr: text, trimWidth: true, isBold: false, lineColor: '#767676', textColor: '#6B6B6B', bgColour:'#f1f4ff', numberOfLines});
         } else {
             let textArr = [text];
-            this.cell(doc, x, y, width, height, textArr, true, false, '#767676', '#6B6B6B', '#f1f4ff', numberOfLines);
+            this.cell({doc, x, y, width, height, textArr, trimWidth: true, isBold: false, lineColor: '#767676', textColor: '#6B6B6B', bgColour:'#f1f4ff', numberOfLines});
         }
     },
     wrappedField: function(doc, x, y, width, height, text) {
         if (!text || Array.isArray(text)) {
-            this.cell(doc, x, y, width, height, text, false, false, '#767676', '#6B6B6B', '#f1f4ff');
+            this.cell({doc, x, y, width, height, textArr: text, trimWidth: false, isBold: false, lineColor: '#767676', textColor: '#6B6B6B', bgColour:'#f1f4ff', numberOfLines: 1 });
         } else {
             let textArr = [text];
-            this.cell(doc, x, y, width, height, textArr, false, false, '#767676', '#6B6B6B', '#f1f4ff');
+            this.cell({doc, x, y, width, height, textArr, trimWidth: false, isBold: false, lineColor: '#767676', textColor: '#6B6B6B', bgColour:'#f1f4ff', numberOfLines: 1 });
         }
     },
-    cell: function(doc, x, y, width, height, textArr, trimWidth,
-           isBold, lineColor, textColor, bgColour, numberOfLines = 1) {
+    cell: function({ doc, x, y, width, height, textArr, trimWidth,
+           isBold, lineColor, textColor, bgColour, numberOfLines }) {
 
         let yPos = y;
         doc.undash();
