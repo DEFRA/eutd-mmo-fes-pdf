@@ -1,41 +1,37 @@
 const config = require('../config');
-const storage = require('azure-storage');
+const { BlobServiceClient } = require('@azure/storage-blob');
 
-const createContainer = async (containerName) => {
-    const connectionStr = config.GET_CONNECTION_STR;
-    const blobService = storage.createBlobService(connectionStr);
-
-    return new Promise((resolve, reject) => {
-        blobService.createContainerIfNotExists(containerName, { publicAccessLevel: 'blob' }, err => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve({ message: `Container '${containerName}' created` });
-            }
-        });
-    });
+const getBlobServiceClient = () => {
+    return BlobServiceClient.fromConnectionString(config.GET_CONNECTION_STR);
 };
 
-const deleteBlob = async(containerName, blobName) => {
-    const connectionStr = config.GET_CONNECTION_STR;
-    const blobService = storage.createBlobService(connectionStr);
+const createContainer = async (containerName) => {
+    const blobServiceClient = getBlobServiceClient();
+    const containerClient = blobServiceClient.getContainerClient(containerName);
+    const createContainerResponse = await containerClient.createIfNotExists({ access: 'blob' });
+    return { message: `Container '${containerName}' created`, details: createContainerResponse };
+};
 
-    return new Promise((resolve, reject) => {
-        blobService.deleteBlobIfExists(containerName, blobName, err => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve({ message: `Blob '${blobName}' deleted` });
-            }
-        });
-    });
-
+const deleteBlob = async (containerName, blobName) => {
+    const blobServiceClient = getBlobServiceClient();
+    const containerClient = blobServiceClient.getContainerClient(containerName);
+    const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+    await blockBlobClient.deleteIfExists();
+    return { message: `Blob '${blobName}' deleted` };
 };
 
 const writeStreamForBlob = async (containerName, blobName) => {
-    const connectionStr = config.GET_CONNECTION_STR;
-    const blobService = storage.createBlobService(connectionStr);
-    return blobService.createWriteStreamToBlockBlob(containerName, blobName);
+    const { PassThrough } = require('stream');
+    const blobServiceClient = getBlobServiceClient();
+    const containerClient = blobServiceClient.getContainerClient(containerName);
+    const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+    const stream = new PassThrough();
+
+    // Start uploading as soon as data is piped in
+    blockBlobClient.uploadStream(stream)
+        .catch(err => stream.emit('error', err));
+
+    return stream;
 };
 
 module.exports.createContainer = createContainer;

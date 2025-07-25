@@ -1,4 +1,4 @@
-const uuid = require('uuid');
+const { v4: uuidv4 } = require('uuid');
 
 const { renderPdf } = require('./pdf/pdfRenderer');
 const { parsePdfBuffer } = require('./pdf/pdfParser');
@@ -44,7 +44,7 @@ const generatePdfAndUpload = async (containerName, type, data, isSample, { getSt
 const uploadZip = async (containerName, data, { getStream }) => {
     try {
         await blobManager.createContainer(containerName);
-        const blobName = `_${uuid()}.zip`;
+        const blobName = `_${uuidv4()}.zip`;
         const sasJson = generate(containerName, blobName);
         const stream = await getStream(containerName, blobName);
         stream.write(data);
