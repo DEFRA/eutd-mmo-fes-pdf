@@ -8,7 +8,7 @@ const getBlobServiceClient = () => {
 const createContainer = async (containerName) => {
     const blobServiceClient = getBlobServiceClient();
     const containerClient = blobServiceClient.getContainerClient(containerName);
-    const createContainerResponse = await containerClient.createIfNotExists({ access: 'blob' });
+    const createContainerResponse = await containerClient.createIfNotExists();
     return { message: `Container '${containerName}' created`, details: createContainerResponse };
 };
 
