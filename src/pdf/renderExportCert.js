@@ -1319,7 +1319,7 @@ const section2 = (doc, data, startY) => {
     }
     PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 120, startY + 52, 220, PdfStyle.ROW.HEIGHT, ln ?? '');
 
-    PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 350, startY + 54, 'Valid until');
+    PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 350, startY + 54, 'Valid to');
     PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 400, startY + 52, 130, PdfStyle.ROW.HEIGHT, lvt ?? '');
 
     PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 15, startY + 77, 'Inmarsat No. Telefax No. Telephone No. E-mail address (if issued)');
