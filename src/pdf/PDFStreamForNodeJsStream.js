@@ -9,7 +9,7 @@ function PDFStreamForNodeJsStream(stream) {
 
 PDFStreamForNodeJsStream.prototype.write = function(inBytesArray) {
     if(inBytesArray.length > 0) {
-        this.stream.write(new Buffer(inBytesArray));
+        this.stream.write(Buffer.from(inBytesArray));
         this.position+=inBytesArray.length;
         return inBytesArray.length;
     } else {
