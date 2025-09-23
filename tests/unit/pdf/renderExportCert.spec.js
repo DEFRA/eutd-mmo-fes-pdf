@@ -1075,6 +1075,61 @@ describe('pdfServiceExportCert: should run with no errors', () => {
         departurePlace: 'hull',
         user_id: 'a9602f38-f220-475a-991f-a19626bc51ae',
         vesselName: '123',
+                        containerNumbers: [
+                    'ABCD1', 'ABCD2', 'ABCD3', 'ABCD4', 'ABCD5'
+                ],
+        exportedFrom: 'France'
+      }
+    };
+
+    await renderPdf(pdfType.STORAGE_NOTE, data, false, sasJson.qrUri, mockedStream);
+  });
+
+  test('render transport pdf: SD PLANE', async () => {
+    const sasJson = {
+      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
+      blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
+      uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
+      qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+    }
+
+    const data = {
+      documentNumber: "GBR-2018-SD-1C89DE54F",
+      exporter: {
+        exporterFullName: 'Jim Jessop',
+        exporterCompanyName: 'FishByMail Ltd',
+        addressOne: '77 Coast Road',
+        addressTwo: '',
+        townCity: 'Jarrow',
+        postcode: 'NE31 1YW',
+      },
+      catches: [
+          {
+              product: 'cod',
+              commodityCode: '0123456',
+              certificateNumber: 'GBR-2018-SD-3456789012345678901234567890123456789001',
+              productWeight: 200,
+              dateOfUnloading: '01/02/2018',
+              placeOfUnloading: 'Jarrow',
+              transportUnloadedFrom: 'MK-0547, Saami'
+          }
+      ],
+      storageFacilities: [
+          {
+              facilityName: 'Test Processor 1',
+              facilityAddressOne: '20',
+              facilityAddressTwo: '',
+              facilityTownCity: 'Town',
+              facilityPostcode: 'test',
+              storedAs: "chilled"
+          }
+      ],
+      transport: {
+        vehicle: 'PLANE',
+        flightNumber: 'BA078',
+        departurePlace: 'hull',
+        user_id: 'a9602f38-f220-475a-991f-a19626bc51ae',
+        vesselName: '123',
         containerNumber: '456',
         exportedFrom: 'France'
       }

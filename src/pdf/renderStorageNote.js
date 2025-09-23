@@ -577,6 +577,16 @@ const getTransportDetails = (vcDetails, truckDetails, data) => {
     return transportDetails;
 };
 
+const getContainerNumbers = (transport) => {
+    if (transport.containerNumbers && transport.containerNumbers.length > 0) {
+        return transport.containerNumbers.join(', ');
+    } else if (transport.containerNumber) {
+        return transport.containerNumber;
+    } else {
+        return '';
+    }
+}
+
 const section3 = (doc, data, startY) => {
     let vcDetails = '';
     if (data.transport.vehicle) {
@@ -612,7 +622,7 @@ const section3 = (doc, data, startY) => {
         ]),
         doc.struct('TR', [
             doc.struct('TH', ()=> PdfUtils.tableHeaderCellBold(doc, PdfStyle.MARGIN.LEFT + 15, yPos + PdfStyle.ROW.HEIGHT + cellHeight, 250, cellHeight, ['Container numbers (where applicable)'])),
-            doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 265, yPos + PdfStyle.ROW.HEIGHT + cellHeight, 265, cellHeight, data.transport.containerNumber?data.transport.containerNumber:'')),
+            doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 265, yPos + PdfStyle.ROW.HEIGHT + cellHeight, 265, cellHeight, getContainerNumbers(data.transport))),
         ])
     ]));
 
