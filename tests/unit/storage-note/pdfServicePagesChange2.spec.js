@@ -441,176 +441,27 @@ describe('pdfService', () => {
                     transportUnloadedFrom: 'MK-0547, Saami'
                 }
             ],
-            storageFacilities: [
-                {
-                    facilityName: 'Test Processor 1',
-                    facilityAddressOne: '1',
-                    facilityAddressTwo: 'This address is massively huge',
-                    facilityTownCity: 'I mean really really really really really big',
-                    facilityPostcode: 'NE1 4T',
-                    storedAs: 'frozen'
-                },
-                {
-                    facilityName: 'Test Processor 2',
-                    facilityAddressOne: '2',
-                    facilityAddressTwo: '',
-                    facilityTownCity: 'Test',
-                    facilityPostcode: 'Test',
-                    storedAs: 'chilled'
-                },
-                {
-                    facilityName: 'Test Processor 3',
-                    facilityAddressOne: '3',
-                    facilityAddressTwo: '',
-                    facilityTownCity: 'Test',
-                    facilityPostcode: 'Test',
-                    storedAs: 'chilled'
-                },
-                {
-                    facilityName: 'Test Processor 4',
-                    facilityAddressOne: '4',
-                    facilityAddressTwo: '',
-                    facilityTownCity: 'Test',
-                    facilityPostcode: 'Test',
-                    storedAs: 'chilled'
-                },
-                {
-                    facilityName: 'Test Processor 5',
-                    facilityAddressOne: '5',
-                    facilityAddressTwo: '',
-                    facilityTownCity: 'Test',
-                    facilityPostcode: 'Test',
-                    storedAs: 'chilled'
-                },
-                {
-                    facilityName: 'Test Processor 6',
-                    facilityAddressOne: '6',
-                    facilityAddressTwo: '',
-                    facilityTownCity: 'Test',
-                    facilityPostcode: 'Test',
-                    storedAs: 'chilled'
-                },
-                {
-                    facilityName: 'Test Processor 7',
-                    facilityAddressOne: '7',
-                    facilityAddressTwo: '',
-                    facilityTownCity: 'Test',
-                    facilityPostcode: 'Test',
-                    storedAs: 'chilled'
-                },
-                {
-                    facilityName: 'Test Processor 8',
-                    facilityAddressOne: '8',
-                    facilityAddressTwo: '',
-                    facilityTownCity: 'Test',
-                    facilityPostcode: 'Test',
-                    storedAs: 'chilled'
-                },
-                {
-                    facilityName: 'Test Processor 9',
-                    facilityAddressOne: '9',
-                    facilityAddressTwo: '',
-                    facilityTownCity: 'Test',
-                    facilityPostcode: 'Test',
-                    storedAs: 'chilled'
-                },
-                {
-                    facilityName: 'Test Processor 10',
-                    facilityAddressOne: '10',
-                    facilityAddressTwo: '',
-                    facilityTownCity: 'Test',
-                    facilityPostcode: 'Test',
-                    storedAs: 'chilled'
-                },
-                {
-                    facilityName: 'Test Processor 11',
-                    facilityAddressOne: '11',
-                    facilityAddressTwo: '',
-                    facilityTownCity: 'Test',
-                    facilityPostcode: 'Test',
-                    storedAs: 'chilled'
-                },
-                {
-                    facilityName: 'Test Processor 12',
-                    facilityAddressOne: '12',
-                    facilityAddressTwo: '',
-                    facilityTownCity: 'Test',
-                    facilityPostcode: 'Test',
-                    storedAs: 'chilled'
-                },
-                {
-                    facilityName: 'Test Processor 13',
-                    facilityAddressOne: '13',
-                    facilityAddressTwo: '',
-                    facilityTownCity: 'Test',
-                    facilityPostcode: 'Test',
-                    storedAs: 'chilled'
-                },
-                {
-                    facilityName: 'Test Processor 14',
-                    facilityAddressOne: '14',
-                    facilityAddressTwo: '',
-                    facilityTownCity: 'Test',
-                    facilityPostcode: 'Test',
-                    storedAs: 'chilled'
-                },
-                {
-                    facilityName: 'Test Processor 15',
-                    facilityAddressOne: '15',
-                    facilityAddressTwo: '',
-                    facilityTownCity: 'Test',
-                    facilityPostcode: 'Test',
-                    storedAs: 'chilled'
-                },
-                {
-                    facilityName: 'Test Processor 16',
-                    facilityAddressOne: '16',
-                    facilityAddressTwo: '',
-                    facilityTownCity: 'Test',
-                    facilityPostcode: 'Test',
-                    storedAs: 'chilled'
-                }
-                ,
-                {
-                    facilityName: 'Test Processor 17',
-                    facilityAddressOne: '17',
-                    facilityAddressTwo: '',
-                    facilityTownCity: 'Test',
-                    facilityPostcode: 'Test',
-                    storedAs: 'chilled'
-                },
-                {
-                    facilityName: 'Test Processor 18',
-                    facilityAddressOne: '18',
-                    facilityAddressTwo: '',
-                    facilityTownCity: 'Test',
-                    facilityPostcode: 'Test',
-                    storedAs: 'chilled'
-                },
-                {
-                    facilityName: 'Test Processor 19',
-                    facilityAddressOne: '19',
-                    facilityAddressTwo: '',
-                    facilityTownCity: 'Test',
-                    facilityPostcode: 'Test',
-                    storedAs: 'chilled'
-                },
-                {
-                    facilityName: 'Test Processor 20',
-                    facilityAddressOne: '20',
-                    facilityAddressTwo: '',
-                    facilityTownCity: 'Test',
-                    facilityPostcode: 'Test',
-                    storedAs: 'chilled'
-                }
-            ],
             transport: {
                 "vehicle": "plane",
                 "departurePlace": "hull",
                 "flightNumber": "123",
                 "containerNumber": "456",
                 "exportDate": "31/01/2018"
-            }
+            },
+            arrivalTransport: {
+                "vehicle": "plane",
+                "departurePlace": "hull",
+                "flightNumber": "123",
+                "containerNumber": "456",
+                "exportDate": "31/01/2018"
+            },
+            facilityName: 'Test Processor 1',
+            facilityAddressOne: '20',
+            facilityAddressTwo: '',
+            facilityTownCity: 'Town',
+            facilityPostcode: 'test',
+            storedAs: "chilled",
+            facilityArrivalDate: '20/10/2025'
         };
 
         const responseJson = await pdfService.generatePdfAndUpload(principalId, pdfType.STORAGE_NOTE,

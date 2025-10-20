@@ -34,14 +34,7 @@ const renderStorageNote = async (data, isSample, uri, stream) => {
         const { schedYUp, pageUp} = formatCatchesData(schedY, pageHeight, page, data, doc, isSample);
         page = pageUp;
         schedY = schedYUp;
-    }
 
-    if (data.storageFacilities.length > 1) {
-        const { pageUp } = formatStorageFacilityData(schedY, pageHeight, page, data, doc, isSample);
-        page = pageUp;
-    }
-
-    if (data.storageFacilities.length > 1 || data.catches.length > 1) {
         if (isSample) {
             CommonUtils.addSampleWatermark(doc);
         }
@@ -49,6 +42,38 @@ const renderStorageNote = async (data, isSample, uri, stream) => {
     }
     doc.end();
 };
+
+const getTransportUnloadedFromDetails = (data) => {
+    const arrivalTransport = data.arrivalTransport;
+
+    if (!arrivalTransport?.vehicle) return undefined;
+
+    const vehicle = arrivalTransport.vehicle.toUpperCase();
+    
+    // Check for truck
+    if (vehicle === 'TRUCK' && arrivalTransport.registrationNumber) {
+        return `Truck: ${arrivalTransport.registrationNumber}`;
+    }
+    
+    // Check for train/railway
+    if (vehicle === 'TRAIN' && arrivalTransport.railwayBillNumber) {
+        return `Train: ${arrivalTransport.railwayBillNumber}`;
+    }
+    
+    // Check for plane/flight
+    if (vehicle === 'PLANE' && arrivalTransport.flightNumber) {
+        return `Plane: ${arrivalTransport.flightNumber}`;
+    }
+    
+    // Check for container vessel
+    if (vehicle === 'CONTAINERVESSEL' && arrivalTransport.vesselName) {
+        return `Container vessel: ${arrivalTransport.vesselName}`;
+    }
+    
+    // Fallback to empty string if no matching transport details found
+    return '';
+};
+
 
 const formatCatchesData = (schedY, pageHeight, page, data, doc, isSample) => {
     let cellHeight = PdfStyle.ROW.HEIGHT * 2 - 5;
@@ -110,21 +135,21 @@ const formatCatchesData = (schedY, pageHeight, page, data, doc, isSample) => {
         tableBodyRow.add(TdFive);
         const TdFiveContent = doc.markStructureContent('TD');
         TdFive.add(TdFiveContent);
-        PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 315, schedY, 55, cellHeight, data.catches[catchesIdx].dateOfUnloading);
+        PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 315, schedY, 55, cellHeight, data.facilityArrivalDate);
         TdFive.end();
 
         const TdSix = doc.struct('TD');
         tableBodyRow.add(TdSix);
         const TdSixContent = doc.markStructureContent('TD');
         TdSix.add(TdSixContent);
-        PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 370, schedY, 60, cellHeight, data.catches[catchesIdx].placeOfUnloading);
+        PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 370, schedY, 60, cellHeight, data.arrivalTransport?.placeOfUnloading);
         TdSix.end();
 
         const TdSeven = doc.struct('TD');
         tableBodyRow.add(TdSeven);
         const TdSevenContent = doc.markStructureContent('TD');
         TdSeven.add(TdSevenContent);
-        PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 430, schedY, 100, cellHeight, data.catches[catchesIdx].transportUnloadedFrom);
+        PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 430, schedY, 100, cellHeight, getTransportUnloadedFromDetails(data));
         TdSeven.end();
 
         schedY += cellHeight;
@@ -148,79 +173,6 @@ const formatCatchesData = (schedY, pageHeight, page, data, doc, isSample) => {
         }
     }
     return { schedYUp: schedY, pageUp: page};
-}
-
-const formatStorageFacilityData = (schedY, pageHeight, page, data, doc, isSample) => {
-    let sfLength = data.storageFacilities.length;
-    let cellHeight = PdfStyle.ROW.HEIGHT * 2 - 5;
-    let tableStruct;
-    if (schedY === PdfStyle.MARGIN.TOP || schedY + 150 > pageHeight) {
-        schedY = PdfStyle.MARGIN.TOP;
-        if (page !== 1) {
-            if (isSample) {
-                CommonUtils.addSampleWatermark(doc);
-            }
-            PdfUtils.endOfPage(doc, page);
-        }
-        page += 1;
-        const {updatedStartY, tableStruct: facilityTableStruct} = startFacilitySchedulePage(doc, schedY);
-        tableStruct = facilityTableStruct;
-        schedY = updatedStartY;
-    } else {
-        schedY += 25;
-        PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, schedY, '4    Storage facility details continued');
-        schedY += 20;
-        tableStruct = addStorageFacilityTableHeaders(doc, schedY);
-        schedY += PdfStyle.ROW.HEIGHT * 2;
-    }
-    let tableBody = doc.struct('TBody');
-    tableStruct.add(tableBody);
-
-    for (let sfIdx = 0; sfIdx < sfLength; sfIdx++) {
-        const tableBodyRow = doc.struct('TR');
-        tableBody.add(tableBodyRow);
-
-        let sfAddress = PdfUtils.constructAddress([data.storageFacilities[sfIdx].facilityAddressOne,
-            data.storageFacilities[sfIdx].facilityAddressTwo,
-            data.storageFacilities[sfIdx].facilityTownCity,
-            data.storageFacilities[sfIdx].facilityPostcode]);
-        const TdOne = doc.struct('TD');
-        tableBodyRow.add(TdOne);
-        const TdOneContent = doc.markStructureContent('TD');
-        TdOne.add(TdOneContent);
-        PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 15, schedY, 150, cellHeight, data.storageFacilities[sfIdx].facilityName);
-        TdOne.end();
-
-        const TdTwo = doc.struct('TD');
-        tableBodyRow.add(TdTwo);
-        const TdTwoContent = doc.markStructureContent('TD');
-        TdTwo.add(TdTwoContent);
-        PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 165, schedY, 365, cellHeight, sfAddress);
-        TdTwo.end();
-        
-        schedY += cellHeight;
-        tableBodyRow.end();
-        if (schedY + cellHeight > pageHeight && (sfIdx + 1 < sfLength)) {
-            doc.endMarkedContent();
-            tableBody.end();
-            tableStruct.end();
-
-            schedY += 5;
-            doc.text('* Tick as appropriate', PdfStyle.MARGIN.LEFT + 15, schedY);
-            schedY = PdfStyle.MARGIN.TOP;
-            if (isSample) {
-                CommonUtils.addSampleWatermark(doc);
-            }
-            PdfUtils.endOfPage(doc, page);
-            page += 1;
-            const {updatedStartY, tableStruct: facilityTableStruct} = startFacilitySchedulePage(doc, schedY);
-            schedY = updatedStartY;
-            tableStruct = facilityTableStruct;
-            tableBody = doc.struct('TBody');
-            tableStruct.add(tableBody);
-        }
-    }
-    return { pageUp: page};
 }
 
 const startSpeciesSchedulePage = (doc, startY) => {
@@ -489,36 +441,23 @@ const section4 = (doc, data, startY) => {
 
    
     yPos += cellHeight;
-    let arrLength = data.storageFacilities.length;
-    if (arrLength > 1) {
-        const TdOne = doc.struct('TD');
-        tableBodyRow.add(TdOne);
-        const TdOneContent = doc.markStructureContent('TD');
-        TdOne.add(TdOneContent);
-        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos - 15, 515, cellHeight,
-            'MULTIPLE STORAGE FACILITIES ( ' + data.storageFacilities.length + ' ) - SEE SCHEDULE')
-        TdOne.end();
-    } else {
-        let sfAddress = '';
-        if (0 < arrLength) {
-            sfAddress = PdfUtils.constructAddress([data.storageFacilities[0].facilityAddressOne,
-                data.storageFacilities[0].facilityAddressTwo,
-                data.storageFacilities[0].facilityTownCity,
-                data.storageFacilities[0].facilityPostcode]);
-        }
-        const TdOne = doc.struct('TD');
-        tableBodyRow.add(TdOne);
-        const TdOneContent = doc.markStructureContent('TD');
-        TdOne.add(TdOneContent);
-        PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 15, yPos - 15, 150, cellHeight, data.storageFacilities[0].facilityName);
-        TdOne.end();
-        const TdTwo = doc.struct('TD');
-        tableBodyRow.add(TdTwo);
-        const TdTwoContent = doc.markStructureContent('TD');
-        TdTwo.add(TdTwoContent)
-        PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 165, yPos - 15, 365, cellHeight, sfAddress);
-        TdTwo.end();
-    }
+    let sfAddress = '';
+    sfAddress = PdfUtils.constructAddress([data.facilityAddressOne,
+        data.facilityAddressTwo,
+        data.facilityTownCity,
+        data.facilityPostcode]);
+    const TdOne = doc.struct('TD');
+    tableBodyRow.add(TdOne);
+    const TdOneContent = doc.markStructureContent('TD');
+    TdOne.add(TdOneContent);
+    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 15, yPos - 15, 150, cellHeight, data.facilityName);
+    TdOne.end();
+    const TdTwo = doc.struct('TD');
+    tableBodyRow.add(TdTwo);
+    const TdTwoContent = doc.markStructureContent('TD');
+    TdTwo.add(TdTwoContent)
+    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 165, yPos - 15, 365, cellHeight, sfAddress);
+    TdTwo.end();
     tableBodyRow.end();
     doc.endMarkedContent();
     tableBody.end();
@@ -772,21 +711,21 @@ const generateSectionTwoRows = (doc, yPos, cellHeight, rowIdx, arrLength, data, 
     tableBodyRow.add(TdFive);
     const TdFiveContent = doc.markStructureContent('TD');
     TdFive.add(TdFiveContent)
-    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 315, yPos, 55, cellHeight, rowIdx < arrLength ? `${data.catches[rowIdx].dateOfUnloading}` : '');
+    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 315, yPos, 55, cellHeight, data.facilityArrivalDate ?? '');
     TdFive.end();
 
     const TdSix = doc.struct('TD');
     tableBodyRow.add(TdSix);
     const TdSixContent = doc.markStructureContent('TD');
     TdSix.add(TdSixContent);
-    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 370, yPos, 60, cellHeight, rowIdx < arrLength ? `${data.catches[rowIdx].placeOfUnloading}` : '');
+    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 370, yPos, 60, cellHeight, data.arrivalTransport?.placeOfUnloading ?? '');
     TdSix.end();
 
     const TdSeven = doc.struct('TD');
     tableBodyRow.add(TdSeven);
     const TdSevenContent = doc.markStructureContent('TD');
     TdSeven.add(TdSevenContent);
-    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 430, yPos, 100, cellHeight, rowIdx < arrLength ? `${data.catches[rowIdx].transportUnloadedFrom}` : '');
+    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 430, yPos, 100, cellHeight, getTransportUnloadedFromDetails(data) ?? '');
     TdSeven.end();
 }
 

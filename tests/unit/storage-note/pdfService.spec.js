@@ -69,23 +69,27 @@ describe('pdfService', () => {
                     transportUnloadedFrom: 'MK-0547, Saami'
                 }
             ],
-            storageFacilities: [
-                {
-                    facilityName: 'Test Processor 1',
-                    facilityAddressOne: '20',
-                    facilityAddressTwo: '',
-                    facilityTownCity: 'Town',
-                    facilityPostcode: 'test',
-                    storedAs: "chilled"
-                }
-            ],
             transport: {
                 "vehicle": "train",
                 "departurePlace": "HULL",
                 "stationName": "LONDON",
                 "railwayBillNumber": "E11111E",
                 "exportDate": "31/01/2018"
-            }
+            },
+            arrivalTransport: {
+                "vehicle": "plane",
+                "departurePlace": "hull",
+                "flightNumber": "123",
+                "containerNumber": "456",
+                "exportDate": "31/01/2018"
+            },
+            facilityName: 'Test Processor 1',
+            facilityAddressOne: '20',
+            facilityAddressTwo: '',
+            facilityTownCity: 'Town',
+            facilityPostcode: 'test',
+            storedAs: "chilled",
+            facilityArrivalDate: '20/10/2025'
         };
 
         const responseJson = await pdfService.generatePdfAndUpload(principalId, pdfType.STORAGE_NOTE,
@@ -125,21 +129,25 @@ describe('pdfService', () => {
                     transportUnloadedFrom: 'MK-0547, Saami'
                 }
             ],
-            storageFacilities: [
-                {
-                    facilityName: 'Test Processor 1',
-                    facilityAddressOne: '20',
-                    facilityAddressTwo: '',
-                    facilityTownCity: 'Town',
-                    facilityPostcode: 'test',
-                    storedAs: "chilled"
-                }
-            ],
             transport: {
                 vehicle: 'CONTAINERVESSEL',
                 vesselName: 'test',
                 flagState: 'test',    
-            }
+            },
+            arrivalTransport: {
+                "vehicle": "plane",
+                "departurePlace": "hull",
+                "flightNumber": "123",
+                "containerNumber": "456",
+                "exportDate": "31/01/2018"
+            },
+            facilityName: 'Test Processor 1',
+            facilityAddressOne: '20',
+            facilityAddressTwo: '',
+            facilityTownCity: 'Town',
+            facilityPostcode: 'test',
+            storedAs: "chilled",
+            facilityArrivalDate: '20/10/2025'
         };
 
         const responseJson = await pdfService.generatePdfAndUpload(principalId, pdfType.STORAGE_NOTE,
@@ -176,21 +184,25 @@ describe('pdfService', () => {
                     pln: 'test',
                 }
             ],
-            storageFacilities: [
-                {
-                    facilityName: 'Test Processor 1',
-                    facilityAddressOne: '20',
-                    facilityAddressTwo: '',
-                    facilityTownCity: 'Town',
-                    facilityPostcode: 'test',
-                    storedAs: "chilled"
-                }
-            ],
             transport: {
                 vehicle: 'DIRECTLANDING',
                 vesselName: 'test',
                 flagState: 'test',
-            }
+            },
+            arrivalTransport: {
+                "vehicle": "plane",
+                "departurePlace": "hull",
+                "flightNumber": "123",
+                "containerNumber": "456",
+                "exportDate": "31/01/2018"
+            },
+            facilityName: 'Test Processor 1',
+            facilityAddressOne: '20',
+            facilityAddressTwo: '',
+            facilityTownCity: 'Town',
+            facilityPostcode: 'test',
+            storedAs: "chilled",
+            facilityArrivalDate: '20/10/2025'
         };
 
         const responseJson = await pdfService.generatePdfAndUpload(principalId, pdfType.STORAGE_NOTE,
@@ -225,21 +237,25 @@ describe('pdfService', () => {
                     transportUnloadedFrom: 'MK-0547, Saami'
                 }
             ],
-            storageFacilities: [
-                {
-                    facilityName: 'Test Processor 1',
-                    facilityAddressOne: '20',
-                    facilityAddressTwo: '',
-                    facilityTownCity: 'Town',
-                    facilityPostcode: 'test',
-                    storedAs: "chilled"
-                }
-            ],
             transport: {
                 vehicle: 'TRUCK',
                 nationalityOfVehicle: 'test',
                 registrationNumber: 'test',
-            }
+            },
+            arrivalTransport: {
+                "vehicle": "plane",
+                "departurePlace": "hull",
+                "flightNumber": "123",
+                "containerNumber": "456",
+                "exportDate": "31/01/2018"
+            },
+            facilityName: 'Test Processor 1',
+            facilityAddressOne: '20',
+            facilityAddressTwo: '',
+            facilityTownCity: 'Town',
+            facilityPostcode: 'test',
+            storedAs: "chilled",
+            facilityArrivalDate: '20/10/2025'
         };
 
         const responseJson = await pdfService.generatePdfAndUpload(principalId, pdfType.STORAGE_NOTE,
@@ -248,5 +264,4 @@ describe('pdfService', () => {
         expect(responseJson).toBeTruthy();
 
     });
-
 });
