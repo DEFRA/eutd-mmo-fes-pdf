@@ -31,9 +31,8 @@ const renderStorageNote = async (data, isSample, uri, stream) => {
     let page = 1;
 
     if (data.catches.length > 1) {
-        const { schedYUp, pageUp} = formatCatchesData(schedY, pageHeight, page, data, doc, isSample);
+        const { pageUp } = formatCatchesData(schedY, pageHeight, page, data, doc, isSample);
         page = pageUp;
-        schedY = schedYUp;
 
         if (isSample) {
             CommonUtils.addSampleWatermark(doc);
@@ -44,34 +43,26 @@ const renderStorageNote = async (data, isSample, uri, stream) => {
 };
 
 const getTransportUnloadedFromDetails = (data) => {
-    const arrivalTransport = data.arrivalTransport;
+    let transportUnloadedFromDetails;
 
-    if (!arrivalTransport?.vehicle) return undefined;
+    switch (data.arrivalTransport?.vehicle) {
+        case 'truck':
+            transportUnloadedFromDetails = `Truck: ${data.arrivalTransport.registrationNumber}`;
+            break;
+        case 'train':
+            transportUnloadedFromDetails =  `Train: ${data.arrivalTransport.railwayBillNumber}`;
+            break;
+        case 'plane':
+            transportUnloadedFromDetails = `Plane: ${data.arrivalTransport.flightNumber}`;
+            break;
+        case 'containerVessel':
+             transportUnloadedFromDetails = `Container vessel: ${data.arrivalTransport.vesselName}`;
+             break;
+        default:
+            transportUnloadedFromDetails = '';
+    }
 
-    const vehicle = arrivalTransport.vehicle.toUpperCase();
-    
-    // Check for truck
-    if (vehicle === 'TRUCK' && arrivalTransport.registrationNumber) {
-        return `Truck: ${arrivalTransport.registrationNumber}`;
-    }
-    
-    // Check for train/railway
-    if (vehicle === 'TRAIN' && arrivalTransport.railwayBillNumber) {
-        return `Train: ${arrivalTransport.railwayBillNumber}`;
-    }
-    
-    // Check for plane/flight
-    if (vehicle === 'PLANE' && arrivalTransport.flightNumber) {
-        return `Plane: ${arrivalTransport.flightNumber}`;
-    }
-    
-    // Check for container vessel
-    if (vehicle === 'CONTAINERVESSEL' && arrivalTransport.vesselName) {
-        return `Container vessel: ${arrivalTransport.vesselName}`;
-    }
-    
-    // Fallback to empty string if no matching transport details found
-    return '';
+    return transportUnloadedFromDetails;
 };
 
 
@@ -725,7 +716,7 @@ const generateSectionTwoRows = (doc, yPos, cellHeight, rowIdx, arrLength, data, 
     tableBodyRow.add(TdSeven);
     const TdSevenContent = doc.markStructureContent('TD');
     TdSeven.add(TdSevenContent);
-    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 430, yPos, 100, cellHeight, getTransportUnloadedFromDetails(data) ?? '');
+    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 430, yPos, 100, cellHeight, getTransportUnloadedFromDetails(data));
     TdSeven.end();
 }
 
