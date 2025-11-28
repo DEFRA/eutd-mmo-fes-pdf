@@ -9,15 +9,17 @@ module.exports = {
         doc.moveTo(0, startY).lineTo(600, startY).dash(2, {space: 2}).stroke('#767676');
     },
     endOfPage: function(doc, page) {
-        doc.undash();
-        doc.lineWidth(2);
-        doc.moveTo(PdfStyle.MARGIN.LEFT, 795).lineTo(560, 795).stroke('#353535');
-        doc.font(PdfStyle.FONT.REGULAR);
-        doc.fontSize(PdfStyle.FONT_SIZE.SMALL);
-        doc.fillColor('#353535');
-        doc.text(page, 0, 800, {
-            align: 'center'
-        });
+        doc.addStructure(doc.struct('Artifact', { type: 'Pagination' }, () => {
+            doc.undash();
+            doc.lineWidth(2);
+            doc.moveTo(PdfStyle.MARGIN.LEFT, 795).lineTo(560, 795).stroke('#353535');
+            doc.font(PdfStyle.FONT.REGULAR);
+            doc.fontSize(PdfStyle.FONT_SIZE.SMALL);
+            doc.fillColor('#353535');
+            doc.text(page, 0, 800, {
+                align: 'center'
+            });
+        }));
 
         if (!doc.page.dictionary.Tabs) {
             doc.page.dictionary.data.Tabs = 'S';
@@ -29,12 +31,14 @@ module.exports = {
         }, () => {
             doc.image(buff, startX, startY, {fit: [55, 55]});
         }));
-        this.labelBold(doc, startX + 90,startY + 10,
-            'Use the QR code');
-        this.labelBold(doc, startX + 90,startY + 25,
-            'to check that this');
-        this.labelBold(doc, startX + 90,startY + 40,
-            'certificate is valid');
+        doc.addStructure(doc.struct('P', () => {
+            this.labelBold(doc, startX + 90,startY + 10,
+                'Use the QR code');
+            this.labelBold(doc, startX + 90,startY + 25,
+                'to check that this');
+            this.labelBold(doc, startX + 90,startY + 40,
+                'certificate is valid');
+        }));
     },
     generateQRCode: function(uri) {
         return new Promise(((resolve, reject) => {
@@ -158,8 +162,8 @@ module.exports = {
         doc.addStructure(doc.struct('Figure', {
             alt: 'HM Government logo'
         }, () => {
-            doc.image(imageFile, /*PdfStyle.MARGIN.LEFT, PdfStyle.MARGIN.TOP,*/ {
-                width: 220
+            doc.image(imageFile, {
+                height: 60
             })
         }));
 

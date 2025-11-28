@@ -115,7 +115,11 @@ describe('pdfService', () => {
                 "vehicle": "train",
                 "departurePlace": "Grimsby",
                 "user_id": "a9602f38-f220-475a-991f-a19626bc51ae",
-                "railwayBillNumber": "123123123123"
+                "railwayBillNumber": "123123123123",
+                "containerIdentificationNumber": "TRAIN-001, TRAIN-002",
+                "exportedTo": {
+                    "officialCountryName": 'France',
+                }
             },
             conservation: {
                 "conservationReference": "Other",

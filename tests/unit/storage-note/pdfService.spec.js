@@ -89,7 +89,11 @@ describe('pdfService', () => {
             facilityTownCity: 'Town',
             facilityPostcode: 'test',
             storedAs: "chilled",
-            facilityArrivalDate: '20/10/2025'
+            facilityArrivalDate: '20/10/2025',
+            exportDate: "31/01/2018",
+            exportedTo: {
+                officialCountryName: 'France',
+            }
         };
 
         const responseJson = await pdfService.generatePdfAndUpload(principalId, pdfType.STORAGE_NOTE,
@@ -147,7 +151,11 @@ describe('pdfService', () => {
             facilityTownCity: 'Town',
             facilityPostcode: 'test',
             storedAs: "chilled",
-            facilityArrivalDate: '20/10/2025'
+            facilityArrivalDate: '20/10/2025',
+            flagState: 'test',
+            exportedTo: {
+                officialCountryName: 'France',
+            }   
         };
 
         const responseJson = await pdfService.generatePdfAndUpload(principalId, pdfType.STORAGE_NOTE,
@@ -202,7 +210,10 @@ describe('pdfService', () => {
             facilityTownCity: 'Town',
             facilityPostcode: 'test',
             storedAs: "chilled",
-            facilityArrivalDate: '20/10/2025'
+            facilityArrivalDate: '20/10/2025',
+            exportedTo: {
+                officialCountryName: 'France',
+            }
         };
 
         const responseJson = await pdfService.generatePdfAndUpload(principalId, pdfType.STORAGE_NOTE,
@@ -255,7 +266,10 @@ describe('pdfService', () => {
             facilityTownCity: 'Town',
             facilityPostcode: 'test',
             storedAs: "chilled",
-            facilityArrivalDate: '20/10/2025'
+            facilityArrivalDate: '20/10/2025',
+            exportedTo: {
+                officialCountryName: 'France',
+            }
         };
 
         const responseJson = await pdfService.generatePdfAndUpload(principalId, pdfType.STORAGE_NOTE,

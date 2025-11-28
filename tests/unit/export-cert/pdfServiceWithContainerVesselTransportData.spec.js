@@ -118,7 +118,10 @@ describe('pdfService', () => {
                 "user_id": "a9602f38-f220-475a-991f-a19626bc51ae",
                 "vesselName": "vessel",
                 "flagState": "UK",
-                "containerNumber": "123123, 123123123, 12123123"
+                "containerNumber": "123123, 123123123, 12123123",
+                "exportedTo": {
+                    "officialCountryName": 'France',
+                }
             },
             conservation: {
                 "conservationReference": "Other",

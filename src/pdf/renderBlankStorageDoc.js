@@ -33,17 +33,18 @@ const renderBlankStorageDoc = async (data, isSample, uri, stream, pathToTemplate
 
     if (isSample) {
         renderSampleWatermark(pdfWriter, ctx, watermarkStreamImageXObject, 30, 100);
-    } else {
-        renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, 285, 125);
     }
     pageModifier.endContext().writePage();
 
-    if (isSample) {
-        pageModifier = new muhammara.PDFPageModifier(pdfWriter, 1);
-        ctx = pageModifier.startContext().getContext();
-        renderSampleWatermark(pdfWriter, ctx, watermarkStreamImageXObject, 30, 100);
-        pageModifier.endContext().writePage();
+    pageModifier = new muhammara.PDFPageModifier(pdfWriter, 1);
+    ctx = pageModifier.startContext().getContext();
 
+    if(isSample) renderSampleWatermark(pdfWriter, ctx, watermarkStreamImageXObject, 30, 100);
+    else renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, 290, 150);
+
+    pageModifier.endContext().writePage();
+    
+    if (isSample) {
         pageModifier = new muhammara.PDFPageModifier(pdfWriter, 2);
         ctx = pageModifier.startContext().getContext();
         renderSampleWatermark(pdfWriter, ctx, watermarkStreamImageXObject, 30, 100);

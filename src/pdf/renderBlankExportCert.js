@@ -53,54 +53,54 @@ const renderBlankExportCert = async (data, isSample, uri, stream, pathToTemplate
     } else {
         pageModifier = new muhammara.PDFPageModifier(pdfWriter, 1);
         ctx = pageModifier.startContext().getContext();
-        renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, 350, 562);
+        renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, 350, 130);
         pageModifier.endContext().writePage();
 
-        pageModifier = new muhammara.PDFPageModifier(pdfWriter, 3);
+        pageModifier = new muhammara.PDFPageModifier(pdfWriter, 5);
         ctx = pageModifier.startContext().getContext();
-        renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, 70, 150);
+        renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, 70, 70);
         pageModifier.endContext().writePage();
     }
-
-    pageModifier = new muhammara.PDFPageModifier(pdfWriter, 4);
-    ctx = pageModifier.startContext().getContext();
-    ctx.writeText(
-        docNumber,
-        128, 494,
-        {font:pdfWriter.getFontForFile(pathToTemplate + 'fonts/arial.ttf'),size:10,colorspace:'gray',color:0x00}
-    );
-    if (isSample) {
-        renderSampleWatermark(pdfWriter, ctx, watermarkStreamImageXObject, 130, 0);
-    } else {
-        renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, 617, 435);
-    }
-    pageModifier.endContext().writePage();
-
-    pageModifier = new muhammara.PDFPageModifier(pdfWriter, 5);
-    ctx = pageModifier.startContext().getContext();
-    ctx.writeText(
-        docNumber,
-        128, 494,
-        {font:pdfWriter.getFontForFile(pathToTemplate + 'fonts/arial.ttf'),size:10,colorspace:'gray',color:0x00}
-    );
-    if (isSample) {
-        renderSampleWatermark(pdfWriter, ctx, watermarkStreamImageXObject, 130, 0);
-    } else {
-        renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, 617, 435);
-    }
-    pageModifier.endContext().writePage();
 
     pageModifier = new muhammara.PDFPageModifier(pdfWriter, 6);
     ctx = pageModifier.startContext().getContext();
     ctx.writeText(
         docNumber,
-        128, 497,
+        128, 494,
         {font:pdfWriter.getFontForFile(pathToTemplate + 'fonts/arial.ttf'),size:10,colorspace:'gray',color:0x00}
     );
     if (isSample) {
         renderSampleWatermark(pdfWriter, ctx, watermarkStreamImageXObject, 130, 0);
     } else {
-        renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, 617, 435);
+        renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, 617, 445);
+    }
+    pageModifier.endContext().writePage();
+
+    pageModifier = new muhammara.PDFPageModifier(pdfWriter, 7);
+    ctx = pageModifier.startContext().getContext();
+    ctx.writeText(
+        docNumber,
+        128, 494,
+        {font:pdfWriter.getFontForFile(pathToTemplate + 'fonts/arial.ttf'),size:10,colorspace:'gray',color:0x00}
+    );
+    if (isSample) {
+        renderSampleWatermark(pdfWriter, ctx, watermarkStreamImageXObject, 130, 0);
+    } else {
+        renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, 617, 445);
+    }
+    pageModifier.endContext().writePage();
+
+    pageModifier = new muhammara.PDFPageModifier(pdfWriter, 8);
+    ctx = pageModifier.startContext().getContext();
+    ctx.writeText(
+        docNumber,
+        128, 494,
+        {font:pdfWriter.getFontForFile(pathToTemplate + 'fonts/arial.ttf'),size:10,colorspace:'gray',color:0x00}
+    );
+    if (isSample) {
+        renderSampleWatermark(pdfWriter, ctx, watermarkStreamImageXObject, 130, 0);
+    } else {
+        renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, 617, 445);
     }
     pageModifier.endContext().writePage();
 
@@ -118,17 +118,17 @@ const renderQrCode = (pathToTemplate, pdfWriter, ctx, imageXObject, x, y) => {
 
     ctx.writeText(
         'Use the QR code',
-        x + 95, y + 50,
+        x + 95, y + 40,
         {font:pdfWriter.getFontForFile(pathToTemplate + 'fonts/arial.ttf'),size:11,colorspace:'gray',color:0x00}
     );
     ctx.writeText(
         'to check that this',
-        x + 95, y + 36,
+        x + 95, y + 26,
         {font:pdfWriter.getFontForFile(pathToTemplate + 'fonts/arial.ttf'),size:11,colorspace:'gray',color:0x00}
     );
     ctx.writeText(
         'certificate is valid',
-        x + 95, y + 22,
+        x + 95, y + 12,
         {font:pdfWriter.getFontForFile(pathToTemplate + 'fonts/arial.ttf'),size:11,colorspace:'gray',color:0x00}
     );
 }

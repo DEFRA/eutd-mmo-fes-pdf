@@ -10,3 +10,4 @@ tests/unit/*/output/*.pdf
 .env
 reports/
 .DS_Store
+junit.xml

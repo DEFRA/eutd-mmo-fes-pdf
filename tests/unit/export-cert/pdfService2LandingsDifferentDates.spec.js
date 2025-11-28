@@ -105,7 +105,10 @@ describe('pdfService', () => {
                 "departurePlace": "hull",
                 "user_id": "a9602f38-f220-475a-991f-a19626bc51ae",
                 "flightNumber": "123",
-                "containerNumber": "456"
+                "containerNumber": "456",
+                "exportedTo": {
+                    "officialCountryName": 'France',
+                }
             },
             conservation: {
                 "conservationReference": "Common Fisheries Policy"

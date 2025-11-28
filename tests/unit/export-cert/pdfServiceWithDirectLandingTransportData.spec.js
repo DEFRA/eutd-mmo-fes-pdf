@@ -74,7 +74,10 @@ describe('pdfService', () => {
             transport: {
                 "departurePlace": "Calais",
                 "vehicle": "directLanding",
-                "user_id": "219d28a3-cb1d-46cc-b96a-b2d53fc791c6"
+                "user_id": "219d28a3-cb1d-46cc-b96a-b2d53fc791c6",
+                "exportedTo": {
+                    "officialCountryName": 'France',
+                }
             },
             conservation: {
                 "conservationReference": "Common fisheries policy",
