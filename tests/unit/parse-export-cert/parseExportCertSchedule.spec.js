@@ -8,7 +8,7 @@ describe('parseExportCert', () => {
     test('should parse pdf', async () => {
         let data = fs.readFileSync('./tests/unit/parse-export-cert/fixtures/parse-export-certs-schedule.pdf');
         let pdfData = await parsePdfBuffer(data);
-        expect(pdfData.documentNumber).toBe('GBR-2019-CM-E3A3A25DA');
+        expect(pdfData.documentNumber).toBe('GBR-2019-CM-EA35698BF');
         expect(pdfData.errors.length).toBe(0);
 
         expect(pdfData.exportPayload.items.length).toBe(42);
@@ -69,7 +69,7 @@ const landing1 = {
         "vesselName": "Grace1",
         "licenceNumber": "L001",
         "imoNumber": "IMO1",
-        "label": "Grace1"
+        "label": "Grace1",
     }
 };
 

@@ -24,7 +24,7 @@ describe('pdfService', () => {
 
     jest.setTimeout(60000);
 
-    test('should create the expected pdf', async () => {
+    test('should create the expected pdf with train as arrival transport', async () => {
         const mockCreateContainer = jest.spyOn(blobManager, 'createContainer');
         mockCreateContainer.mockResolvedValue(undefined);
 
@@ -71,11 +71,220 @@ describe('pdfService', () => {
                 "exportDate": "31/01/2018"
             },
             arrivalTransport: {
+                vehicle: "train",
+                departurePlace: "HULL",
+                stationName: "LONDON",
+                railwayBillNumber: "E11111E",
+                exportDate: "31/01/2018",
+            },
+            facilityName: 'Test Processor 1',
+            facilityAddressOne: '20',
+            facilityAddressTwo: '',
+            facilityTownCity: 'Town',
+            facilityPostcode: 'test',
+            storedAs: "chilled",
+            facilityArrivalDate: '20/10/2025'
+        };
+
+        const responseJson = await pdfService.generatePdfAndUpload(principalId, pdfType.STORAGE_NOTE,
+            data, true, { getStream: getTestStream });
+
+        expect(responseJson).toBeTruthy();
+
+    })
+    test('should create the expected pdf with containerVessel as arrival transport', async () => {
+        const mockCreateContainer = jest.spyOn(blobManager, 'createContainer');
+        mockCreateContainer.mockResolvedValue(undefined);
+
+        const mockWriteStreamForBlob = jest.spyOn(blobManager, 'writeStreamForBlob');
+        mockWriteStreamForBlob.mockResolvedValue(mockedStream);
+
+        const principalId = '527fb0dd-b1d7-46c8-bfed-e06b373d041c';
+
+        const data = {
+            documentNumber: "GBR-2018-SD-1C89DE54F",
+            exporter: {
+                'exporterFullName': 'Jim Jessop',
+                'exporterCompanyName': 'FishByMail Ltd',
+                'addressOne': '77 Coast Road',
+                'addressTwo': 'My address is particularly long',
+                'townCity': 'Jarrow',
+                'postcode': 'NE31 1YW'
+            },
+            catches: [
+                {
+                    product: 'cod',
+                    commodityCode: '0123456',
+                    certificateNumber: 'GBR-2018-SD-1C89DE54F',
+                    productWeight: 200,
+                    dateOfUnloading: '01/02/2018',
+                    placeOfUnloading: 'Jarrow',
+                    transportUnloadedFrom: 'MK-0547, Saami'
+                },
+                {
+                    product: 'White fish tails',
+                    commodityCode: '0123456',
+                    certificateNumber: 'GBR-2018-SD-1C89DE54F',
+                    productWeight: 200,
+                    dateOfUnloading: '01/02/2018',
+                    placeOfUnloading: 'Jarrow',
+                    transportUnloadedFrom: 'MK-0547, Saami'
+                }
+            ],
+            transport: {
                 "vehicle": "train",
                 "departurePlace": "HULL",
                 "stationName": "LONDON",
                 "railwayBillNumber": "E11111E",
                 "exportDate": "31/01/2018"
+            },
+            arrivalTransport: {
+                vehicle: 'containerVessel',
+                flagState: 'UK',
+                departurePlace: 'hull',
+                user_id: 'a9602f38-f220-475a-991f-a19626bc51ae',
+                vesselName: '123',
+                containerNumbers: [
+                    'ABCD1', 'ABCD2', 'ABCD3', 'ABCD4', 'ABCD5'
+                ],
+                exportedFrom: 'France'
+            },
+            facilityName: 'Test Processor 1',
+            facilityAddressOne: '20',
+            facilityAddressTwo: '',
+            facilityTownCity: 'Town',
+            facilityPostcode: 'test',
+            storedAs: "chilled",
+            facilityArrivalDate: '20/10/2025'
+        };
+
+        const responseJson = await pdfService.generatePdfAndUpload(principalId, pdfType.STORAGE_NOTE,
+            data, true, { getStream: getTestStream });
+
+        expect(responseJson).toBeTruthy();
+
+    })
+    test('should create the expected pdf with plane as arrival transport', async () => {
+        const mockCreateContainer = jest.spyOn(blobManager, 'createContainer');
+        mockCreateContainer.mockResolvedValue(undefined);
+
+        const mockWriteStreamForBlob = jest.spyOn(blobManager, 'writeStreamForBlob');
+        mockWriteStreamForBlob.mockResolvedValue(mockedStream);
+
+        const principalId = '527fb0dd-b1d7-46c8-bfed-e06b373d041c';
+
+        const data = {
+            documentNumber: "GBR-2018-SD-1C89DE54F",
+            exporter: {
+                'exporterFullName': 'Jim Jessop',
+                'exporterCompanyName': 'FishByMail Ltd',
+                'addressOne': '77 Coast Road',
+                'addressTwo': 'My address is particularly long',
+                'townCity': 'Jarrow',
+                'postcode': 'NE31 1YW'
+            },
+            catches: [
+                {
+                    product: 'cod',
+                    commodityCode: '0123456',
+                    certificateNumber: 'GBR-2018-SD-1C89DE54F',
+                    productWeight: 200,
+                    dateOfUnloading: '01/02/2018',
+                    placeOfUnloading: 'Jarrow',
+                    transportUnloadedFrom: 'MK-0547, Saami'
+                },
+                {
+                    product: 'White fish tails',
+                    commodityCode: '0123456',
+                    certificateNumber: 'GBR-2018-SD-1C89DE54F',
+                    productWeight: 200,
+                    dateOfUnloading: '01/02/2018',
+                    placeOfUnloading: 'Jarrow',
+                    transportUnloadedFrom: 'MK-0547, Saami'
+                }
+            ],
+            transport: {
+                "vehicle": "train",
+                "departurePlace": "HULL",
+                "stationName": "LONDON",
+                "railwayBillNumber": "E11111E",
+                "exportDate": "31/01/2018"
+            },
+            arrivalTransport: {
+                vehicle: "plane",
+                departurePlace: "hull",
+                flightNumber: "123",
+                containerNumber: "456",
+                exportDate: "31/01/2018",
+            },
+            facilityName: 'Test Processor 1',
+            facilityAddressOne: '20',
+            facilityAddressTwo: '',
+            facilityTownCity: 'Town',
+            facilityPostcode: 'test',
+            storedAs: "chilled",
+            facilityArrivalDate: '20/10/2025'
+        };
+
+        const responseJson = await pdfService.generatePdfAndUpload(principalId, pdfType.STORAGE_NOTE,
+            data, true, { getStream: getTestStream });
+
+        expect(responseJson).toBeTruthy();
+
+    })
+    test('should create the expected pdf with truck as arrival transport', async () => {
+        const mockCreateContainer = jest.spyOn(blobManager, 'createContainer');
+        mockCreateContainer.mockResolvedValue(undefined);
+
+        const mockWriteStreamForBlob = jest.spyOn(blobManager, 'writeStreamForBlob');
+        mockWriteStreamForBlob.mockResolvedValue(mockedStream);
+
+        const principalId = '527fb0dd-b1d7-46c8-bfed-e06b373d041c';
+
+        const data = {
+            documentNumber: "GBR-2018-SD-1C89DE54F",
+            exporter: {
+                'exporterFullName': 'Jim Jessop',
+                'exporterCompanyName': 'FishByMail Ltd',
+                'addressOne': '77 Coast Road',
+                'addressTwo': 'My address is particularly long',
+                'townCity': 'Jarrow',
+                'postcode': 'NE31 1YW'
+            },
+            catches: [
+                {
+                    product: 'cod',
+                    commodityCode: '0123456',
+                    certificateNumber: 'GBR-2018-SD-1C89DE54F',
+                    productWeight: 200,
+                    dateOfUnloading: '01/02/2018',
+                    placeOfUnloading: 'Jarrow',
+                    transportUnloadedFrom: 'MK-0547, Saami'
+                },
+                {
+                    product: 'White fish tails',
+                    commodityCode: '0123456',
+                    certificateNumber: 'GBR-2018-SD-1C89DE54F',
+                    productWeight: 200,
+                    dateOfUnloading: '01/02/2018',
+                    placeOfUnloading: 'Jarrow',
+                    transportUnloadedFrom: 'MK-0547, Saami'
+                }
+            ],
+            transport: {
+                "vehicle": "train",
+                "departurePlace": "HULL",
+                "stationName": "LONDON",
+                "railwayBillNumber": "E11111E",
+                "exportDate": "31/01/2018"
+            },
+            arrivalTransport: {
+                vehicle: 'truck',
+                cmr: 'true',
+                departurePlace: 'hull',
+                user_id: 'a9602f38-f220-475a-991f-a19626bc51ae',
+                nationalityOfVehicle: 'UK',
+                registrationNumber: '456',
             },
             facilityName: 'Test Processor 1',
             facilityAddressOne: '20',

@@ -14,11 +14,12 @@ describe('parseExportCert', () => {
         expect(pdfData.transport.vehicle).toBe('containerVessel');
         expect(pdfData.transport.flightNumber).toBe('FlightNumber');
         expect(pdfData.transport.registrationNumber).toBe('RegNumber');
-        expect(pdfData.transport.railwayBillNumber).toBe('BillNumber');
+        expect(pdfData.transport.railwayBillNumber).toBe('RailwayBillNumber');
+        expect(pdfData.transport.freightBillNumber).toBe('FreightBillNumber');
         expect(pdfData.transport.vesselName).toBe('VesselNameAndFlag');
-        expect(pdfData.transport.departurePlace).toBe('PlaceOfDeparture');
+        expect(pdfData.transport.departurePlace).toBe('PointOfDeparture');
         expect(pdfData.transport.containerNumber).toBe('container 1, container 2');
-        expect(pdfData.transport.otherDocuments).toBe('OtherTransportDoc');
+        expect(pdfData.transport.otherDocuments).toBe('OtherTransportDocs');
         expect(pdfData.transport.exporterName).toBe('Mark');
 
         expect(pdfData.exportPayload.items.length).toBe(2);
@@ -87,7 +88,7 @@ describe('parseExportCert', () => {
 });
 
 const product1 = {
-    "commodityCode": "PC111111\r",
+    "commodityCode": "PC111111",
         "species": {
         "label": "Cod"
     }
@@ -112,7 +113,8 @@ const landing1 = {
         "imoNumber": "MY IMO",
         "licenceValidTo": "12/2/2209",
         "label": "My Fishing Vessel",
-        "contact": "MyEmailAddress"
+        "contact": "MyEmailAddress",
+        "gearCode": "My Fishing Gear"
     }
 }
 
@@ -128,6 +130,7 @@ const landing2 = {
         "imoNumber": "MY IMO",
         "licenceValidTo": "12/2/2209",
         "label": "My Fishing Vessel",
-        "contact": "MyEmailAddress"
+        "contact": "MyEmailAddress",
+        "gearCode": "My Fishing Gear",
     }
 }

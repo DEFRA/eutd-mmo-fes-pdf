@@ -400,7 +400,7 @@ describe('dom pdf utils', () => {
     mmoPdfUtils.heading(doc, text);
 
     // Test assertions
-    expect(doc.image).toHaveBeenCalledWith(expect.any(String), { width: 220 });
+    expect(doc.image).toHaveBeenCalledWith(expect.any(String), { height: 60 });
     expect(doc.fillColor).toHaveBeenCalledWith('#353535');
     expect(doc.fontSize).toHaveBeenCalledWith(expect.any(Number));
     expect(doc.font).toHaveBeenCalledWith(expect.any(String));

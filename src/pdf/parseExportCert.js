@@ -7,7 +7,8 @@ const SINGLE_VESSEL_NAME_KEY = 'Vessel';
 const SINGLE_VESSEL_FLAG_KEY = 'Flag - Home Port & Reg Number';
 const SINGLE_VESSEL_LICENSE_NO_KEY = 'Fishing Licence number';
 const SINGLE_VESSEL_IMO_KEY = 'IMO';
-const SINGLE_VESSEL_LICENSE_VALID_TO_KEY = 'Lincence valid to';
+const SINGLE_VESSEL_LICENSE_VALID_TO_KEY = 'Licence valid to';
+const SINGLE_VESSEL_GEAR_CODE_KEY = 'Fishing Gear';
 const SINGLE_VESSEL_CONTACT_KEY = 'Inmarsat No Telefax No Telephone No Email address if issued';
 
 const VESSEL_REP_KEY = 'Person responsible for vessels';
@@ -17,15 +18,18 @@ const SCHED_SPECIES_ROW_1_KEY = 'SpeciesRow1';
 const FP_PROD_CODE_KEY_PREFIX = 'Product Code ';
 const FP_SPECIES_KEY_PREFIX = 'Species ';
 const FP_CATCH_AREA_KEY_PREFIX = 'Catch Areas ';
-const FP_DATES_LANDED_KEY_PREFIX = 'Dates Landed ';
-const FP_WEIGHT_KEY_PREFIX = 'Estimated landed weight ';
+const FP_DATES_LANDED_KEY_PREFIX = 'Catch Date ';
+const FP_WEIGHT_KEY_PREFIX = 'Net catch weight ';
 
-const TRANSPORT_PLACE_OF_DEPARTURE_KEY = 'Port/airport/other place of departure';
+const TRANSPORT_PLACE_OF_DEPARTURE_KEY = 'Port/airport/other point of departure';
+const TRANSPORT_POINT_OF_DESTINATION_KEY = 'Point of destination';
 const TRANSPORT_VESSEL_KEY = 'Vessel name and flag';
-const TRANSPORT_FLIGHT_NO_KEY = 'Flight numberairway bill number';
+const TRANSPORT_FLIGHT_NO_KEY = 'Flight number/airway bill number';
 const TRANSPORT_REG_NO_KEY = 'Truck nationality and registration number';
 const TRANSPORT_RAILWAY_BILL_NO_KEY = 'Railway bill number';
-const TRANSPORT_OTHER_DOCS_KEY = 'Other transport document';
+const TRANSPORT_FREIGHT_BILL_NO_KEY = 'Freight bill number';
+const TRANSPORT_CONTAINER_ID_KEY = 'Container identification numbers';
+const TRANSPORT_OTHER_DOCS_KEY = 'Other transport documents';
 const TRANSPORT_EXPORTER_NAME_KEY = 'Name_2';
 const TRANSPORT_EXPORTER_ADDRESS_KEY = 'Address_3';
 const TRANSPORT_CONTAINER_NUMS_KEY = 'Container numbers';
@@ -236,47 +240,57 @@ const extractFrontPageExportItemLandings = (i, raw, singleVessel) => {
     return landings;
 }
 
+const hasValue = (value) => {
+    return value?.trim()?.length > 0;
+};
+
+const setIfHasValue = (obj, key, value) => {
+    if (hasValue(value)) {
+        obj[key] = value;
+    }
+};
+
 const parseTransport = (raw) => {
-
+    const transport = {};
     let vehicle = '';
-    let transport = {};
-
-    if (raw?.[TRANSPORT_FLIGHT_NO_KEY]?.trim()?.length > 0) {
-        vehicle = 'plane';
-        transport.flightNumber = raw[TRANSPORT_FLIGHT_NO_KEY];
-    }
-    if (raw?.[TRANSPORT_REG_NO_KEY]?.trim()?.length > 0) {
-        vehicle = 'truck';
-        transport.registrationNumber = raw[TRANSPORT_REG_NO_KEY];
-    }
-    if (raw?.[TRANSPORT_RAILWAY_BILL_NO_KEY]?.trim()?.length > 0) {
-        vehicle = 'train';
-        transport.railwayBillNumber = raw[TRANSPORT_RAILWAY_BILL_NO_KEY];
-    }
-    if (raw?.[TRANSPORT_VESSEL_KEY]?.trim().length > 0) {
-        vehicle = 'containerVessel';
-        transport.vesselName = raw[TRANSPORT_VESSEL_KEY];
-    }
-    if ('' === vehicle) {
+    
+    // Vehicle type detection - last valid value wins
+    const vehicleMap = [
+        { key: TRANSPORT_FLIGHT_NO_KEY, type: 'plane', field: 'flightNumber' },
+        { key: TRANSPORT_REG_NO_KEY, type: 'truck', field: 'registrationNumber' },
+        { key: TRANSPORT_RAILWAY_BILL_NO_KEY, type: 'train', field: 'railwayBillNumber' },
+        { key: TRANSPORT_VESSEL_KEY, type: 'containerVessel', field: 'vesselName' }
+    ];
+    
+    vehicleMap.forEach(({ key, type, field }) => {
+        if (hasValue(raw?.[key])) {
+            vehicle = type;
+            transport[field] = raw[key];
+        }
+    });
+    
+    if (!vehicle) {
         vehicle = 'directLanding';
     }
-    if (raw?.[TRANSPORT_PLACE_OF_DEPARTURE_KEY]?.trim()?.length > 0) {
-        transport.departurePlace = raw[TRANSPORT_PLACE_OF_DEPARTURE_KEY];
+    
+    // Simple field mappings
+    const fieldMappings = [
+        { key: TRANSPORT_PLACE_OF_DEPARTURE_KEY, field: 'departurePlace' },
+        { key: TRANSPORT_FREIGHT_BILL_NO_KEY, field: 'freightBillNumber' },
+        { key: TRANSPORT_CONTAINER_NUMS_KEY, field: 'containerNumber' },
+        { key: TRANSPORT_CONTAINER_ID_KEY, field: 'containerIdentificationNumber' },
+        { key: TRANSPORT_OTHER_DOCS_KEY, field: 'otherDocuments' },
+        { key: TRANSPORT_EXPORTER_NAME_KEY, field: 'exporterName' },
+        { key: TRANSPORT_EXPORTER_ADDRESS_KEY, field: 'exporterAddress' }
+    ];
+    
+    fieldMappings.forEach(({ key, field }) => {
+        setIfHasValue(transport, field, raw?.[key]);
+    });
+// Map Point of destination to exportedTo.pointOfDestination
+    if (hasValue(raw?.[TRANSPORT_POINT_OF_DESTINATION_KEY])) {
+        transport.exportedTo = { pointOfDestination: raw[TRANSPORT_POINT_OF_DESTINATION_KEY] };
     }
-    if (raw?.[TRANSPORT_CONTAINER_NUMS_KEY] && raw[TRANSPORT_CONTAINER_NUMS_KEY].trim().length > 0) {
-        transport.containerNumber = raw[TRANSPORT_CONTAINER_NUMS_KEY];
-    }
-    if (raw[TRANSPORT_OTHER_DOCS_KEY] && raw[TRANSPORT_OTHER_DOCS_KEY].trim().length > 0) {
-        transport.otherDocuments = raw[TRANSPORT_OTHER_DOCS_KEY];
-    }
-
-    if (raw[TRANSPORT_EXPORTER_NAME_KEY] && raw[TRANSPORT_EXPORTER_NAME_KEY].trim().length > 0) {
-        transport.exporterName = raw[TRANSPORT_EXPORTER_NAME_KEY];
-    }
-    if (raw[TRANSPORT_EXPORTER_ADDRESS_KEY] && raw[TRANSPORT_EXPORTER_ADDRESS_KEY].trim().length > 0) {
-        transport.exporterAddress = raw[TRANSPORT_EXPORTER_ADDRESS_KEY];
-    }
-
     transport.vehicle = vehicle;
     return transport;
 };
@@ -296,6 +310,7 @@ const parseSingleVessel = (raw, result) => {
     vessel.licenceNumber = raw[SINGLE_VESSEL_LICENSE_NO_KEY];
     vessel.imoNumber = raw[SINGLE_VESSEL_IMO_KEY];
     vessel.licenceValidTo = raw[SINGLE_VESSEL_LICENSE_VALID_TO_KEY];
+    vessel.gearCode = raw[SINGLE_VESSEL_GEAR_CODE_KEY];
     vessel.label = raw[SINGLE_VESSEL_NAME_KEY];
     vessel.contact = raw[SINGLE_VESSEL_CONTACT_KEY];
     return vessel;
@@ -393,3 +408,4 @@ const validateRequired = (item, errorMessage) => {
 };
 
 module.exports = parseExportCert;
+module.exports.parseTransport = parseTransport;

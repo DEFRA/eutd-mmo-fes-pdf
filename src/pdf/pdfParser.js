@@ -33,8 +33,8 @@ const identifyPdf = (pdfText) => {
     let pdfJson = {};
     let type;
     let documentNumber;
-    if (pdfText.length === 7 && pdfText[0].length === 63) {
-        documentNumber = pdfText[0][62].text;
+    if (pdfText.length === 9 && pdfText[0].length === 79) {
+        documentNumber = pdfText[0][78].text;
         type = getType(documentNumber);
         if (pdfType.EXPORT_CERT === type) {
             pdfJson.documentNumber = documentNumber;
