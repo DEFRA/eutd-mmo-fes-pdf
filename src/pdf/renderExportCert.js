@@ -1336,7 +1336,7 @@ function getDescOfProductRows(exportPayload) {
                 }
                 let accumItem = accum[item.product.species.code + item.product.commodityCode + faoArea +landing.model.vessel.vesselName + landing.model.vessel.pln + dte];
                 if (accumItem) {
-                    let accumTotal = parseFloat(accumItem.exportWeight) + parseFloat(landing.model.exportWeight)
+                    let accumTotal = Number.parseFloat(accumItem.exportWeight) + Number.parseFloat(landing.model.exportWeight)
                     accumItem.exportWeight = accumTotal.toFixed(2);
                 } else {
                     accum[item.product.species.code + item.product.commodityCode + faoArea + landing.model.vessel.vesselName + landing.model.vessel.pln + dte] = {
@@ -1358,7 +1358,7 @@ function getDescOfProductRows(exportPayload) {
 
 
 function getExportWeight(weight) {
-    return `${Number(weight).toFixed(2) > 9999999.99 ? parseInt(weight) : Number(weight).toFixed(2)}`;
+    return `${Number(weight).toFixed(2) > 9999999.99 ? Number.parseInt(weight) : Number(weight).toFixed(2)}`;
 }
 
 function getExportWeightText(rowIdx, arrLength, rowData) {
