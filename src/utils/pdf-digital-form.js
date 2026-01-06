@@ -5,7 +5,7 @@
 
 const _ = require('lodash'),
 muhammara = require('muhammara');
-const PDFStreamForNodeJsStream = require('./PDFStreamForNodeJsStream');
+const PDFStreamForNodeJsStream = require('../../src/pdf/PDFStreamForNodeJsStream');
 
 function toText(item) {
     if(item.getType() === muhammara.ePDFObjectLiteralString) {
