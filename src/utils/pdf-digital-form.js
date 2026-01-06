@@ -91,6 +91,8 @@ function parseTextFieldValue(pdfParser, fieldDictionary,fieldName) {
     } else if(valueField.getType() == muhammara.ePDFObjectStream) {
         let bytes = [];
         // stream. read it into the value
+        const pdfReader = muhammara.createReader(new muhammara.PDFRStreamForBuffer(valueField.toPDFStream().getUnfilteredStreamBuffer()));
+        let pdfWriter = muhammara.createWriterToModify(inStream, pdfStream);
         let readStream = pdfReader.startReadingFromStream(valueField.toPDFStream());
         while(readStream.notEnded())
         {
@@ -99,7 +101,7 @@ function parseTextFieldValue(pdfParser, fieldDictionary,fieldName) {
             bytes.push(readData[0]);
         }
         // now turn to text string
-        return new PDFTextString(bytes).toString();
+        return pdfWriter.createPDFTextString(bytes).toString();
     } else {
         return null;
     }
