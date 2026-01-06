@@ -92,7 +92,7 @@ function parseTextFieldValue(pdfParser, fieldDictionary,fieldName) {
         let bytes = [];
         // stream. read it into the value
         const pdfReader = muhammara.createReader(new muhammara.PDFRStreamForBuffer(valueField.toPDFStream().getUnfilteredStreamBuffer()));
-        let pdfWriter = muhammara.createWriterToModify(inStream, pdfStream);
+        const pdfWriter = muhammara.createWriterToModify(inStream, pdfStream);
         let readStream = pdfReader.startReadingFromStream(valueField.toPDFStream());
         while(readStream.notEnded())
         {
