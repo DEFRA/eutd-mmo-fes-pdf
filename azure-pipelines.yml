@@ -15,7 +15,7 @@ pr:
     include:
       - "main"
       - "develop"
-			
+
 resources:
   repositories:
     - repository: MMOPipelineCommon
