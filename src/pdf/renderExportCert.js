@@ -43,29 +43,35 @@ const renderExportCert = async (data, isSample, uri, stream) => {
     PdfUtils.endOfPage(doc, 3);
 
     doc.addPage();
+    // Page 4: Section 12 and 13 (EU2026 requirement)
     section12(doc, data, PdfStyle.MARGIN.TOP);
     isSample ?? CommonUtils.addSampleWatermark(doc);
+    section13(doc, data, PdfStyle.MARGIN.TOP + 100);
     PdfUtils.endOfPage(doc, 4);
+   
 
+    // Page 5: Re-Export Certificate - Sections 1-4
     doc.addPage();
-    section13(doc, data, PdfStyle.MARGIN.TOP);
-    section14(doc, data, PdfStyle.MARGIN.TOP + 50);
-    section15(doc, data, PdfStyle.MARGIN.TOP + 260);
-    section16(doc, data, PdfStyle.MARGIN.TOP + 380);
-    section17(doc, data, PdfStyle.MARGIN.TOP + 510);
+    reExportCertificateHeader(doc, data, isSample, PdfStyle.MARGIN.TOP);
+    section14(doc, data, PdfStyle.MARGIN.TOP + 70);
+    section15(doc, data, PdfStyle.MARGIN.TOP + 280);
+    section16(doc, data, PdfStyle.MARGIN.TOP + 400);
+    section17(doc, data, PdfStyle.MARGIN.TOP + 530);
     isSample ?? CommonUtils.addSampleWatermark(doc);
     PdfUtils.endOfPage(doc, 5);
 
+    // Page 6: Appendix - Transport Details
     doc.addPage();
     appendixHeading(doc, PdfStyle.MARGIN.TOP);
-    appendixTransportDetails(doc, data, PdfStyle.MARGIN.TOP + 22);
-    end(doc, PdfStyle.MARGIN.TOP + 310);
-    const shouldGenerateQRCode =!data.isBlankTemplate && !isSample;
-    if (shouldGenerateQRCode) {
-        PdfUtils.qrCode(doc, buff, PdfStyle.MARGIN.LEFT + 20, PdfStyle.MARGIN.TOP + 680);
-    }
+    appendixTransportDetails(doc, data, PdfStyle.MARGIN.TOP + 40);
     isSample ?? CommonUtils.addSampleWatermark(doc);
     PdfUtils.endOfPage(doc, 6);
+
+    // Page 7: Appendix - Exporter Details and Official use only
+    doc.addPage();
+    appendixExporterAndImportDetails(doc, data, isSample, buff, PdfStyle.MARGIN.TOP);
+    isSample ?? CommonUtils.addSampleWatermark(doc);
+    PdfUtils.endOfPage(doc, 7);
 
     const isDictionaryTabs = !doc.page.dictionary.Tabs;
 
@@ -145,7 +151,7 @@ function getVesselCount(exportPayload){
 
     items.forEach((item) => {
         item.landings.forEach((landing) => {
-            vesselCounts[landing.model.vessel.vesselName + landing.model.vessel.pln + landing.model.vessel.licenceNumber] = (vesselCounts[landing.model.vessel.vesselName + landing.model.vessel.pln + landing.model.vessel.licenceNumber] || 0) + 1;
+            vesselCounts[landing.model.vessel.vesselName + landing.model.vessel.pln + landing.model.vessel.licenceNumber] = (vesselCounts[landing.model.vessel.vesselName + landing.model.vessel.pln + landing.model.vessel.licenceNumber]?? 0) + 1;
             catchLength += 1;
         })
     });
@@ -164,57 +170,50 @@ function getCatchDates(startDate, dateLanded){
     return formattedStartDate ? `${formattedStartDate} - ${formattedDateLanded}` : formattedDateLanded;
 }
 
-function getProductScheduleRows(exportPayload) {
+function getLandingDetail(vessel) {
+    let landingDetail = vessel.licenceNumber ?? '';
+    if (landingDetail && vessel.licenceValidTo) {
+        const dte = moment(vessel.licenceValidTo).format('DD/MM/YYYY');
+        landingDetail = `${landingDetail} - ${dte}`;
+    }
+    return landingDetail;
+}
 
+function buildProductRow(item, landing, faoArea, landingDetail) {
+    return {
+        species: item.product.species.admin ?? item.product.species.label,
+        presentation: item.product.presentation.admin ?? item.product.presentation.label,
+        commodityCode: item.product.commodityCodeAdmin ?? item.product.commodityCode,
+        catchAreas: faoArea,
+        dateLanded: getCatchDates(landing.model.startDate, landing.model.dateLanded),
+        estimatedWeight: "",
+        exportWeight: landing.model.exportWeight,
+        verifiedWeight: "",
+        vessel: landing.model.vessel.vesselName,
+        pln: landing.model.vessel.pln,
+        licenceDetail: landingDetail,
+        faoArea: faoArea,
+        exclusiveEconomicZones: landing.model.exclusiveEconomicZones,
+        rfmo: landing.model.rfmo,
+        highSeasArea: landing.model.highSeasArea,
+        homePort: landing.model.vessel.homePort ?? '',
+        imo: landing.model.vessel.imoNumber ?? '',
+        cfr: landing.model.vessel.cfr ?? '',
+        licenceHolder: landing.model.vessel.licenceHolder ?? '',
+        gearCode: landing.model.gearCode,
+    };
+}
+
+function getProductScheduleRows(exportPayload) {
     let items = exportPayload?.items ?? [];
     let rows = [];
-        items.forEach((item) => {
-            item.landings.forEach((landing) => {
-                const faoArea = landing.model?.faoArea?.length > 0 ? landing.model.faoArea : 'FAO27';
-
-                let landingDetail = landing.model.vessel.licenceNumber ?? '';
-
-                if (landingDetail && landing.model.vessel.licenceValidTo) {
-                    const dte = moment(landing.model.vessel.licenceValidTo).format('DD/MM/YYYY');
-                    landingDetail = `${landingDetail} - ${dte}`;
-                }
-
-                let imo = '';
-                if (landing.model.vessel.imoNumber) {
-                    imo = landing.model.vessel.imoNumber;
-                }
-
-                let cfr = '';
-                if (landing.model.vessel.cfr) {
-                    cfr = landing.model.vessel.cfr
-                }
-
-                let homePort = '';
-                if (landing.model.vessel.homePort) {
-                    homePort = landing.model.vessel.homePort;
-                }
-
-                rows.push({
-                    species: item.product.species.admin ?? item.product.species.label,
-                    presentation: item.product.presentation.admin ?? item.product.presentation.label,
-                    commodityCode: item.product.commodityCodeAdmin ?? item.product.commodityCode,
-                    catchAreas: faoArea,
-                    dateLanded: getCatchDates(landing.model.startDate, landing.model.dateLanded),
-                    estimatedWeight: "",
-                    exportWeight: landing.model.exportWeight,
-                    verifiedWeight: "",
-                    vessel: landing.model.vessel.vesselName,
-                    pln: landing.model.vessel.pln,
-                    licenceDetail: landingDetail,
-                    faoArea: faoArea,
-                    homePort: homePort,
-                    imo: imo,
-                    cfr: cfr,
-                    licenceHolder: landing.model.vessel.licenceHolder,
-                    gearCode: landing.model.gearCode,
-                });
-            })
+    items.forEach((item) => {
+        item.landings.forEach((landing) => {
+            const faoArea = landing.model?.faoArea?.length > 0 ? landing.model.faoArea : 'FAO27';
+            const landingDetail = getLandingDetail(landing.model.vessel);
+            rows.push(buildProductRow(item, landing, faoArea, landingDetail));
         });
+    });
     return rows;
 }
 
@@ -228,16 +227,24 @@ const multiVesselScheduleHeading = (doc, data, isSample, buff, page, pageSize, s
         });
     }));
     let cellHeight = PdfStyle.ROW.HEIGHT * 2;
-    mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 430, y: startY, width: 350, height: cellHeight, text: 'UNITED KINGDOM'}, true, PdfStyle.FONT_SIZE.LARGEST, 'center', '#767676', '#353535', '#ffcc00');
+    doc.addStructure(doc.struct('P', () => {
+        mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 430, y: startY, width: 350, height: cellHeight, text: 'UNITED KINGDOM'}, true, PdfStyle.FONT_SIZE.LARGEST, 'center', MVS_STYLES.YELLOW_HEADER);
+    }));
     let yPos = startY + cellHeight;
-    mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT, y: yPos, width: 230, height: PdfStyle.ROW.HEIGHT, text: 'AUTHORITY USE ONLY'}, true, PdfStyle.FONT_SIZE.SMALL, 'left', '#767676', '#353535', '#ffcc00');
-    mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 230, y: yPos, width: 550, height: PdfStyle.ROW.HEIGHT,
-        text: 'Schedule for multiple vessel landings as permitted by Article 12 (3) of Council Regulation (EC) No 1005/2008'},
-        true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffffff');
+    doc.addStructure(doc.struct('P', () => {
+        mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT, y: yPos, width: 230, height: PdfStyle.ROW.HEIGHT, text: 'AUTHORITY USE ONLY'}, true, PdfStyle.FONT_SIZE.SMALL, 'left', MVS_STYLES.YELLOW_HEADER);
+    }));
+    doc.addStructure(doc.struct('P', () => {
+        mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 230, y: yPos, width: 550, height: PdfStyle.ROW.HEIGHT,
+            text: 'Schedule for multiple vessel landings as permitted by Article 12 (3) of Council Regulation (EC) No 1005/2008'},
+            true, PdfStyle.FONT_SIZE.SMALL, 'center', MVS_STYLES.DEFAULT);
+    }));
     yPos = yPos + PdfStyle.ROW.HEIGHT;
 
     cellHeight = PdfStyle.ROW.HEIGHT * 2 + 20;
-    mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT, y: yPos, width: 90, height: cellHeight, text: ['Catch Certificate', 'Number']}, true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffcc00');
+    doc.addStructure(doc.struct('P', () => {
+        mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT, y: yPos, width: 90, height: cellHeight, text: ['Catch Certificate', 'Number']}, true, PdfStyle.FONT_SIZE.SMALL, 'center', MVS_STYLES.YELLOW_HEADER);
+    }));
 
     let documentNumber = '';
     if (!data.isBlankTemplate) {
@@ -248,30 +255,44 @@ const multiVesselScheduleHeading = (doc, data, isSample, buff, page, pageSize, s
         }
     }
 
-    mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 90, y: yPos, width: 140, height: cellHeight, text: documentNumber}, true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffffff');
-    mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 230, y: yPos, width: 270, height: cellHeight, text: undefined}, true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffffff');
+    doc.addStructure(doc.struct('P', () => {
+        mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 90, y: yPos, width: 140, height: cellHeight, text: documentNumber}, true, PdfStyle.FONT_SIZE.SMALL, 'center', MVS_STYLES.DEFAULT);
+    }));
+    doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
+        mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 230, y: yPos, width: 270, height: cellHeight, text: undefined}, true, PdfStyle.FONT_SIZE.SMALL, 'center', MVS_STYLES.DEFAULT);
+    }));
 
     cellHeight = PdfStyle.ROW.HEIGHT * 4 + 25;
 
-    mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 500, y: yPos, width: 80, height: cellHeight, text: ['UK Authority', 'QR Code']}, true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffcc00');
-    mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 580, y: yPos, width: 200, height: cellHeight, text: undefined}, true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffffff');
+    doc.addStructure(doc.struct('P', () => {
+        mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 500, y: yPos, width: 80, height: cellHeight, text: ['UK Authority', 'QR Code']}, true, PdfStyle.FONT_SIZE.SMALL, 'center', MVS_STYLES.YELLOW_HEADER);
+    }));
+    doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
+        mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 580, y: yPos, width: 200, height: cellHeight, text: undefined}, true, PdfStyle.FONT_SIZE.SMALL, 'center', MVS_STYLES.DEFAULT);
+    }));
 
     yPos = yPos + PdfStyle.ROW.HEIGHT * 2 + 20;
     cellHeight = PdfStyle.ROW.HEIGHT * 2 + 5;
 
-    mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT, y: yPos, width: 90, height: cellHeight, text: 'Date'}, true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffcc00');
+    doc.addStructure(doc.struct('P', () => {
+        mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT, y: yPos, width: 90, height: cellHeight, text: 'Date'}, true, PdfStyle.FONT_SIZE.SMALL, 'center', MVS_STYLES.YELLOW_HEADER);
+    }));
     let todaysDate = '';
     if (!data.isBlankTemplate) {
         todaysDate = PdfUtils.todaysDate();
     }
-    mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 90, y: yPos, width: 140, height: cellHeight, text: todaysDate}, true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffffff');
-    mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 230, y: yPos, width: 270, height: cellHeight, text: undefined}, true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffffff');
+    doc.addStructure(doc.struct('P', () => {
+        mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 90, y: yPos, width: 140, height: cellHeight, text: todaysDate}, true, PdfStyle.FONT_SIZE.SMALL, 'center', MVS_STYLES.DEFAULT);
+    }));
+    doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
+        mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 230, y: yPos, width: 270, height: cellHeight, text: undefined}, true, PdfStyle.FONT_SIZE.SMALL, 'center', MVS_STYLES.DEFAULT);
+    }));
 
     if (!data.isBlankTemplate && !isSample) {
         PdfUtils.qrCode(doc, buff, PdfStyle.MARGIN.LEFT + 590, yPos - 45);
     }
     yPos = yPos + cellHeight + 10;
-    cellHeight = PdfStyle.ROW.HEIGHT * 3 + 5;
+    cellHeight = PdfStyle.ROW.HEIGHT * 3 + 14;
 
     const myTable = doc.struct('Table');
     doc.addStructure(myTable);
@@ -282,96 +303,19 @@ const multiVesselScheduleHeading = (doc, data, isSample, buff, page, pageSize, s
     const tableHeadRow = doc.struct('TR');
     tableHead.add(tableHeadRow);
 
-    const tableHeadOne = doc.struct('TH');
-    tableHeadRow.add(tableHeadOne);
-    const tableHeadOneContent = doc.markStructureContent('TH');
-    tableHeadOne.add(tableHeadOneContent);
-    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT, y: yPos, width: 85, height: cellHeight, text: 'Species'}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
-    tableHeadOne.end();
-
-    const tableHeadTwo = doc.struct('TH');
-    tableHeadRow.add(tableHeadTwo);
-    const tableHeadTwoContent = doc.markStructureContent('TH');
-    tableHeadTwo.add(tableHeadTwoContent);
-    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 85, y: yPos, width: 60, height: cellHeight, text: ['Presentation']}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
-    tableHeadTwo.end();
-
-    const tableHeadThree = doc.struct('TH');
-    tableHeadRow.add(tableHeadThree);
-    const tableHeadThreeContent = doc.markStructureContent('TH');
-    tableHeadThree.add(tableHeadThreeContent);
-    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 145, y: yPos, width: 50, height: cellHeight, text: ['Product', 'code']}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
-    tableHeadThree.end();
-
-    const tableHeadFour = doc.struct('TH');
-    tableHeadRow.add(tableHeadFour);
-    const tableHeadFourContent = doc.markStructureContent('TH');
-    tableHeadFour.add(tableHeadFourContent);
-    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 195, y: yPos, width: 60, height: cellHeight, text: ['Catch Date(s)', '(from-to)']}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
-    tableHeadFour.end();
-
-    const tableHeadEstWeight = doc.struct('TH');
-    tableHeadRow.add(tableHeadEstWeight);
-    const tableHeadEstWeightContent = doc.markStructureContent('TH');
-    tableHeadEstWeight.add(tableHeadEstWeightContent);
-    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 255, y: yPos, width: 50, height: cellHeight, text: ['Estimated weight to be landed in kg']}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
-    tableHeadEstWeight.end();
-
-    const tableHeadVerifiedWeight = doc.struct('TH');
-    tableHeadRow.add(tableHeadVerifiedWeight);
-    const tableHeadVerifiedWeightContent = doc.markStructureContent('TH');
-    tableHeadVerifiedWeight.add(tableHeadVerifiedWeightContent);
-    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 305, y: yPos, width: 50, height: cellHeight, text: ['Net catch', 'weight in kg']}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
-    tableHeadVerifiedWeight.end();
-
-    const tableHeadFive = doc.struct('TH');
-    tableHeadRow.add(tableHeadFive);
-    const tableHeadFiveContent = doc.markStructureContent('TH');
-    tableHeadFive.add(tableHeadFiveContent);
-    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 355, y: yPos, width: 65, height: cellHeight, text: ['Verified weight landed(net catch weight in kg)']}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
-    tableHeadFive.end();
-
-    const tableHeadSix = doc.struct('TH');
-    tableHeadRow.add(tableHeadSix);
-    const tableHeadSixContent = doc.markStructureContent('TH');
-    tableHeadSix.add(tableHeadSixContent)
-    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 420, y: yPos, width: 60, height: cellHeight, text: ['Vessel name and PLN / Callsign']}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
-    tableHeadSix.end();
-
-    const tableHeadSeven = doc.struct('TH');
-    tableHeadRow.add(tableHeadSeven);
-    const tableHeadSevenContent = doc.markStructureContent('TH');
-    tableHeadSeven.add(tableHeadSevenContent);
-    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 480, y: yPos, width: 70, height: cellHeight, text: ['IMO number or other unique vessel identifier (if applicable)']}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
-    tableHeadSeven.end();
-
-    const tableHeadEight = doc.struct('TH');
-    tableHeadRow.add(tableHeadEight);
-    const tableHeadEightContent = doc.markStructureContent('TH');
-    tableHeadEight.add(tableHeadEightContent)
-    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 550, y: yPos, width: 70, height: cellHeight, text: 'Master / Licence Holder'}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
-    tableHeadEight.end();
-
-    const tableHeadNine = doc.struct('TH');
-    tableHeadRow.add(tableHeadNine);
-    const tableHeadNineContent = doc.markStructureContent('TH');
-    tableHeadNine.add(tableHeadNineContent)
-    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 620, y: yPos, width: 80, height: cellHeight, text: ['Licence Number /', 'Flag-Homeport']}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
-    tableHeadNine.end()
-
-    const tableHeadTen = doc.struct('TH');
-    tableHeadRow.add(tableHeadTen);
-    const tableHeadTenContent = doc.markStructureContent('TH');
-    tableHeadTen.add(tableHeadTenContent)
-    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 700, y: yPos, width: 40, height: cellHeight, text: ['FAO', 'AREA']}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
-    tableHeadTen.end()
-
-    const tableHeadEleven = doc.struct('TH');
-    tableHeadRow.add(tableHeadEleven);
-    const tableHeadElevenContent = doc.markStructureContent('TH');
-    tableHeadEleven.add(tableHeadElevenContent);
-    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 740, y: yPos, width: 40, height: cellHeight, text: ['Fishing', 'Gear']}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
-    tableHeadEleven.end();
+    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT, yPos, 75, cellHeight, 'Species');
+    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 75, yPos, 60, cellHeight, ['Presentation']);
+    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 135, yPos, 50, cellHeight, ['Product', 'code']);
+    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 185, yPos, 60, cellHeight, ['Catch Date(s)', '(from-to)']);
+    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 245, yPos, 55, cellHeight, ['Estimated weight to be landed in kg']);
+    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 300, yPos, 50, cellHeight, ['Net catch', 'weight in kg']);
+    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 350, yPos, 55, cellHeight, ['Verified weight landed(net catch weight in kg)']);
+    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 405, yPos, 65, cellHeight, ['Vessel name and PLN / Callsign']);
+    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 470, yPos, 70, cellHeight, ['IMO number or other unique vessel identifier (if applicable)']);
+    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 540, yPos, 45, cellHeight, 'Master / Licence Holder');
+    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 585, yPos, 75, cellHeight, ['Licence Number /', 'Flag-Homeport']);
+    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 660, yPos, 75, cellHeight, ['Catch Area(s) (Catch Area, EEZ, RFMO, High Seas)']);
+    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 735, yPos, 45, cellHeight, ['Fishing', 'Gear']);
     tableHeadRow.end();
     tableHead.end();
 
@@ -390,7 +334,7 @@ const multiVesselScheduleHeading = (doc, data, isSample, buff, page, pageSize, s
     }
     let rowDataLimit = fromIdx + numDataRows;
 
-    cellHeight = (PdfStyle.ROW.HEIGHT * 3) - 5;
+     cellHeight = (PdfStyle.ROW.HEIGHT*3)-5;
 
     const tableBody = doc.struct('TBody');
     myTable.add(tableBody);
@@ -402,10 +346,9 @@ const multiVesselScheduleHeading = (doc, data, isSample, buff, page, pageSize, s
         tableBodyRow.end();
         yPos = yPos + cellHeight;
     }
-    doc.endMarkedContent();
 
     const pageCountRow = doc.struct('TR', () => {
-        mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT, y: yPos, width: 780, height: PdfStyle.ROW.HEIGHT, text: 'Page ' + page + ' of ' + pageCount}, true, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
+        mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT, y: yPos, width: 780, height: PdfStyle.ROW.HEIGHT, text: 'Page ' + page + ' of ' + pageCount}, true, PdfStyle.FONT_SIZE.SMALLER, 'left', MVS_STYLES.DEFAULT);
     });
     tableBody.add(pageCountRow);
     pageCountRow.end();
@@ -414,183 +357,142 @@ const multiVesselScheduleHeading = (doc, data, isSample, buff, page, pageSize, s
     myTable.end();
 };
 
-const generateMultiVesselTableRows = (tableBodyRow, doc, yPos, cellHeight, rowIdx, rowDataLimit, rows) => {
-    const TdOne = doc.struct('TD');
-    tableBodyRow.add(TdOne);
-    const TdOneContent = doc.markStructureContent('TD');
-    TdOne.add(TdOneContent);
-    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT, y: yPos, width: 85, height: cellHeight, text: rowIdx < rowDataLimit ? `${rows[rowIdx].species}` : ''}, false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
-    TdOne.end();
-
-    const TdTwo = doc.struct('TD');
-    tableBodyRow.add(TdTwo);
-    const TdTwoContent = doc.markStructureContent('TD');
-    TdTwo.add(TdTwoContent);
-    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 85, y: yPos, width: 60, height: cellHeight, text: rowIdx < rowDataLimit ? `${rows[rowIdx].presentation}` : ''}, false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
-    TdTwo.end();
-
-    const TdThree = doc.struct('TD');
-    tableBodyRow.add(TdThree);
-    const TdThreeContent = doc.markStructureContent('TD');
-    TdThree.add(TdThreeContent);
-    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 145, y: yPos, width: 50, height: cellHeight, text: rowIdx < rowDataLimit ? `${rows[rowIdx].commodityCode}` : ''}, false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
-    TdThree.end();
-
-    const TdFour = doc.struct('TD');
-    tableBodyRow.add(TdFour);
-    const TdFourContent = doc.markStructureContent('TD');
-    TdFour.add(TdFourContent);
-    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 195, y: yPos, width: 60, height: cellHeight, text: rowIdx < rowDataLimit ? `${rows[rowIdx].dateLanded}` : ''}, false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
-    TdFour.end();
-
-    const TdEstWeight = doc.struct('TD');
-    tableBodyRow.add(TdEstWeight);
-    const TdEstWeightContent = doc.markStructureContent('TD');
-    TdEstWeight.add(TdEstWeightContent);
-    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 255, y: yPos, width: 50, height: cellHeight, text: rowIdx < rowDataLimit ? `${rows[rowIdx].estimatedWeight}` : ''}, false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
-    TdEstWeight.end();
-
-    const TdVerifiedWeight = doc.struct('TD');
-    tableBodyRow.add(TdVerifiedWeight);
-    const TdVerifiedWeightContent = doc.markStructureContent('TD');
-    TdVerifiedWeight.add(TdVerifiedWeightContent);
-    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 305, y: yPos, width: 50, height: cellHeight, text: rowIdx < rowDataLimit ? `${Number(rows[rowIdx].exportWeight).toFixed(2)}` : ''}, false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
-    TdVerifiedWeight.end();
-
-    const TdFive = doc.struct('TD');
-    tableBodyRow.add(TdFive);
-    const TdFiveContent = doc.markStructureContent('TD');
-    TdFive.add(TdFiveContent);
-    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 355, y: yPos, width: 65, height: cellHeight, text: rowIdx < rowDataLimit ? `${rows[rowIdx].verifiedWeight}` : ''}, false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
-    TdFive.end();
-
-    const TdSix = doc.struct('TD');
-    tableBodyRow.add(TdSix);
-    const TdSixContent = doc.markStructureContent('TD');
-    TdSix.add(TdSixContent);
-    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 420, y: yPos, width: 60, height: cellHeight, text: rowIdx < rowDataLimit ? `${rows[rowIdx].vessel} (${rows[rowIdx].pln})` : ''}, false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
-    TdSix.end();
-
-    const TdSeven = doc.struct('TD');
-    tableBodyRow.add(TdSeven);
-    const TdSevenContent = doc.markStructureContent('TD');
-    TdSeven.add(TdSevenContent);
-    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 480, y: yPos, width: 70, height: cellHeight, text: rowIdx < rowDataLimit ? `${getImoOrCfrForMultiVesselSchedule(rows[rowIdx])}` : ''}, false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
-    TdSeven.end();
-
-    const TdEight = doc.struct('TD');
-    tableBodyRow.add(TdEight);
-    const TdEightContent = doc.markStructureContent('TD');
-    TdEight.add(TdEightContent);
-    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 550, y: yPos, width: 70, height: cellHeight, text: rowIdx < rowDataLimit ? `${rows[rowIdx].licenceHolder}` : ''}, false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
-    TdEight.end();
-
-    const TdNine = doc.struct('TD');
-    tableBodyRow.add(TdNine);
-    const TdNineContent = doc.markStructureContent('TD');
-    TdNine.add(TdNineContent);
-    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 620, y: yPos, width: 80, height: cellHeight, text: rowIdx < rowDataLimit ? `${rows[rowIdx].licenceDetail} ${rows[rowIdx].homePort}` : ''}, false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
-    TdNine.end();
-
-    const TdTen = doc.struct('TD');
-    tableBodyRow.add(TdTen);
-    const TdTenContent = doc.markStructureContent('TD');
-    TdTen.add(TdTenContent)
-    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 700, y: yPos, width: 40, height: cellHeight, text: rowIdx < rowDataLimit ? `${rows[rowIdx].faoArea}` : ''}, false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
-    TdTen.end();
-
-    const TdEleven = doc.struct('TD');
-    tableBodyRow.add(TdEleven);
-    const TdElevenContent = doc.markStructureContent('TD');
-    TdEleven.add(TdElevenContent);
-    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 740, y: yPos, width: 40, height: cellHeight, text: rowIdx < rowDataLimit && rows[rowIdx].gearCode ? `${rows[rowIdx].gearCode}` : ''}, false, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
-    TdEleven.end();
+const formatCatchAreaData = (row) => {
+    if (!row) return '';
+    
+    let catchAreaText = row.faoArea || '';
+    
+    if (row.exclusiveEconomicZones && row.exclusiveEconomicZones.length > 0) {
+        const eezText = row.exclusiveEconomicZones.map(eez => eez.isoCodeAlpha2 || eez).join(', ');
+        catchAreaText += eezText ? '\n' + eezText : '';
+    }
+    
+    if (row.rfmo) {
+        const rfmoMatch = row.rfmo.match(/\(([^)]{1,10})\)/);
+        const rfmoText = rfmoMatch ? rfmoMatch[1] : row.rfmo;
+        catchAreaText += '\n' + rfmoText;
+    }
+    
+    if (row.highSeasArea && row.highSeasArea === 'Yes') {
+        catchAreaText += '\nHigh seas';
+    }
+    
+    return catchAreaText;
 };
 
-const end = (doc, startY) => {
-    let yPos = startY + 10 * PdfStyle.ROW.HEIGHT + 10;
-    let cellHeight = PdfStyle.ROW.HEIGHT * 8;
-    PdfUtils.tableHeaderCellBold(doc, PdfStyle.MARGIN.LEFT, yPos, 270, cellHeight, 'FOR OFFICIAL USE ONLY');
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 270, yPos, 260, cellHeight, 'Import Control Authority Stamp');
+const generateMultiVesselTableRows = (tableBodyRow, doc, yPos, cellHeight, rowIdx, rowDataLimit, rows) => {
+    const cellData = [
+        { x: PdfStyle.MARGIN.LEFT, width: 75, text: rowIdx < rowDataLimit ? `${rows[rowIdx].species}` : '' },
+        { x: PdfStyle.MARGIN.LEFT + 75, width: 60, text: rowIdx < rowDataLimit ? `${rows[rowIdx].presentation}` : '' },
+        { x: PdfStyle.MARGIN.LEFT + 135, width: 50, text: rowIdx < rowDataLimit ? `${rows[rowIdx].commodityCode}` : '' },
+        { x: PdfStyle.MARGIN.LEFT + 185, width: 60, text: rowIdx < rowDataLimit ? `${rows[rowIdx].dateLanded}` : '' },
+        { x: PdfStyle.MARGIN.LEFT + 245, width: 55, text: rowIdx < rowDataLimit ? `${rows[rowIdx].estimatedWeight}` : '' },
+        { x: PdfStyle.MARGIN.LEFT + 300, width: 50, text: rowIdx < rowDataLimit ? `${Number(rows[rowIdx].exportWeight).toFixed(2)}` : '' },
+        { x: PdfStyle.MARGIN.LEFT + 350, width: 55, text: rowIdx < rowDataLimit ? `${rows[rowIdx].verifiedWeight}` : '' },
+        { x: PdfStyle.MARGIN.LEFT + 405, width: 65, text: rowIdx < rowDataLimit ? `${rows[rowIdx].vessel} (${rows[rowIdx].pln})` : '' },
+        { x: PdfStyle.MARGIN.LEFT + 470, width: 70, text: rowIdx < rowDataLimit ? `${getImoOrCfrForMultiVesselSchedule(rows[rowIdx])}` : '' },
+        { x: PdfStyle.MARGIN.LEFT + 540, width: 45, text: rowIdx < rowDataLimit ? `${rows[rowIdx].licenceHolder}` : '' },
+        { x: PdfStyle.MARGIN.LEFT + 585, width: 75, text: rowIdx < rowDataLimit ? `${rows[rowIdx].licenceDetail} ${rows[rowIdx].homePort}` : '' },
+        { x: PdfStyle.MARGIN.LEFT + 660, width: 75, text: rowIdx < rowDataLimit ? formatCatchAreaData(rows[rowIdx]) : '' },
+        { x: PdfStyle.MARGIN.LEFT + 735, width: 45, text: rowIdx < rowDataLimit && rows[rowIdx].gearCode ? `${rows[rowIdx].gearCode}` : '' }
+    ];
 
-    yPos += cellHeight + 20;
-    doc.font(PdfStyle.FONT.BOLD);
-    doc.text('Validated by the appropriate competent authority (MMO, Scottish Ministers, Welsh Ministers, Department of Agriculture, Environment and Rural Affairs for Northern Ireland, Marine Resources, Growth and Housing and Environment for Jersey, Sea Fisheries, Committee for Economic Development for Guernsey and Department Environment, Food and Agriculture for the Isle of Man) in accordance with article 15 of Council Regulation (EU) 1005/2008 (as retained under s.3(1) European Union (Withdrawal) Act 2018)', PdfStyle.MARGIN.LEFT + 10, yPos);
+    cellData.forEach(cell => {
+        createMVSTableDataCell(doc, tableBodyRow, cell.x, yPos, cell.width, cellHeight, cell.text);
+    });
 };
 
 const appendixTransportDetails = (doc, data, startY) => {
-    doc.font(PdfStyle.FONT.BOLD);
-    doc.fontSize(PdfStyle.FONT_SIZE.MEDIUM);
-    doc.text('Transport Details', 0, startY, {
-        align: 'center'
-    });
     doc.font(PdfStyle.FONT.REGULAR);
-    let yPos = startY + 20;
-    const countryOfExport = data.transport?.exportedFrom ? data.transport.exportedFrom : 'United Kingdom';
-    const pointOfDestination = data.transport?.pointOfDestination;
+    let yPos = startY;
+    
+    // Get first transport mode for country/departure/destination (backward compatible)
+    const transportModes = getTransportModes(data);
+    
+    const firstTransport = transportModes[0] || {};
+    const countryOfExport = firstTransport.exportedFrom || data.transport?.exportedFrom || 'United Kingdom';
+    const pointOfDestination = firstTransport.pointOfDestination || data.transport?.pointOfDestination || '';
     const departurePlace = getDeparturePlace(data);
+    
     const vcDetails = getVcDetails(data);
     const flightNumber = getFlightDetails(data);
     const truckDetails = getTruckDetails(data);
     const railwayBillNumber = getRailwayBillNumber(data);
     const freightBillNumber = getFreightBillNumber(data);
     const otherTransportDocuments = getOtherTransportDocuments(data);
-
     const containerIdentificationNumber = getContainerIdentificationNumber(data);
 
+    // Field heights adjusted to fill the page:
+    const singleLineHeight = PdfStyle.ROW.HEIGHT; // 1 line
+    const vesselFieldHeight = PdfStyle.ROW.HEIGHT * 5; // 5 lines
+    const flightFieldHeight = PdfStyle.ROW.HEIGHT * 4; // 4 lines
+    const truckFieldHeight = PdfStyle.ROW.HEIGHT * 4; // 4 lines
+    const railwayFieldHeight = PdfStyle.ROW.HEIGHT * 3; // 3 lines
+    const freightFieldHeight = PdfStyle.ROW.HEIGHT * 3; // 3 lines
+    const containerFieldHeight = PdfStyle.ROW.HEIGHT * 6; // 6 lines
+    const otherDocsFieldHeight = PdfStyle.ROW.HEIGHT * 20; // 20 lines
+
+    const labelWidth = 156;
+    const valueWidth = 383;
+
     doc.addStructure(doc.struct('Table', [
-        doc.struct('TR', [
-            doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT, yPos, 265, PdfStyle.ROW.HEIGHT, 'Country of exportation')),
-            doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 265, yPos, 265, PdfStyle.ROW.HEIGHT, countryOfExport)),
-        ]),
-        doc.struct('TR', [
-            doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT, yPos +  PdfStyle.ROW.HEIGHT, 265, PdfStyle.ROW.HEIGHT, 'Port/airport/other point of departure')),
-            doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 265, yPos +  PdfStyle.ROW.HEIGHT, 265, PdfStyle.ROW.HEIGHT, departurePlace)),
-        ]),
-        doc.struct('TR', [
-            doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT, yPos + (PdfStyle.ROW.HEIGHT * 2), 265, PdfStyle.ROW.HEIGHT, 'Point of destination')),
-            doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 265, yPos + (PdfStyle.ROW.HEIGHT * 2), 265, PdfStyle.ROW.HEIGHT, pointOfDestination)),
-        ]),
-        doc.struct('TR', [
-            doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT, yPos + (PdfStyle.ROW.HEIGHT * 3), 265, PdfStyle.ROW.HEIGHT, 'Vessel name and flag')),
-            doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 265, yPos + (PdfStyle.ROW.HEIGHT * 3), 265, PdfStyle.ROW.HEIGHT, vcDetails)),
-        ]),
-        doc.struct('TR', [
-            doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT, yPos + (PdfStyle.ROW.HEIGHT * 4), 265, PdfStyle.ROW.HEIGHT, 'Flight number/airway bill number')),
-            doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 265, yPos + (PdfStyle.ROW.HEIGHT * 4), 265, PdfStyle.ROW.HEIGHT, flightNumber)),
-        ]),
-        doc.struct('TR', [
-            doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT, yPos + (PdfStyle.ROW.HEIGHT * 5), 265, PdfStyle.ROW.HEIGHT, 'Truck nationality and registration number')),
-            doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 265, yPos + (PdfStyle.ROW.HEIGHT * 5), 265, PdfStyle.ROW.HEIGHT, truckDetails)),
-        ]),
-        doc.struct('TR', [
-            doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT, yPos + (PdfStyle.ROW.HEIGHT * 6), 265, PdfStyle.ROW.HEIGHT, 'Railway bill number')),
-            doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 265, yPos + (PdfStyle.ROW.HEIGHT * 6), 265, PdfStyle.ROW.HEIGHT, railwayBillNumber)),
-        ]),
-        doc.struct('TR', [
-            doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT, yPos + (PdfStyle.ROW.HEIGHT * 7), 265, PdfStyle.ROW.HEIGHT, 'Freight bill number')),
-            doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 265, yPos + (PdfStyle.ROW.HEIGHT * 7), 265, PdfStyle.ROW.HEIGHT, freightBillNumber)),
-        ]),
-        doc.struct('TR', [
-            doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT, yPos + (PdfStyle.ROW.HEIGHT * 8), 265, PdfStyle.ROW.HEIGHT, 'Container identification number(s)')),
-            doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 265, yPos + (PdfStyle.ROW.HEIGHT * 8), 265, PdfStyle.ROW.HEIGHT, containerIdentificationNumber)),
-        ]),
-        doc.struct('TR', [
-            doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT, yPos + (PdfStyle.ROW.HEIGHT * 9), 265, PdfStyle.ROW.HEIGHT * 5, 'Other transport documents (e.g. bill of landing, CMR, air waybill)')),
-            doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 265, yPos + (PdfStyle.ROW.HEIGHT * 9), 265, PdfStyle.ROW.HEIGHT * 5, otherTransportDocuments)),
+        doc.struct('TBody', [
+            doc.struct('TR', [
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT, yPos, labelWidth, singleLineHeight, 'Country of exportation')),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + labelWidth, yPos, valueWidth, singleLineHeight, countryOfExport)),
+            ]),
+            doc.struct('TR', [
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT, yPos + singleLineHeight, labelWidth, singleLineHeight, 'Port/airport/other point of departure')),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + labelWidth, yPos + singleLineHeight, valueWidth, singleLineHeight, departurePlace)),
+            ]),
+            doc.struct('TR', [
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT, yPos + (singleLineHeight * 2), labelWidth, singleLineHeight, 'Point of destination')),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + labelWidth, yPos + (singleLineHeight * 2), valueWidth, singleLineHeight, pointOfDestination)),
+            ]),
+            doc.struct('TR', [
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT, yPos + (singleLineHeight * 3), labelWidth, vesselFieldHeight, 'Vessel name and flag')),
+                doc.struct('TD', ()=> PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + labelWidth, yPos + (singleLineHeight * 3), valueWidth, vesselFieldHeight, vcDetails)),
+            ]),
+            doc.struct('TR', [
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT, yPos + (singleLineHeight * 3) + vesselFieldHeight, labelWidth, flightFieldHeight, 'Flight number/airway bill number')),
+                doc.struct('TD', ()=> PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + labelWidth, yPos + (singleLineHeight * 3) + vesselFieldHeight, valueWidth, flightFieldHeight, flightNumber)),
+            ]),
+            doc.struct('TR', [
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT, yPos + (singleLineHeight * 3) + vesselFieldHeight + flightFieldHeight, labelWidth, truckFieldHeight, 'Truck nationality and registration number')),
+                doc.struct('TD', ()=> PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + labelWidth, yPos + (singleLineHeight * 3) + vesselFieldHeight + flightFieldHeight, valueWidth, truckFieldHeight, truckDetails)),
+            ]),
+            doc.struct('TR', [
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT, yPos + (singleLineHeight * 3) + vesselFieldHeight + flightFieldHeight + truckFieldHeight, labelWidth, railwayFieldHeight, 'Railway bill number')),
+                doc.struct('TD', ()=> PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + labelWidth, yPos + (singleLineHeight * 3) + vesselFieldHeight + flightFieldHeight + truckFieldHeight, valueWidth, railwayFieldHeight, railwayBillNumber)),
+            ]),
+            doc.struct('TR', [
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT, yPos + (singleLineHeight * 3) + vesselFieldHeight + flightFieldHeight + truckFieldHeight + railwayFieldHeight, labelWidth, freightFieldHeight, 'Freight bill number')),
+                doc.struct('TD', ()=> PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + labelWidth, yPos + (singleLineHeight * 3) + vesselFieldHeight + flightFieldHeight + truckFieldHeight + railwayFieldHeight, valueWidth, freightFieldHeight, freightBillNumber)),
+            ]),
+            doc.struct('TR', [
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT, yPos + (singleLineHeight * 3) + vesselFieldHeight + flightFieldHeight + truckFieldHeight + railwayFieldHeight + freightFieldHeight, labelWidth, containerFieldHeight, 'Container identification number(s)')),
+                doc.struct('TD', ()=> PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + labelWidth, yPos + (singleLineHeight * 3) + vesselFieldHeight + flightFieldHeight + truckFieldHeight + railwayFieldHeight + freightFieldHeight, valueWidth, containerFieldHeight, containerIdentificationNumber)),
+            ]),
+            doc.struct('TR', [
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT, yPos + (singleLineHeight * 3) + vesselFieldHeight + flightFieldHeight + truckFieldHeight + railwayFieldHeight + freightFieldHeight + containerFieldHeight, labelWidth, otherDocsFieldHeight, 'Other transport documents (e.g. bill of landing, CMR, air waybill)')),
+                doc.struct('TD', ()=> PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + labelWidth, yPos + (singleLineHeight * 3) + vesselFieldHeight + flightFieldHeight + truckFieldHeight + railwayFieldHeight + freightFieldHeight + containerFieldHeight, valueWidth, otherDocsFieldHeight, otherTransportDocuments)),
+            ])
         ])
     ]));
+};
 
-    yPos = yPos + (PdfStyle.ROW.HEIGHT * 13) + PdfStyle.ROW.HEIGHT + 7;
-
-    doc.fontSize(PdfStyle.FONT_SIZE.LARGE);
-    PdfUtils.label(doc, PdfStyle.MARGIN.LEFT, yPos, 'Container number(s) list attached');
-    PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 270, yPos, 'Exporter details');
-    yPos = yPos + PdfStyle.ROW.HEIGHT - 2;
-    let cellHeight = PdfStyle.ROW.HEIGHT * 8;
-
-    const containerNumber = data?.transport?.containerNumber ?? '';
-    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT, yPos, 250, cellHeight, containerNumber.toString());
+const appendixExporterAndImportDetails = (doc, data, isSample, buff, startY) => {
+    // This function now renders exporter details and Official use only section on page 7
+    let yPos = startY;
+    
+    // Exporter Details section
+    doc.font(PdfStyle.FONT.BOLD);
+    doc.fontSize(PdfStyle.FONT_SIZE.MEDIUM);
+    doc.addStructure(doc.struct('H3', () => {
+        doc.text('Exporter Details', PdfStyle.MARGIN.LEFT, yPos);
+    }));
+    doc.font(PdfStyle.FONT.REGULAR);
+    yPos += 20;
 
     const exporterAddress = PdfUtils.constructAddress([
         data.exporter?.addressOne, 
@@ -601,117 +503,272 @@ const appendixTransportDetails = (doc, data, startY) => {
     const exporterFullName = data.exporter?.exporterFullName ?? '';
     const exporterCompanyName = data.exporter?.exporterCompanyName ?? '';
 
-    cellHeight = PdfStyle.ROW.HEIGHT * 5 + 5;
+    let cellHeight = PdfStyle.ROW.HEIGHT * 5 + 5;
 
     doc.addStructure(doc.struct('Table', [
-        doc.struct('TR', [
-            doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 270, yPos, 100, PdfStyle.ROW.HEIGHT + 5, 'Name')),
-            doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 370, yPos, 160, PdfStyle.ROW.HEIGHT + 5, exporterFullName)),
-        ]),
-        doc.struct('TR', [
-            doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 270, yPos + PdfStyle.ROW.HEIGHT + 5, 100, cellHeight, 'Address')),
-            doc.struct('TD', ()=> PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 370, yPos + PdfStyle.ROW.HEIGHT + 5, 160, cellHeight, [exporterCompanyName, exporterAddress])),
-        ]),
-        doc.struct('TR', [
-            doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 270, yPos + PdfStyle.ROW.HEIGHT + 5 + cellHeight, 100, cellHeight, 'Signature')),
-            doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 370, yPos + PdfStyle.ROW.HEIGHT + 5 + cellHeight, 160, cellHeight)),
+        doc.struct('TBody', [
+            doc.struct('TR', [
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT, yPos, 100, PdfStyle.ROW.HEIGHT + 5, 'Name')),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 100, yPos, 430, PdfStyle.ROW.HEIGHT + 5, exporterFullName)),
+            ]),
+            doc.struct('TR', [
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT, yPos + PdfStyle.ROW.HEIGHT + 5, 100, cellHeight, 'Address')),
+                doc.struct('TD', ()=> PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 100, yPos + PdfStyle.ROW.HEIGHT + 5, 430, cellHeight, [exporterCompanyName, exporterAddress])),
+            ]),
+            doc.struct('TR', [
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT, yPos + PdfStyle.ROW.HEIGHT + 5 + cellHeight, 100, cellHeight, 'Signature')),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 100, yPos + PdfStyle.ROW.HEIGHT + 5 + cellHeight, 430, cellHeight)),
+            ])
         ])
     ]));
 
-    PdfUtils.separator(doc, yPos + PdfStyle.ROW.HEIGHT + 5 + (cellHeight * 2) + 10);
+    yPos = yPos + PdfStyle.ROW.HEIGHT + 5 + (cellHeight * 2) + 30;
+    
+    // Official use only section - original format
+    cellHeight = PdfStyle.ROW.HEIGHT * 8;
+    
+    doc.addStructure(doc.struct('Table', [
+        doc.struct('THead', [
+            doc.struct('TR', [
+                doc.struct('TH', () => {
+                    PdfUtils.tableHeaderCellBold(doc, PdfStyle.MARGIN.LEFT, yPos, 270, cellHeight, 'FOR OFFICIAL USE ONLY');
+                }),
+                doc.struct('TH', () => {
+                    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 270, yPos, 260, cellHeight, 'Import Control Authority Stamp');
+                })
+            ])
+        ])
+    ]));
+
+    yPos += cellHeight + 20;
+    
+    // Validation paragraph
+    doc.font(PdfStyle.FONT.BOLD);
+    doc.addStructure(doc.struct('P', () => {
+        doc.text('Validated by the appropriate competent authority (MMO, Scottish Ministers, Welsh Ministers, Department of Agriculture, Environment and Rural Affairs for Northern Ireland, Marine Resources, Growth and Housing and Environment for Jersey, Sea Fisheries, Committee for Economic Development for Guernsey and Department Environment, Food and Agriculture for the Isle of Man) in accordance with article 15 of Council Regulation (EU) 1005/2008 (as retained under s.3(1) European Union (Withdrawal) Act 2018)', PdfStyle.MARGIN.LEFT + 10, yPos);
+    }));
+    
+    yPos += 80;
+    
+    // QR Code
+    const shouldGenerateQRCode = !data.isBlankTemplate && !isSample;
+    if (shouldGenerateQRCode && buff) {
+        PdfUtils.qrCode(doc, buff, PdfStyle.MARGIN.LEFT + 20, yPos);
+    }
 };
 
 const getVehicleType = (data) => {
     return data?.transport?.vehicle?.toUpperCase() ?? '';
 };
 
-const getVcDetails = (data) => {
-    const vehicleType = getVehicleType(data);
+const getTransportModes = (data) => {
+    // Support both single transport object and array of transport modes
+    if (Array.isArray(data.transportations)) {
+        return data.transportations;
+    }
+    
+    if (data.transport) {
+        return [data.transport];
+    }
+    
+    return [];
+};
 
-    if (vehicleType === 'CONTAINERVESSEL') {
-        const vesselName = data.transport.vesselName ? `${data.transport.vesselName} ` : '';
-        const flagState = data.transport.flagState ?? '';
-        return (vesselName + flagState).toString();
+const formatVesselDetail = (vesselName, flagStateOrPln) => {
+    const name = vesselName ? `${vesselName} ` : '';
+    const detail = (name + (flagStateOrPln ?? '')).toString().trim();
+    return detail;
+};
+
+const extractVesselFromTransport = (transport) => {
+    const transportVehicleType = (transport.vehicle || '').toUpperCase();
+    
+    if (transportVehicleType === 'CONTAINERVESSEL' || transportVehicleType === 'DIRECTLANDING') {
+        return formatVesselDetail(transport.vesselName, transport.flagState);
     }
     
-    if (vehicleType === 'DIRECTLANDING') {
-        const vessel = data.exportPayload?.items?.[0]?.landings?.[0]?.model?.vessel;
-        const vesselName = vessel?.vesselName ? `${vessel.vesselName} ` : '';
-        const pln = vessel?.pln ? `(${vessel.pln})` : '';
-        return (vesselName + pln).toString();
+    return null;
+};
+
+const extractVesselFromExportPayload = (data) => {
+    const vessel = data.exportPayload?.items?.[0]?.landings?.[0]?.model?.vessel;
+    if (!vessel) return null;
+    
+    const pln = vessel.pln ? `(${vessel.pln})` : '';
+    return formatVesselDetail(vessel.vesselName, pln);
+};
+
+const getVcDetails = (data) => {
+    const transportModes = getTransportModes(data);
+    const vesselDetails = [];
+    
+    transportModes.forEach(transport => {
+        const detail = extractVesselFromTransport(transport);
+        if (detail) {
+            vesselDetails.push(detail);
+        }
+    });
+    
+    // Fallback: Handle direct landing from exportPayload if not in transportations
+    if (vesselDetails.length === 0 && getVehicleType(data) === 'DIRECTLANDING') {
+        const detail = extractVesselFromExportPayload(data);
+        if (detail) {
+            vesselDetails.push(detail);
+        }
     }
     
-    return '';
+    return vesselDetails.join(', ');
+};
+
+const extractDeparturePlaceFromTransport = (transport) => {
+    if (transport.cmr === 'true') {
+        return 'See attached transport documents';
+    }
+    
+    if (transport.departurePlace) {
+        const place = transport.departurePlace.toString().trim();
+        return place || null;
+    }
+    
+    return null;
+};
+
+const addUniqueDeparturePlace = (departurePlaces, place) => {
+    if (place && !departurePlaces.includes(place)) {
+        departurePlaces.push(place);
+    }
 };
 
 const getDeparturePlace = (data) => {
-    const departurePlace = data?.transport?.cmr === 'true' 
-        ? 'See attached transport documents' 
-        : (data?.transport?.departurePlace ?? '');
-    return departurePlace.toString();
+    const transportModes = getTransportModes(data);
+    const departurePlaces = [];
+    
+    transportModes.forEach(transport => {
+        const place = extractDeparturePlaceFromTransport(transport);
+        addUniqueDeparturePlace(departurePlaces, place);
+    });
+    
+    // Fallback to old single transport object
+    if (departurePlaces.length === 0 && data.transport) {
+        const place = extractDeparturePlaceFromTransport(data.transport);
+        if (place) {
+            departurePlaces.push(place);
+        }
+    }
+    
+    return departurePlaces.join(', ');
 };
 
 const getFlightDetails = (data) => {
-    return (data?.transport?.flightNumber ?? '').toString();
+    const transportModes = getTransportModes(data);
+    const flightNumbers = [];
+    
+    transportModes.forEach(transport => {
+        const transportVehicleType = (transport.vehicle || '').toUpperCase();
+        if (transportVehicleType === 'PLANE' && transport.flightNumber) {
+            flightNumbers.push(transport.flightNumber.toString());
+        }
+    });
+    
+    return flightNumbers.join(', ');
 };
 
 const getTruckDetails = (data) => {
-    if (data?.transport?.vehicle?.toUpperCase() !== 'TRUCK') {
-        return '';
-    }
+    const transportModes = getTransportModes(data);
+    const truckDetails = [];
     
-    const nationality = data.transport.nationalityOfVehicle 
-        ? `${data.transport.nationalityOfVehicle} ` 
-        : '';
-    const registration = data.transport.registrationNumber ?? '';
+    transportModes.forEach(transport => {
+        const transportVehicleType = (transport.vehicle || '').toUpperCase();
+        if (transportVehicleType === 'TRUCK') {
+            const nationality = transport.nationalityOfVehicle 
+                ? `${transport.nationalityOfVehicle} ` 
+                : '';
+            const registration = transport.registrationNumber ?? '';
+            const detail = (nationality + registration).toString().trim();
+            if (detail) {
+                truckDetails.push(detail);
+            }
+        }
+    });
     
-    return (nationality + registration).toString();
+    return truckDetails.join(', ');
 };
 
 const getRailwayBillNumber = (data) => {
-    return (data?.transport?.railwayBillNumber ?? '').toString();
+    const transportModes = getTransportModes(data);
+    const railwayBillNumbers = [];
+    
+    transportModes.forEach(transport => {
+        const transportVehicleType = (transport.vehicle || '').toUpperCase();
+        if (transportVehicleType === 'TRAIN' && transport.railwayBillNumber) {
+            railwayBillNumbers.push(transport.railwayBillNumber.toString());
+        }
+    });
+    
+    return railwayBillNumbers.join(', ');
 };
 
 const getContainerIdentificationNumber = (data) => {
-    const vehicleType = getVehicleType(data);
+    const transportModes = getTransportModes(data);
+    const containerNumbers = [];
     
-    // Only show container identification number for truck and train transport
-    if (vehicleType === 'TRUCK' || vehicleType === 'TRAIN') {
-        return (data.transport.containerIdentificationNumber ?? '').toString();
-    }
+    transportModes.forEach(transport => {
+        // Support both 'containerIdentificationNumber' and 'containerNumber'
+        const containerNum = transport.containerIdentificationNumber || transport.containerNumber;
+        if (containerNum) {
+            containerNumbers.push(containerNum.toString());
+        }
+    });
     
-    return '';
+    return containerNumbers.join(', ');
 };
 
 const getFreightBillNumber = (data) => {
-    let freightBillNumber = '';
-    if (data.transport) {
-        freightBillNumber = data.transport.freightBillNumber;
-    }
-
-    return freightBillNumber;
+    const transportModes = getTransportModes(data);
+    const freightBillNumbers = [];
+    
+    transportModes.forEach(transport => {
+        if (transport.freightBillNumber) {
+            freightBillNumbers.push(transport.freightBillNumber.toString());
+        }
+    });
+    
+    return freightBillNumbers.join(', ');
 }
 
 const getOtherTransportDocuments = (data) => {
+    const transportModes = getTransportModes(data);
     let documentLines = [];
     
-    if (data.transport?.documents && Array.isArray(data.transport.documents)) {
-        documentLines = data.transport.documents
-        .sort((a, b) => {
-            const aKey = a.name || a.reference || '';
-            const bKey = b.name || b.reference || '';
-            return aKey.localeCompare(bKey, undefined, { numeric: true });
-        })
-        .map(doc => {
-            if (doc.name && doc.reference) {
-                return `${doc.name} - ${doc.reference}`;
+    transportModes.forEach(transport => {
+        // Support both 'transportDocuments' (from UI) and 'documents' (alternative naming)
+        const docs = transport.transportDocuments || transport.documents;
+        
+        if (docs) {
+            if (Array.isArray(docs)) {
+                // Handle array format
+                const formattedDocs = docs
+                    .map(doc => {
+                        if (doc.name && doc.reference) {
+                            return `${doc.name} - ${doc.reference}`;
+                        }
+                        return '';
+                    })
+                    .filter(line => line.length > 0);
+                
+                documentLines = documentLines.concat(formattedDocs);
+            } else if (typeof docs === 'string') {
+                // Handle string format (newline-separated)
+                const lines = docs.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+                documentLines = documentLines.concat(lines);
             }
-            return '';
-        })
-        .filter(line => line.length > 0);
-    }
+        }
+    });
     
-    return documentLines;
+    // Limit to 25 documents (maintains insertion order)
+    documentLines = documentLines.slice(0, 25);
+    
+    return documentLines.join('\n');
 };
 
 const appendixHeading = (doc, startY) => {
@@ -724,66 +781,70 @@ const appendixHeading = (doc, startY) => {
             align: 'center'
         });
     }));
-};
-const generateTable = (doc, yPos, headerHeight, rowHeight, headers, rows) => {
-    doc.addStructure(doc.struct('Table', [
-        doc.struct('THead', [
-            doc.struct('TR', {}, () => {
-                headers.forEach((header, index) => {
-                    doc.addStructure(
-                        doc.struct('TH', () => 
-                            PdfUtils.tableHeaderCell(
-                                doc,
-                                PdfStyle.MARGIN.LEFT + header.leftMargin,
-                                yPos,
-                                header.width,
-                                headerHeight,
-                                header.text
-                            )
-                        )
-                    );
-                });
-            })
-        ]),
-        doc.struct('TBody', [
-            doc.struct('TR', {}, () => {
-                rows.forEach((row, index) => {
-                    doc.addStructure(
-                        doc.struct('TD', () => 
-                            PdfUtils.field(
-                                doc,
-                                PdfStyle.MARGIN.LEFT + row.leftMargin,
-                                yPos + headerHeight,
-                                row.width,
-                                rowHeight
-                            )
-                        )
-                    );
-                });
-            })
-        ])
-    ]));
+    doc.addStructure(doc.struct('H3', {}, () => {
+        doc.text('Transport Details', 0, startY + 18, {
+            align: 'center'
+        });
+    }));
 };
 
 const generateSection11 = (doc, data, startY) => {
-    PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY + PdfStyle.ROW.HEIGHT * 2, '11    Importer Declaration:');
+    doc.addStructure(doc.struct('P', () => {
+        PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY + PdfStyle.ROW.HEIGHT * 2, '11    Importer Declaration:');
+    }));
     let yPos = startY + PdfStyle.ROW.HEIGHT * 3;
     const headerHeight = PdfStyle.ROW.HEIGHT * 3 - 4;
     const rowHeight = PdfStyle.ROW.HEIGHT * 3;
 
+    // Reusable column structure for importer rows
+    const importerRowsStructure = [
+        { leftMargin: 15, width: 250 },
+        { leftMargin: 265, width: 95 },
+        { leftMargin: 360, width: 95 },
+        { leftMargin: 455, width: 80 }
+    ];
+
+    // First importer table
+    const importerHeadersfirst = [
+        { leftMargin: 15, width: 250, text: ['Company, name, address, EORI number and contact details of importer (specify details)'] },
+        { leftMargin: 265, width: 95, text: 'Signature' },
+        { leftMargin: 360, width: 95, text: 'Date' },
+        { leftMargin: 455, width: 80, text: 'Seal' }
+    ];
+    doc.addStructure(doc.struct('Table', [
+        doc.struct('THead', [
+            doc.struct('TR', importerHeadersfirst.map(h =>
+                doc.struct('TH', () => PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + h.leftMargin, yPos, h.width, headerHeight, h.text))
+            ))
+        ]),
+        doc.struct('TBody', [
+            doc.struct('TR', importerRowsStructure.map(r =>
+                doc.struct('TD', () => PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + r.leftMargin, yPos + headerHeight, r.width, rowHeight))
+            ))
+        ])
+    ]));
+
+    yPos += headerHeight + rowHeight;
+
+    // Second importer table
     const importerHeaders = [
         { leftMargin: 15, width: 250, text: ['Company, name, address, EORI number and contact details of representative of the importer (specify details)'] },
         { leftMargin: 265, width: 95, text: 'Signature' },
         { leftMargin: 360, width: 95, text: 'Date' },
         { leftMargin: 455, width: 80, text: 'Seal' }
     ];
-    const importerRows = [
-        { leftMargin: 15, width: 250 },
-        { leftMargin: 265, width: 95 },
-        { leftMargin: 360, width: 95 },
-        { leftMargin: 455, width: 80 }
-    ];
-    generateTable(doc, yPos, headerHeight, rowHeight, importerHeaders, importerRows);
+    doc.addStructure(doc.struct('Table', [
+        doc.struct('THead', [
+            doc.struct('TR', importerHeaders.map(h =>
+                doc.struct('TH', () => PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + h.leftMargin, yPos, h.width, headerHeight, h.text))
+            ))
+        ]),
+        doc.struct('TBody', [
+            doc.struct('TR', importerRowsStructure.map(r =>
+                doc.struct('TD', () => PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + r.leftMargin, yPos + headerHeight, r.width, rowHeight))
+            ))
+        ])
+    ]));
 
     yPos += headerHeight + rowHeight;
 
@@ -800,108 +861,106 @@ const generateSection11 = (doc, data, startY) => {
         { leftMargin: 360, width: 95 },
         { leftMargin: 455, width: 80 }
     ];
-    generateTable(doc, yPos, headerHeight, rowHeight, productHeaders, productRows);
-
-    yPos += headerHeight + rowHeight;
     doc.addStructure(doc.struct('Table', [
         doc.struct('THead', [
-            doc.struct('TR', [
-                doc.struct('TH', () => PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 250, headerHeight,
-                    ['Document under Article 14(1) of Regulation (EC) No 1005/2008'])),
-                doc.struct('TH', () => PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 265, yPos, 270, headerHeight, 'Yes/No (as appropriate)')),
-            ])
+            doc.struct('TR', productHeaders.map(h =>
+                doc.struct('TH', () => PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + h.leftMargin, yPos, h.width, headerHeight, h.text))
+            ))
         ]),
-
         doc.struct('TBody', [
-            doc.struct('TR', [
-                doc.struct('TD', () => PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos + headerHeight, 250, rowHeight)),
-                doc.struct('TD', () => PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 265, yPos + headerHeight, 270, rowHeight)),
-            ])
+            doc.struct('TR', productRows.map(r =>
+                doc.struct('TD', () => PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + r.leftMargin, yPos + headerHeight, r.width, rowHeight))
+            ))
         ])
     ]));
 
     yPos += headerHeight + rowHeight;
-    doc.addStructure(doc.struct('Table', [
-        doc.struct('THead', [
-            doc.struct('TR', [
-                doc.struct('TH', () => PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 250, headerHeight,
-                    ['Document under Article 14(2) of Regulation (EC) No 1005/2008'])),
-                doc.struct('TH', () => PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 265, yPos, 95, headerHeight, 'Yes/No (as appropriate)')),
-                doc.struct('TH', () => PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 360, yPos, 175, headerHeight, 'References (processing statement document number(s))')),
-            ])
-        ]),
 
-        doc.struct('TBody', [
-            doc.struct('TR', [
-                doc.struct('TD', () => PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos + headerHeight, 250, rowHeight)),
-                doc.struct('TD', () => PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 265, yPos + headerHeight, 95, rowHeight)),
-                doc.struct('TD', () => PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 360, yPos + headerHeight, 175, rowHeight)),
-            ])
-        ])
-    ]));
+    const createTable = (headerDefs, columnDefs, tableYPos) => {
+        const headerCells = headerDefs.map(h =>
+            doc.struct('TH', () => PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + h.leftMargin, tableYPos, h.width, headerHeight, h.text))
+        );
+        const bodyCells = columnDefs.map(c =>
+            doc.struct('TD', () => PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + c.leftMargin, tableYPos + headerHeight, c.width, rowHeight))
+        );
+        return doc.struct('Table', [
+            doc.struct('THead', [doc.struct('TR', headerCells)]),
+            doc.struct('TBody', [doc.struct('TR', bodyCells)])
+        ]);
+    };
 
+
+    const article14_1Headers = [
+        { leftMargin: 15, width: 250, text: ['Document under Article 14(1) of Regulation (EC) No 1005/2008'] },
+        { leftMargin: 265, width: 95, text: 'Yes/No (as appropriate)' },
+        { leftMargin: 360, width: 175, text: 'References' }
+    ];
+    const article14_1Cols = [
+        { leftMargin: 15, width: 250 },
+        { leftMargin: 265, width: 95 },
+        { leftMargin: 360, width: 175 }
+    ];
+    doc.addStructure(createTable(article14_1Headers, article14_1Cols, yPos));
     yPos += headerHeight + rowHeight;
-    doc.addStructure(doc.struct('Table', [
-        doc.struct('THead', [
-            doc.struct('TR', [
-                doc.struct('TH', () => PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 520, headerHeight,
-                    'Member State and office of import')),
-            ])
-        ]),
 
-        doc.struct('TBody', [
-            doc.struct('TR', [
-                doc.struct('TD', () => PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos + headerHeight, 520, rowHeight)),
-            ])
-        ])
-    ]));
-
+    const article14_2Headers = [
+        { leftMargin: 15, width: 250, text: ['Document under Article 14(2) of Regulation (EC) No 1005/2008'] },
+        { leftMargin: 265, width: 95, text: 'Yes/No (as appropriate)' },
+        { leftMargin: 360, width: 175, text: 'References (processing statement document number(s))' }
+    ];
+    const article14_2Cols = [
+        { leftMargin: 15, width: 250 },
+        { leftMargin: 265, width: 95 },
+        { leftMargin: 360, width: 175 }
+    ];
+    doc.addStructure(createTable(article14_2Headers, article14_2Cols, yPos));
     yPos += headerHeight + rowHeight;
-    doc.addStructure(doc.struct('Table', [
-        doc.struct('THead', [
-            doc.struct('TR', [
-                doc.struct('TH', () => PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 250, headerHeight,
-                    'Means of transport upon arrival (airplane,vehicle, ship, train)')),
-                doc.struct('TH', () => PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 265, yPos, 95, headerHeight, 'Transport document reference')),
-                doc.struct('TH', () => PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 360, yPos, 175, headerHeight, 'Estimated time of arrival (if submission under Article 12(1) of Regulation (EC) No 1005/2008')),
-            ])
-        ]),
 
-        doc.struct('TBody', [
-            doc.struct('TR', [
-                doc.struct('TD', () => PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos + headerHeight, 250, rowHeight)),
-                doc.struct('TD', () => PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 265, yPos + headerHeight, 95, rowHeight)),
-                doc.struct('TD', () => PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 360, yPos + headerHeight, 175, rowHeight)),
-            ])
-        ])
-    ]));
-
+    const memberStateHeaders = [
+        { leftMargin: 15, width: 520, text: 'Member State and office of import' }
+    ];
+    const memberStateCols = [
+        { leftMargin: 15, width: 520 }
+    ];
+    doc.addStructure(createTable(memberStateHeaders, memberStateCols, yPos));
     yPos += headerHeight + rowHeight;
-    doc.addStructure(doc.struct('Table', [
-        doc.struct('THead', [
-            doc.struct('TR', [
-                doc.struct('TH', () => PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 300, headerHeight,
-                    'Customs declaration number (if issued)')),
-                doc.struct('TH', () => PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 315, yPos, 220, headerHeight, 'CHED number (if available)')),
-            ])
-        ]),
 
-        doc.struct('TBody', [
-            doc.struct('TR', [
-                doc.struct('TD', () => PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos + headerHeight, 300, rowHeight)),
-                doc.struct('TD', () => PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 315, yPos + headerHeight, 220, rowHeight)),
-            ])
-        ])
-    ]));
-
+    const transportHeaders = [
+        { leftMargin: 15, width: 250, text: 'Means of transport upon arrival (airplane,vehicle, ship, train)' },
+        { leftMargin: 265, width: 95, text: 'Transport document reference' },
+        { leftMargin: 360, width: 175, text: 'Estimated time of arrival (if submission under Article 12(1) of Regulation (EC) No 1005/2008' }
+    ];
+    const transportCols = [
+        { leftMargin: 15, width: 250 },
+        { leftMargin: 265, width: 95 },
+        { leftMargin: 360, width: 175 }
+    ];
+    doc.addStructure(createTable(transportHeaders, transportCols, yPos));
     yPos += headerHeight + rowHeight;
-    doc.lineWidth(1.5);
-    doc.undash();
-    doc.moveTo(PdfStyle.MARGIN.LEFT + 225, yPos + 0.5).lineTo(PdfStyle.MARGIN.LEFT + 225, yPos + headerHeight - 0.5).stroke('#ffffff');
+
+    const customsHeaders = [
+        { leftMargin: 15, width: 300, text: 'Customs declaration number (if issued)' },
+        { leftMargin: 315, width: 220, text: 'CHED number (if available)' }
+    ];
+    const customsCols = [
+        { leftMargin: 15, width: 300 },
+        { leftMargin: 315, width: 220 }
+    ];
+    doc.addStructure(createTable(customsHeaders, customsCols, yPos));
+    yPos += headerHeight + rowHeight;
+
+    doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
+        doc.lineWidth(1.5);
+        doc.undash();
+        doc.moveTo(PdfStyle.MARGIN.LEFT + 225, yPos + 0.5).lineTo(PdfStyle.MARGIN.LEFT + 225, yPos + headerHeight - 0.5).stroke('#ffffff');
+    }));
+    PdfUtils.separator(doc, yPos + 5);
 }
 
 const section17 = (doc, data, startY) => {
-    PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '4    Re-export control');
+    doc.addStructure(doc.struct('P', () => {
+        PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '4    Re-export control');
+    }));
     let yPos = startY + 12;
     let cellHeight = PdfStyle.ROW.HEIGHT * 2 - 3;
 
@@ -925,13 +984,17 @@ const section17 = (doc, data, startY) => {
     ]));
 
     yPos += cellHeight + PdfStyle.ROW.HEIGHT * 6 + 5;
-    doc.text('* Tick as appropriate', PdfStyle.MARGIN.LEFT + 15, yPos);
+    doc.addStructure(doc.struct('P', () => {
+        doc.text('* Tick as appropriate', PdfStyle.MARGIN.LEFT + 15, yPos);
+    }));
 
     PdfUtils.separator(doc, yPos + 15);
 };
 
 const section16 = (doc, data, startY) => {
-    PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '3    Authority');
+    doc.addStructure(doc.struct('P', () => {
+        PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '3    Authority');
+    }));
     let yPos = startY + 12;
     let cellHeight = PdfStyle.ROW.HEIGHT * 6;
 
@@ -960,7 +1023,9 @@ const section16 = (doc, data, startY) => {
 const section15 = (doc, data, startY) => {
 
     let yPos = startY;
-    PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, yPos, '2');
+    doc.addStructure(doc.struct('P', () => {
+        PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, yPos, '2');
+    }));
 
     let cellHeight = PdfStyle.ROW.HEIGHT * 6;
 
@@ -989,7 +1054,9 @@ const section15 = (doc, data, startY) => {
 const section14 = (doc, data, startY) => {
 
     let yPos = startY;
-    PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, yPos, '1    Description of re-exported product');
+    doc.addStructure(doc.struct('P', () => {
+        PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, yPos, '1    Description of re-exported product');
+    }));
     yPos += 12;
     let cellHeight = PdfStyle.ROW.HEIGHT * 2 - 3;
 
@@ -1015,31 +1082,83 @@ const section14 = (doc, data, startY) => {
 
 const section13 = (doc, data, startY) => {
 
-    doc.fontSize(PdfStyle.FONT_SIZE.MEDIUM);
-    doc.addStructure(doc.struct('H3', {}, () => {
-        doc.text('(ii) RE-EXPORT CERTIFICATE', PdfStyle.MARGIN.LEFT, startY);
+    // Section 13 - Refusal of catch certificate (EU2026 changes)
+    let yPos = startY + PdfStyle.ROW.HEIGHT * 3;
+    doc.addStructure(doc.struct('P', () => {
+        PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, yPos, '13');
     }));
-    doc.lineWidth(2);
-    doc.moveTo(180, startY + 4).lineTo(560, startY + 4).stroke();
+    const headerHeight = PdfStyle.ROW.HEIGHT * 2 - 3;
+    const rowHeight = PdfStyle.ROW.HEIGHT+20;
+    let cellHeight = PdfStyle.ROW.HEIGHT * 2 - 3;
 
-    PdfUtils.label(doc, PdfStyle.MARGIN.LEFT, startY + 20, 'Certificate Number');
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 95, startY + 18, 125, PdfStyle.ROW.HEIGHT);
+    // Build table head and body with three columns: blank left column, provision text, tick column
+    const provisionTexts = [
+        'Article 18(1), point (a)',
+        'Article 18(1), point (b)',
+        'Article 18(1), point (c)',
+        'Article 18(1), point (d)',
+        'Article 18(1), point (e)',
+        'Article 18(1), point (f)',
+        'Article 18(1), point (g)',
+        'Article 18(2), point (a)',
+        'Article 18(2), point (b)',
+        'Article 18(2), point (c)',
+        'Article 18(2), point (d)'
+    ];
+    
+    const myTable = doc.struct('Table');
+    doc.addStructure(myTable);
 
-    PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 235, startY + 20, 'Date');
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 265, startY + 18, 70, PdfStyle.ROW.HEIGHT);
+    const tableHead = doc.struct('THead');
+    myTable.add(tableHead);
 
-    PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 350, startY + 20, 'Member State');
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 420, startY + 18, 110, PdfStyle.ROW.HEIGHT);
+    const tableHeadRow = doc.struct('TR');
+    tableHead.add(tableHeadRow);
 
-    PdfUtils.separator(doc, startY + 40);
+    const th1 = doc.struct('TH', () => PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 85, headerHeight, 'Refusal of catch certificate'));
+    const th2 = doc.struct('TH', () => PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 100, yPos, 350, headerHeight, 'Catch certificate refused on the basis of the following provision of Regulation (EC) No 1005/2008:'));
+    const th3 = doc.struct('TH', () => PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 450, yPos, 80, headerHeight, 'Tick as appropriate'));
+    
+    tableHeadRow.add(th1);
+    tableHeadRow.add(th2);
+    tableHeadRow.add(th3);
+    tableHeadRow.end();
+    tableHead.end();
+
+    const tableBody = doc.struct('TBody');
+    myTable.add(tableBody);
+
+    provisionTexts.forEach((text, idx) => {
+        const rowY = yPos + headerHeight + (rowHeight * idx);
+        const tableBodyRow = doc.struct('TR');
+        tableBody.add(tableBodyRow);
+
+        if (idx === 0) {
+            const totalRowsHeight = rowHeight * provisionTexts.length;
+            const td1 = doc.struct('TD', () => PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos + cellHeight, 85, totalRowsHeight));
+            tableBodyRow.add(td1);
+        }
+        
+        const td2 = doc.struct('TD', () => PdfUtils.fieldBgWhite(doc, PdfStyle.MARGIN.LEFT + 100, rowY, 350, rowHeight, text));
+        const td3 = doc.struct('TD', () => PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 450, rowY, 80, rowHeight));
+        
+        tableBodyRow.add(td2);
+        tableBodyRow.add(td3);
+        tableBodyRow.end();
+    });
+
+    tableBody.end();
+    myTable.end();
 };
 
 const section12 = (doc, data, startY) => {
     let yPos = startY + PdfStyle.ROW.HEIGHT * 3;
-    PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, yPos, '12');
+    doc.addStructure(doc.struct('P', () => {
+        PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, yPos, '12');
+    }));
 
     const headerHeight =  PdfStyle.ROW.HEIGHT * 2 - 3;
-    const rowHeight = PdfStyle.ROW.HEIGHT * 7;
+    const rowHeight = PdfStyle.ROW.HEIGHT * 3;
 
     doc.addStructure(doc.struct('Table', [
         doc.struct('THead', [
@@ -1061,31 +1180,10 @@ const section12 = (doc, data, startY) => {
             ])
         ])
     ]));
-
-    yPos += headerHeight + rowHeight;
-
-    doc.addStructure(doc.struct('Table', [
-        doc.struct('THead', [
-            doc.struct('TR', [
-                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 150, headerHeight, 'Customs declaration (if issued)')),
-                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 165, yPos, 185, headerHeight, 'Number')),
-                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 350, yPos, 80, headerHeight, 'Date')),
-                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 430, yPos, 100, headerHeight, 'Place')),
-            ])
-        ]),
-        doc.struct('TBody', [
-            doc.struct('TR', [
-                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos + headerHeight, 150,  rowHeight)),
-                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 165, yPos + headerHeight, 185,  rowHeight)),
-                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 350, yPos + headerHeight, 80,  rowHeight)),
-                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 430, yPos + headerHeight, 100,  rowHeight)),
-            ])
-        ])
-    ]));
-
     yPos += headerHeight + rowHeight + 5;
-
-    doc.text('* Tick as appropriate', PdfStyle.MARGIN.LEFT + 15, yPos);
+    doc.addStructure(doc.struct('P', () => {
+        doc.text('* Tick as appropriate', PdfStyle.MARGIN.LEFT + 15, yPos);
+    }));
 };
 
 const section11 = (doc, data, startY) => {
@@ -1093,12 +1191,16 @@ const section11 = (doc, data, startY) => {
 };
 
 const section10 = (doc, data, startY) => {
-    PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY + 12, '10    Transport details: See Appendix I');
+    doc.addStructure(doc.struct('P', () => {
+        PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY + 12, '10    Transport details: See Appendix I');
+    }));
     PdfUtils.separator(doc, startY + 36);
 };
 
 const section9 = (doc, data, isSample, buff, startY) => {
-    PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '9    Flag State Authority Validation:');
+    doc.addStructure(doc.struct('P', () => {
+        PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '9    Flag State Authority Validation:');
+    }));
     let yPos = startY + 12;
     let cellHeight = PdfStyle.ROW.HEIGHT * 2 - 3;
 
@@ -1133,7 +1235,9 @@ const section9 = (doc, data, isSample, buff, startY) => {
 const section8 = (doc, data, isSample, buff, startY) => {
 
     let yPos = startY;
-    PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, yPos, '8');
+    doc.addStructure(doc.struct('P', () => {
+        PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, yPos, '8');
+    }));
 
     let cellHeight = PdfStyle.ROW.HEIGHT * 7 + 2;
 
@@ -1172,14 +1276,18 @@ const section8 = (doc, data, isSample, buff, startY) => {
     ]));
 
     yPos += cellHeight + 5 + PdfStyle.ROW.HEIGHT;
-    doc.text('* Date of acceptance by exporter of the veracity of the contents of this document', PdfStyle.MARGIN.LEFT + 15, yPos);
+    doc.addStructure(doc.struct('P', () => {
+        doc.text('* Date of acceptance by exporter of the veracity of the contents of this document', PdfStyle.MARGIN.LEFT + 15, yPos);
+    }));
 
     PdfUtils.separator(doc, startY + 137);
 };
 
 const section7 = (doc, data, startY) => {
 
-    PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '7    Transhipment and/or landing authorisation within a port area:');
+    doc.addStructure(doc.struct('P', () => {
+        PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '7    Transhipment and/or landing authorisation within a port area:');
+    }));
     let yPos = startY + 12;
     let cellHeight = PdfStyle.ROW.HEIGHT  * 2.5 - 6;
 
@@ -1237,7 +1345,9 @@ const section7 = (doc, data, startY) => {
 const section6 = (doc, data, startY) => {
 
     let yPos = startY;
-    PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, yPos, '6');
+    doc.addStructure(doc.struct('P', () => {
+        PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, yPos, '6');
+    }));
 
     let cellHeight = PdfStyle.ROW.HEIGHT * 2;
 
@@ -1287,26 +1397,36 @@ const section6 = (doc, data, startY) => {
 
 const section5 = (doc, data, startY) => {
     let yPos = startY;
-    PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, yPos, '5    Name of master of fishing vessel or of fishing licence holder – Signature:');
+    doc.addStructure(doc.struct('P', () => {
+        PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, yPos, '5    Name of master of fishing vessel or of fishing licence holder – Signature:');
+    }));
 
     yPos += PdfStyle.ROW.HEIGHT;
 
     const licenceHolder = isMultiVessel(data.exportPayload) ? "Multiple vessels - See schedule" : getLicenceHolder(data.exportPayload);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 515, PdfStyle.ROW.HEIGHT, licenceHolder);
+    doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
+        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 515, PdfStyle.ROW.HEIGHT, licenceHolder);
+    }));
 
     yPos += PdfStyle.ROW.HEIGHT + 5;
 
-    doc.text('* I am a representative of the vessel (s) shown on this document', PdfStyle.MARGIN.LEFT + 15, yPos);
+    doc.addStructure(doc.struct('P', () => {
+        doc.text('* I am a representative of the vessel (s) shown on this document', PdfStyle.MARGIN.LEFT + 15, yPos);
+    }));
     PdfUtils.separator(doc, startY + 45);
 };
 
 const section4 = (doc, data, startY) => {
-    PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '4    References of applicable conservation and management measures');
+    doc.addStructure(doc.struct('P', () => {
+        PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '4    References to applicable conservation and management measures');
+    }));
     let policy = '';
     if (data.conservation) {
         policy = data.conservation.conservationReference === 'Other' ? data.conservation.anotherConservation : data.conservation.conservationReference;
     }
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, startY + 12, 515, PdfStyle.ROW.HEIGHT * 2, policy);
+    doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
+        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, startY + 12, 515, PdfStyle.ROW.HEIGHT * 2, policy);
+    }));
     PdfUtils.separator(doc, startY + 52);
 };
 
@@ -1336,7 +1456,7 @@ function getDescOfProductRows(exportPayload) {
                 }
                 let accumItem = accum[item.product.species.code + item.product.commodityCode + faoArea +landing.model.vessel.vesselName + landing.model.vessel.pln + dte];
                 if (accumItem) {
-                    let accumTotal = Number.parseFloat(accumItem.exportWeight) + Number.parseFloat(landing.model.exportWeight)
+                    let accumTotal = parseFloat(accumItem.exportWeight) + parseFloat(landing.model.exportWeight)
                     accumItem.exportWeight = accumTotal.toFixed(2);
                 } else {
                     accum[item.product.species.code + item.product.commodityCode + faoArea + landing.model.vessel.vesselName + landing.model.vessel.pln + dte] = {
@@ -1358,7 +1478,7 @@ function getDescOfProductRows(exportPayload) {
 
 
 function getExportWeight(weight) {
-    return `${Number(weight).toFixed(2) > 9999999.99 ? Number.parseInt(weight) : Number(weight).toFixed(2)}`;
+    return `${Number(weight).toFixed(2) > 9999999.99 ? parseInt(weight) : Number(weight).toFixed(2)}`;
 }
 
 function getExportWeightText(rowIdx, arrLength, rowData) {
@@ -1390,9 +1510,13 @@ function getImoOrCfr(vesselCounts, data) {
 
 const section3 = (doc, data, startY) => {
 
-    PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '3    Description of Product');
-    PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 15, startY + 14, 'Type of processing authorised on board:');
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, startY + 26, 515, PdfStyle.ROW.HEIGHT);
+    doc.addStructure(doc.struct('P', () => {
+        PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '3    Description of Product');
+        PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 15, startY + 14, 'Type of processing authorised on board:');
+    }));
+    doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
+        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, startY + 26, 515, PdfStyle.ROW.HEIGHT);
+    }));
 
     let cellHeight = PdfStyle.ROW.HEIGHT * 3;
     let rowData = getDescOfProductRows(data.exportPayload);
@@ -1408,54 +1532,13 @@ const section3 = (doc, data, startY) => {
     const tableHeadRow = doc.struct('TR');
     tableHead.add(tableHeadRow);
 
-    const tableHeadOne = doc.struct('TH');
-    tableHeadRow.add(tableHeadOne);
-    const headOneContent = doc.markStructureContent('TH');
-    tableHeadOne.add(headOneContent)
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, startY + 48, 110, cellHeight, 'Species');
-    tableHeadOne.end();
-
-    const tableHeadTwo = doc.struct('TH');
-    tableHeadRow.add(tableHeadTwo);
-    const headTwoContent = doc.markStructureContent('TH');
-    tableHeadTwo.add(headTwoContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 125, startY + 48, 55, cellHeight, 'Product Code');
-    tableHeadTwo.end();
-
-    const tableHeadThree = doc.struct('TH');
-    tableHeadRow.add(tableHeadThree);
-    const headThreeContent = doc.markStructureContent('TH');
-    tableHeadThree.add(headThreeContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 180, startY + 48, 80, cellHeight, ['Catch Area(s)', '(Catch Area,', 'EEZ, RFMO,', 'High Seas)']);
-    tableHeadThree.end();
-
-    const tableHeadFour = doc.struct('TH');
-    tableHeadRow.add(tableHeadFour);
-    const headFourContent = doc.markStructureContent('TH');
-    tableHeadFour.add(headFourContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 260, startY + 48, 80, cellHeight, ['Catch Date(s)', '(from - to)']);
-    tableHeadFour.end();
-
-    const tableHeadFive = doc.struct('TH');
-    tableHeadRow.add(tableHeadFive);
-    const headFiveContent =  doc.markStructureContent('TH');
-    tableHeadFive.add(headFiveContent)
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 340, startY + 48, 55, cellHeight, 'Estimated weight to be landed in kg');
-    tableHeadFive.end();
-
-    const tableHeadSix = doc.struct('TH');
-    tableHeadRow.add(tableHeadSix);
-    const headSixContent =  doc.markStructureContent('TH');
-    tableHeadSix.add(headSixContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 395, startY + 48, 55, cellHeight, 'Net catch weight in kg');
-    tableHeadSix.end();
-
-    const tableHeadSeven = doc.struct('TH');
-    tableHeadRow.add(tableHeadSeven);
-    const headSevenContent = doc.markStructureContent('TH');
-    tableHeadSeven.add(headSevenContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 450, startY + 48, 80, cellHeight, 'Verified weight landed (net catch weight in kg)');
-    tableHeadSeven.end();
+    createSection3HeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 15, startY + 48, 110, cellHeight, 'Species');
+    createSection3HeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 125, startY + 48, 55, cellHeight, 'Product Code');
+    createSection3HeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 180, startY + 48, 80, cellHeight, ['Catch Area(s)', '(Catch Area,', 'EEZ, RFMO,', 'High Seas)']);
+    createSection3HeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 260, startY + 48, 80, cellHeight, ['Catch Date(s)', '(from - to)']);
+    createSection3HeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 340, startY + 48, 55, cellHeight, 'Estimated weight to be landed in kg');
+    createSection3HeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 395, startY + 48, 55, cellHeight, 'Net catch weight in kg');
+    createSection3HeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 450, startY + 48, 80, cellHeight, 'Verified weight landed (net catch weight in kg)');
 
     tableHeadRow.end();
     tableHead.end();
@@ -1474,76 +1557,19 @@ const section3 = (doc, data, startY) => {
         tableBody.add(tableBodyRow);
 
         const hasData = rowIdx < arrLength;
-        let speciesText = '';
-        let commodityCodeText = '';
-        let datesText = '';
-        let catchAreasText = '';
-        
-        if (hasData) {
-            const row = rowData[rowIdx];
-            speciesText = `${row.species}`;
-            commodityCodeText = `${row.commodityCode}`;
-            datesText = `${row.dates}`;
-            const rfmoAcronym = row.rfmo?.match(/\(([^)]{1,10})\)/) ? row.rfmo.match(/\(([^)]{1,10})\)/)[1] : '';
-            const eezText = row.exclusiveEconomicZones?.map(eez => eez.isoCodeAlpha2).join(', ') || '';
-            const highSeasText = row.highSeasArea === 'Yes' ? 'High Seas' : '';
-            catchAreasText = [row.catchAreas, eezText, rfmoAcronym, highSeasText].filter(Boolean).join('\n');
-        }
+        const rowCellData = getSection3RowData(rowIdx, arrLength, rowData, hasData);
 
-        const TdOne = doc.struct('TD');
-        tableBodyRow.add(TdOne);
-        const TdOneContent = doc.markStructureContent('TD');
-        TdOne.add(TdOneContent);
-        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, y, 110, PdfStyle.ROW.HEIGHT + 30, speciesText);
-        TdOne.end();
-
-        const TdTwo = doc.struct('TD');
-        tableBodyRow.add(TdTwo);
-        const TdTwoContent = doc.markStructureContent('TD');
-        TdTwo.add(TdTwoContent);
-        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 125, y, 55, PdfStyle.ROW.HEIGHT + 30, commodityCodeText);
-        TdTwo.end();
-
-        const TdThree = doc.struct('TD');
-        tableBodyRow.add(TdThree);
-        const TdThreeContent = doc.markStructureContent('TD');
-        TdThree.add(TdThreeContent);
-        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 180, y, 80, PdfStyle.ROW.HEIGHT + 30, catchAreasText, 4);
-        TdThree.end();
-
-        const TdFour = doc.struct('TD');
-        tableBodyRow.add(TdFour);
-        const TdFourContent = doc.markStructureContent('TD');
-        TdFour.add(TdFourContent);
-        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 260, y, 80, PdfStyle.ROW.HEIGHT + 30, datesText, 2);
-        TdFour.end();
-
-        const TdFive = doc.struct('TD');
-        tableBodyRow.add(TdFive);
-        const TdFiveContent = doc.markStructureContent('TD');
-        TdFive.add(TdFiveContent);
-        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 340, y, 55, PdfStyle.ROW.HEIGHT + 30);
-        TdFive.end();
-
-        const TdSix = doc.struct('TD');
-        tableBodyRow.add(TdSix);
-        const TdSixContent = doc.markStructureContent('TD');
-        TdSix.add(TdSixContent);
-        const exportWeightText = getExportWeightText(rowIdx, arrLength, rowData);
-        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 395, y, 55, PdfStyle.ROW.HEIGHT + 30, exportWeightText);
-        TdSix.end();
-
-        const TdSeven = doc.struct('TD');
-        tableBodyRow.add(TdSeven);
-        const TdSevenContent = doc.markStructureContent('TD');
-        TdSeven.add(TdSevenContent);
-        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 450, y, 80, PdfStyle.ROW.HEIGHT + 30);
-        TdSeven.end();
+        createSection3DataCell(doc, tableBodyRow, { x: PdfStyle.MARGIN.LEFT + 15, y, width: 110, height: PdfStyle.ROW.HEIGHT + 30, content: rowCellData.speciesText });
+        createSection3DataCell(doc, tableBodyRow, { x: PdfStyle.MARGIN.LEFT + 125, y, width: 55, height: PdfStyle.ROW.HEIGHT + 30, content: rowCellData.commodityCodeText });
+        createSection3DataCell(doc, tableBodyRow, { x: PdfStyle.MARGIN.LEFT + 180, y, width: 80, height: PdfStyle.ROW.HEIGHT + 30, content: rowCellData.catchAreasText, lineSpacing: 4 });
+        createSection3DataCell(doc, tableBodyRow, { x: PdfStyle.MARGIN.LEFT + 260, y, width: 80, height: PdfStyle.ROW.HEIGHT + 30, content: rowCellData.datesText, lineSpacing: 2 });
+        createSection3DataCell(doc, tableBodyRow, { x: PdfStyle.MARGIN.LEFT + 340, y, width: 55, height: PdfStyle.ROW.HEIGHT + 30, content: '' });
+        createSection3DataCell(doc, tableBodyRow, { x: PdfStyle.MARGIN.LEFT + 395, y, width: 55, height: PdfStyle.ROW.HEIGHT + 30, content: rowCellData.exportWeightText });
+        createSection3DataCell(doc, tableBodyRow, { x: PdfStyle.MARGIN.LEFT + 450, y, width: 80, height: PdfStyle.ROW.HEIGHT + 30, content: '' });
 
         tableBodyRow.end();
         y += PdfStyle.ROW.HEIGHT + 30;
     }
-    doc.endMarkedContent();
 
 
     if (arrLength > 6) {
@@ -1558,6 +1584,35 @@ const section3 = (doc, data, startY) => {
     tableBody.end();
     myTable.end();
     PdfUtils.separator(doc, startY + 388);
+};
+
+const getVesselNameField = (vesselCounts, items) => {
+    const vesselCount = Object.keys(vesselCounts).length;
+    if (vesselCount === 1) {
+        return items[0].landings[0].model.vessel.vesselName;
+    } else if (vesselCount > 1) {
+        return 'Multiple vessels - SEE SCHEDULE';
+    }
+    return '';
+};
+
+const getSingleVesselDetails = (vesselCounts, items) => {
+    if (Object.keys(vesselCounts).length !== 1) {
+        return { pln: '', homePortAndFlag: '', licenceNumber: '', licenceValidTo: '' };
+    }
+    
+    const vessel = items[0].landings[0].model.vessel;
+    let licenceValidTo = '';
+    if (vessel.licenceValidTo) {
+        licenceValidTo = moment(vessel.licenceValidTo, 'YYYY-MM-DD[T]HH:mm:ss').format('DD/MM/YYYY');
+    }
+    
+    return {
+        pln: vessel.pln,
+        homePortAndFlag: vessel.flag + ' - ' + vessel.homePort,
+        licenceNumber: vessel.licenceNumber,
+        licenceValidTo: licenceValidTo
+    };
 };
 
 const section2 = (doc, data, startY) => {
@@ -1576,48 +1631,53 @@ const section2 = (doc, data, startY) => {
         });
     }
 
-    PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY + 4, '2    Fishing Vessel Name');
-    if (Object.keys(vesselCounts).length === 1) {
-        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 120, startY + 2, 155, PdfStyle.ROW.HEIGHT, items[0].landings[0].model.vessel.vesselName);
-    } else if (Object.keys(vesselCounts).length > 1) {
-        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 120, startY + 2, 155, PdfStyle.ROW.HEIGHT, 'Multiple vessels - SEE SCHEDULE');
-    } else {
-        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 120, startY + 2, 155, PdfStyle.ROW.HEIGHT);
-    }
+    const vesselDetails = getSingleVesselDetails(vesselCounts, items);
 
-    let pln = '';
-    let homePortAndFlag = '';
-    if (Object.keys(vesselCounts).length === 1) {
-        pln = items[0].landings[0].model.vessel.pln;
-        homePortAndFlag = items[0].landings[0].model.vessel.flag + ' - ' + items[0].landings[0].model.vessel.homePort;
-    }
+    doc.addStructure(doc.struct('P', () => {
+        PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY + 4, '2    Fishing Vessel Name');
+    }));
+    doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
+        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 120, startY + 2, 155, PdfStyle.ROW.HEIGHT, getVesselNameField(vesselCounts, items));
+    }));
 
-    PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 285, startY + 4, 'Flag - Home Port');
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 400, startY + 2, 130, PdfStyle.ROW.HEIGHT, homePortAndFlag);
+    doc.addStructure(doc.struct('P', () => {
+        PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 285, startY + 4, 'Flag - Home Port');
+    }));
+    doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
+        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 400, startY + 2, 130, PdfStyle.ROW.HEIGHT, vesselDetails.homePortAndFlag);
+    }));
 
-    PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 15, startY + 29, 'Call Sign / PLN');
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 120, startY + 27, 155, PdfStyle.ROW.HEIGHT, pln);
+    doc.addStructure(doc.struct('P', () => {
+        PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 15, startY + 29, 'Call Sign / PLN');
+    }));
+    doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
+        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 120, startY + 27, 155, PdfStyle.ROW.HEIGHT, vesselDetails.pln);
+    }));
 
     let imoNumberOrCfr = getImoOrCfr(vesselCounts, data);
-    PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 285, startY + 18, 'IMO number or other');
-    PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 285, startY + 30, 'unique vessel identifier');
-    PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 285, startY + 42, '(if applicable)');
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 400, startY + 26, 130, PdfStyle.ROW.HEIGHT, imoNumberOrCfr);
+    doc.addStructure(doc.struct('P', () => {
+        PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 285, startY + 18, 'IMO number or other');
+        PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 285, startY + 30, 'unique vessel identifier');
+        PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 285, startY + 42, '(if applicable)');
+    }));
+    doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
+        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 400, startY + 26, 130, PdfStyle.ROW.HEIGHT, imoNumberOrCfr);
+    }));
 
-    PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 15, startY + 54, 'Fishing Licence No.');
+    doc.addStructure(doc.struct('P', () => {
+        PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 15, startY + 54, 'Fishing Licence No.');
+    }));
 
-    let ln = '';
-    let lvt = '';
-    if (Object.keys(vesselCounts).length === 1) {
-        ln = items[0].landings[0].model.vessel.licenceNumber;
-        if (items[0].landings[0].model.vessel.licenceValidTo) {
-            lvt = moment(items[0].landings[0].model.vessel.licenceValidTo, 'YYYY-MM-DD[T]HH:mm:ss').format('DD/MM/YYYY');
-        }
-    }
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 120, startY + 52, 220, PdfStyle.ROW.HEIGHT, ln ?? '');
+    doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
+        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 120, startY + 52, 220, PdfStyle.ROW.HEIGHT, vesselDetails.licenceNumber || '');
+    }));
 
-    PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 350, startY + 54, 'Valid to');
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 400, startY + 52, 130, PdfStyle.ROW.HEIGHT, lvt ?? '');
+    doc.addStructure(doc.struct('P', () => {
+        PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 350, startY + 54, 'Valid until');
+    }));
+    doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
+        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 400, startY + 52, 130, PdfStyle.ROW.HEIGHT, vesselDetails.licenceValidTo || '');
+    }));
 
 
     function getFishingGear(exportPayload) {
@@ -1626,13 +1686,60 @@ const section2 = (doc, data, startY) => {
     }
     let fishingGearText = isMultiVessel(data.exportPayload) ? 'Multiple vessels - SEE SCHEDULE' : getFishingGear(data.exportPayload);
 
-    PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 15, startY + 77, 'Fishing Gear');
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 120, startY + 77, 410, PdfStyle.ROW.HEIGHT, fishingGearText ?? '');
+    doc.addStructure(doc.struct('P', () => {
+        PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 15, startY + 77, 'Fishing Gear');
+    }));
+    doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
+        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 120, startY + 77, 410, PdfStyle.ROW.HEIGHT, fishingGearText ?? '');
+    }));
 
-    PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 15, startY + 100, 'Inmarsat No. Telefax No. Telephone No. E-mail address (if issued)');
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, startY + 112, 515, PdfStyle.ROW.HEIGHT);
+    doc.addStructure(doc.struct('P', () => {
+        PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 15, startY + 100, 'Mobile satellite service no Telefax no Telephone no E-mail address (if issued)');
+    }));
+    doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
+        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, startY + 112, 515, PdfStyle.ROW.HEIGHT);
+    }));
 
     PdfUtils.separator(doc, startY + 137);
+};
+
+const reExportCertificateHeader = (doc, data, isSample, startY) => {
+    doc.fontSize(PdfStyle.FONT_SIZE.MEDIUM);
+    doc.addStructure(doc.struct('H3', {}, () => {
+        doc.text('(ii) RE-EXPORT CERTIFICATE', PdfStyle.MARGIN.LEFT, startY);
+    }));
+    doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
+        doc.lineWidth(2);
+        doc.moveTo(185, startY + 4).lineTo(560, startY + 4).stroke();
+    }));
+
+    const yPos = startY + 20;
+    
+    // Certificate Number
+    doc.addStructure(doc.struct('P', () => {
+        PdfUtils.label(doc, PdfStyle.MARGIN.LEFT, yPos, 'Certificate Number');
+    }));
+    doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
+        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 105, yPos - 2, 130, PdfStyle.ROW.HEIGHT, '');
+    }));
+
+    // Date
+    doc.addStructure(doc.struct('P', () => {
+        PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 245, yPos, 'Date');
+    }));
+    doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
+        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 275, yPos - 2, 110, PdfStyle.ROW.HEIGHT, '');
+    }));
+
+    // Member State
+    doc.addStructure(doc.struct('P', () => {
+        PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 395, yPos, 'Member State');
+    }));
+    doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
+        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 475, yPos - 2, 55, PdfStyle.ROW.HEIGHT, '');
+    }));
+
+    PdfUtils.separator(doc, yPos + 25);
 };
 
 const section1 = (doc, data, isSample, startY) => {
@@ -1640,8 +1747,10 @@ const section1 = (doc, data, isSample, startY) => {
     doc.addStructure(doc.struct('H3', {}, () => {
         doc.text('(i) CATCH CERTIFICATE', PdfStyle.MARGIN.LEFT, startY);
     }));
-    doc.lineWidth(2);
-    doc.moveTo(153, startY + 4).lineTo(560, startY + 4).stroke();
+    doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
+        doc.lineWidth(2);
+        doc.moveTo(153, startY + 4).lineTo(560, startY + 4).stroke();
+    }));
 
     let documentNumber = '';
     if (!data.isBlankTemplate) {
@@ -1651,47 +1760,80 @@ const section1 = (doc, data, isSample, startY) => {
             documentNumber = data.documentNumber;
         }
     }
-    PdfUtils.label(doc, PdfStyle.MARGIN.LEFT, startY + 20, 'Document Number');
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 95, startY + 18, 160, PdfStyle.ROW.HEIGHT, documentNumber);
+    doc.addStructure(doc.struct('P', () => {
+        PdfUtils.label(doc, PdfStyle.MARGIN.LEFT, startY + 20, 'Document Number');
+    }));
+    doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
+        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 95, startY + 18, 160, PdfStyle.ROW.HEIGHT, documentNumber);
+    }));
 
-    PdfUtils.label(doc, 300, startY + 20, 'Validating Authority');
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 380, startY + 18, 150, PdfStyle.ROW.HEIGHT, 'Marine Management Organisation');
+    doc.addStructure(doc.struct('P', () => {
+        PdfUtils.label(doc, 300, startY + 20, 'Validating Authority');
+    }));
+    doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
+        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 380, startY + 18, 150, PdfStyle.ROW.HEIGHT, 'Marine Management Organisation');
+    }));
 
-    PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY + 40, '1    Name');
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 65, startY + 38, 465, PdfStyle.ROW.HEIGHT, 'Illegal Unreported and Unregulated (IUU) Fishing Team');
+    doc.addStructure(doc.struct('P', () => {
+        PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY + 40, '1    Name');
+    }));
+    doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
+        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 65, startY + 38, 465, PdfStyle.ROW.HEIGHT, 'Illegal Unreported and Unregulated (IUU) Fishing Team');
+    }));
 
-    PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 15, startY + 60, 'Address');
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 65, startY + 58, 465, PdfStyle.ROW.HEIGHT * 2 + 5, 'Tyneside House, Skinnerburn Rd, Newcastle upon Tyne, United Kingdom. NE4 7AR');
+    doc.addStructure(doc.struct('P', () => {
+        PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 15, startY + 60, 'Address');
+    }));
+    doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
+        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 65, startY + 58, 465, PdfStyle.ROW.HEIGHT * 2 + 5, 'Tyneside House, Skinnerburn Rd, Newcastle upon Tyne, United Kingdom. NE4 7AR');
+    }));
 
-    PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 65, startY + 100, 'Tel.');
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 90, startY + 98, 200, PdfStyle.ROW.HEIGHT, '0300 123 1032');
+    doc.addStructure(doc.struct('P', () => {
+        PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 65, startY + 100, 'Tel.');
+    }));
+    doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
+        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 90, startY + 98, 200, PdfStyle.ROW.HEIGHT, '0300 123 1032');
+    }));
 
-    PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 300, startY + 100, 'Email');
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 330, startY + 98, 200, PdfStyle.ROW.HEIGHT, 'ukiuuslo@marinemanagement.org.uk');
+    doc.addStructure(doc.struct('P', () => {
+        PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 300, startY + 100, 'Email');
+    }));
+    doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
+        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 330, startY + 98, 200, PdfStyle.ROW.HEIGHT, 'ukiuuslo@marinemanagement.org.uk');
+    }));
 
     PdfUtils.separator(doc, startY + 123);
 
 };
 
-const mvsHeadingCell = ({doc, x, y, width, height, text}, isBold, fontSize, align, lineColor, textColor, bgColour) => {
-    if (!text || Array.isArray(text)) {
-        mvsCell({doc, x, y, width, height, topPad: height / 3, textArr: text}, isBold, fontSize, align, lineColor, textColor, bgColour);
-    } else {
-        let textArr = [text];
-        mvsCell({doc, x, y, width, height, topPad: height / 3, textArr}, isBold, fontSize, align, lineColor, textColor, bgColour);
-    }
+const MVS_STYLES = {
+    DEFAULT: { lineColor: '#767676', textColor: '#353535', bgColour: '#ffffff' },
+    YELLOW_HEADER: { lineColor: '#767676', textColor: '#353535', bgColour: '#ffcc00' },
+    YELLOW_BRIGHT: { lineColor: '#767676', textColor: '#353535', bgColour: '#ffff00' }
 };
 
-const mvsTableCell = ({doc, x, y, width, height, text}, isBold, fontSize, align, lineColor, textColor, bgColour) => {
-    if (!text || Array.isArray(text)) {
-        return mvsCell({doc, x, y, width, height, topPad: 4, textArr: text}, isBold, fontSize, align, lineColor, textColor, bgColour);
-    } else {
-        let textArr = [text];
-       return mvsCell({doc, x, y, width, height, topPad: 4, textArr}, isBold, fontSize, align, lineColor, textColor, bgColour);
+const normalizeTextToArray = (text) => {
+    if (Array.isArray(text)) {
+        return text;
     }
+    if (text) {
+        return [text];
+    }
+    return null;
 };
 
-const mvsCell = ({doc, x, y, width, height, topPad, textArr}, isBold, fontSize, align, lineColor, textColor, bgColour) => {
+const mvsHeadingCell = ({doc, x, y, width, height, text}, isBold, fontSize, align, style = MVS_STYLES.DEFAULT) => {
+    const textArr = normalizeTextToArray(text);
+    mvsCell({doc, x, y, width, height, topPad: height / 3, textArr}, isBold, fontSize, align, style);
+};
+
+const mvsTableCell = ({doc, x, y, width, height, text}, isBold, fontSize, align, style = MVS_STYLES.DEFAULT) => {
+    const textArr = normalizeTextToArray(text);
+    return mvsCell({doc, x, y, width, height, topPad: 4, textArr}, isBold, fontSize, align, style);
+};
+
+const mvsCell = ({doc, x, y, width, height, topPad, textArr}, isBold, fontSize, align, style) => {
+    const { lineColor, textColor, bgColour } = style;
     let yPos = y;
     doc.undash();
     doc.lineWidth(0.75);
@@ -1725,4 +1867,67 @@ const mvsCell = ({doc, x, y, width, height, topPad, textArr}, isBold, fontSize, 
     }
 };
 
+const createMVSTableHeaderCell = (doc, tableHeadRow, x, y, width, height, text) => {
+    const tableHead = doc.struct('TH', () => {
+        mvsTableCell({doc, x, y, width, height, text}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', MVS_STYLES.YELLOW_BRIGHT);
+    });
+    tableHeadRow.add(tableHead);
+};
+
+const createMVSTableDataCell = (doc, tableBodyRow, x, y, width, height, text) => {
+    const td = doc.struct('TD', () => {
+        mvsTableCell({doc, x, y, width, height, text}, false, PdfStyle.FONT_SIZE.SMALLER, 'left', MVS_STYLES.DEFAULT);
+    });
+    tableBodyRow.add(td);
+};
+
+const createSection3HeaderCell = (doc, tableHeadRow, x, y, width, height, content) => {
+    const tableHead = doc.struct('TH', () => {
+        PdfUtils.tableHeaderCell(doc, x, y, width, height, content);
+    });
+    tableHeadRow.add(tableHead);
+};
+
+const createSection3DataCell = (doc, tableBodyRow, cellConfig) => {
+    const { x, y, width, height, content, lineSpacing = 1 } = cellConfig;
+    const td = doc.struct('TD', () => {
+        PdfUtils.field(doc, x, y, width, height, content, lineSpacing);
+    });
+    tableBodyRow.add(td);
+};
+
+const getSection3RowData = (rowIdx, arrLength, rowData, hasData) => {
+    let speciesText = '';
+    let commodityCodeText = '';
+    let datesText = '';
+    let catchAreasText = '';
+    let exportWeightText = '';
+    
+    if (hasData) {
+        const row = rowData[rowIdx];
+        speciesText = `${row.species}`;
+        commodityCodeText = `${row.commodityCode}`;
+        datesText = `${row.dates}`;
+        const rfmoAcronym = row.rfmo?.match(/\(([^)]{1,10})\)/) ? row.rfmo.match(/\(([^)]{1,10})\)/)[1] : '';
+        const eezText = row.exclusiveEconomicZones?.map(eez => eez.isoCodeAlpha2).join(', ') || '';
+        const highSeasText = row.highSeasArea === 'Yes' ? 'High Seas' : '';
+        catchAreasText = [row.catchAreas, eezText, rfmoAcronym, highSeasText].filter(Boolean).join('\n');
+        exportWeightText = getExportWeightText(rowIdx, arrLength, rowData);
+    }
+    
+    return { speciesText, commodityCodeText, datesText, catchAreasText, exportWeightText };
+};
+
 module.exports = renderExportCert;
+module.exports.formatCatchAreaData = formatCatchAreaData;
+// Export helper functions for testing (Transport Details Appendix)
+module.exports.getTransportModes = getTransportModes;
+module.exports.getVcDetails = getVcDetails;
+module.exports.getFlightDetails = getFlightDetails;
+module.exports.getTruckDetails = getTruckDetails;
+module.exports.getRailwayBillNumber = getRailwayBillNumber;
+module.exports.getFreightBillNumber = getFreightBillNumber;
+module.exports.getContainerIdentificationNumber = getContainerIdentificationNumber;
+module.exports.getDeparturePlace = getDeparturePlace;
+module.exports.getOtherTransportDocuments = getOtherTransportDocuments;
+module.exports.getVehicleType = getVehicleType;

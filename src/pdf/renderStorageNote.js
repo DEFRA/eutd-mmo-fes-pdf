@@ -79,6 +79,7 @@ const renderAllSections = (doc, data, isSample, buff, initialStartY, dateOfSubmi
     const section4Height = estimateSection4();
     ensureSpaceAndMaybeNewPage(section4Height);
     section4(doc, data, startY);
+    
     startY = startY + section4Height + GAP;
  
     // Section 5
@@ -91,24 +92,22 @@ const renderAllSections = (doc, data, isSample, buff, initialStartY, dateOfSubmi
     const section6Height = estimateSection6();
     ensureSpaceAndMaybeNewPage(section6Height);
     section6(doc, data, startY);
-    startY = startY + section6Height + GAP;
+    startY = startY + section6Height + GAP + 5;
 
     // Section 7
     const section7Height = estimateSection7();
     ensureSpaceAndMaybeNewPage(section7Height);
     section7(doc, data, startY, dateOfSubmission);
-    startY = startY + section7Height + GAP;
+    startY = startY + section7Height + GAP + 5;
 
     // Section 8
     const section8Height = estimateSection8();
     ensureSpaceAndMaybeNewPage(section8Height);
     section8(doc, data, isSample, buff, startY);
     startY = startY + section8Height;
-
-    // Section 3 Continued 
+     // Section 3 Continued  
     sectionContinued(doc, data, isSample, '3', 'arrival');
-
-    // Section 5 Continued 
+   // Section 5 Continued 
     sectionContinued(doc, data, isSample, '5', 'departure');
 
     return startY;
@@ -128,7 +127,8 @@ const estimateSection2 = () => {
     ];
     let sum = 0;
     rows.forEach(key => {
-        sum += (key === 'arrivalTransport.vehicle' ? PdfStyle.ROW.HEIGHT * 2.4 : PdfStyle.ROW.HEIGHT * 2);
+        const height = shouldUseExpandedHeight(key) ? PdfStyle.ROW.HEIGHT * 6 : PdfStyle.ROW.HEIGHT * 2;
+        sum += (height + 10);
     });
     return 12 + sum + 8;
 };
@@ -154,7 +154,8 @@ const estimateSection6 = () => {
     ];
     let sum = 0;
     rows.forEach(key => {
-        sum += (key === 'transport.vehicle' ? PdfStyle.ROW.HEIGHT * 2.4 : PdfStyle.ROW.HEIGHT * 2);
+        const height = shouldUseExpandedHeight(key) ? PdfStyle.ROW.HEIGHT * 3.5 : PdfStyle.ROW.HEIGHT * 2;
+        sum += (height + 10);
     });
     return 12 + sum + 8;
 };
@@ -714,6 +715,12 @@ const getNestedValue = (obj, path) => {
 const isVehicleTransportKey = (key) => 
     key === 'arrivalTransport.vehicle' || key === 'transport.vehicle';
 
+const isContainerNumberKey = (key) =>
+    key === 'arrivalTransport.containerNumbers' || key === 'transport.containerNumbers';
+
+const shouldUseExpandedHeight = (key) =>
+    isVehicleTransportKey(key) || isContainerNumberKey(key);
+
 const getTransportType = (transport) => 
     (transport.vehicle || '').toLowerCase();
 
@@ -741,8 +748,8 @@ const formatTransportValue = (rowKey, data, isArrival = true) => {
 
 const renderTransportDetailsTable = (doc, startY, rows, data, isArrival) => {
     let yPos = startY;
-    const col1Width = 250;
-    const col2Width = 265;
+    const col1Width = 220;
+    const col2Width = 295;
 
     const myTable = doc.struct('Table');
     doc.addStructure(myTable);
@@ -751,7 +758,8 @@ const renderTransportDetailsTable = (doc, startY, rows, data, isArrival) => {
     myTable.add(tableBody);
 
     rows.forEach(row => {
-        const height = isVehicleTransportKey(row.key) ? PdfStyle.ROW.HEIGHT * 2.4 : PdfStyle.ROW.HEIGHT * 2;
+        const heightMultiplier = isArrival ? 6 : 3.5;
+        const height = shouldUseExpandedHeight(row.key) ? PdfStyle.ROW.HEIGHT * heightMultiplier : PdfStyle.ROW.HEIGHT * 2;
         const value = formatTransportValue(row.key, data, isArrival);
 
         const tableRow = doc.struct('TR');
@@ -761,19 +769,24 @@ const renderTransportDetailsTable = (doc, startY, rows, data, isArrival) => {
         tableRow.add(headerCell);
         const headerCellContent = doc.markStructureContent('TH');
         headerCell.add(headerCellContent);
-        PdfUtils.tableHeaderCellBold(doc, PdfStyle.MARGIN.LEFT + 15, yPos, col1Width, height, row.label);
+        PdfUtils.tableHeaderCellBold(doc, PdfStyle.MARGIN.LEFT + 15, yPos, col1Width, height + 10, row.label);
         headerCell.end();
 
         const dataCell = doc.struct('TD');
         tableRow.add(dataCell);
         const dataCellContent = doc.markStructureContent('TD');
         dataCell.add(dataCellContent);
-        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 265, yPos, col2Width, height, value);
+        
+        if (shouldUseExpandedHeight(row.key)) {
+            PdfUtils.wrappedFieldNoEllipsis(doc, PdfStyle.MARGIN.LEFT + 235, yPos, col2Width, height + 10, value);
+        } else {
+            PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 235, yPos, col2Width, height + 10, value);
+        }
         dataCell.end();
 
         tableRow.end();
 
-        yPos += height;
+        yPos += height + 10;
     });
 
     doc.endMarkedContent();

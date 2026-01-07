@@ -56,26 +56,13 @@ const renderBlankExportCert = async (data, isSample, uri, stream, pathToTemplate
         renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, 350, 130);
         pageModifier.endContext().writePage();
 
-        pageModifier = new muhammara.PDFPageModifier(pdfWriter, 5);
+        pageModifier = new muhammara.PDFPageModifier(pdfWriter, 6);
         ctx = pageModifier.startContext().getContext();
-        renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, 70, 70);
+        renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, 50, 328);
         pageModifier.endContext().writePage();
     }
 
-    pageModifier = new muhammara.PDFPageModifier(pdfWriter, 6);
-    ctx = pageModifier.startContext().getContext();
-    ctx.writeText(
-        docNumber,
-        128, 494,
-        {font:pdfWriter.getFontForFile(pathToTemplate + 'fonts/arial.ttf'),size:10,colorspace:'gray',color:0x00}
-    );
-    if (isSample) {
-        renderSampleWatermark(pdfWriter, ctx, watermarkStreamImageXObject, 130, 0);
-    } else {
-        renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, 617, 445);
-    }
-    pageModifier.endContext().writePage();
-
+    // Page 7: Schedule 1
     pageModifier = new muhammara.PDFPageModifier(pdfWriter, 7);
     ctx = pageModifier.startContext().getContext();
     ctx.writeText(
@@ -90,7 +77,23 @@ const renderBlankExportCert = async (data, isSample, uri, stream, pathToTemplate
     }
     pageModifier.endContext().writePage();
 
+    // Page 8: Schedule 2
     pageModifier = new muhammara.PDFPageModifier(pdfWriter, 8);
+    ctx = pageModifier.startContext().getContext();
+    ctx.writeText(
+        docNumber,
+        128, 494,
+        {font:pdfWriter.getFontForFile(pathToTemplate + 'fonts/arial.ttf'),size:10,colorspace:'gray',color:0x00}
+    );
+    if (isSample) {
+        renderSampleWatermark(pdfWriter, ctx, watermarkStreamImageXObject, 130, 0);
+    } else {
+        renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, 617, 445);
+    }
+    pageModifier.endContext().writePage();
+
+    // Page 9: Schedule 3
+    pageModifier = new muhammara.PDFPageModifier(pdfWriter, 9);
     ctx = pageModifier.startContext().getContext();
     ctx.writeText(
         docNumber,

@@ -5,8 +5,10 @@ const qr = require('qr-image');
 module.exports = {
 
     separator: function(doc, startY) {
-        doc.lineWidth(0.75);
-        doc.moveTo(0, startY).lineTo(600, startY).dash(2, {space: 2}).stroke('#767676');
+        doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
+            doc.lineWidth(0.75);
+            doc.moveTo(0, startY).lineTo(600, startY).dash(2, {space: 2}).stroke('#767676');
+        }));
     },
     endOfPage: function(doc, page) {
         doc.addStructure(doc.struct('Artifact', { type: 'Pagination' }, () => {
@@ -98,6 +100,15 @@ module.exports = {
             this.cell({doc, x, y, width, height, textArr, trimWidth: true, isBold: false, lineColor: '#767676', textColor: '#6B6B6B', bgColour:'#f1f4ff', numberOfLines});
         }
     },
+    fieldBgWhite: function(doc, x, y, width, height, text, numberOfLines = 1) {
+        if (!text || Array.isArray(text)) {
+            this.cell({doc, x, y, width, height, textArr: text, trimWidth: true, isBold: false, lineColor: '#767676', textColor: '#6B6B6B', bgColour:'', numberOfLines});
+        } else {
+            let textArr = [text];
+            this.cell({doc, x, y, width, height, textArr, trimWidth: true, isBold: false, lineColor: '#767676', textColor: '#6B6B6B', bgColour:'', numberOfLines});
+        }
+    },
+    
     wrappedField: function(doc, x, y, width, height, text) {
         if (!text || Array.isArray(text)) {
             this.cell({doc, x, y, width, height, textArr: text, trimWidth: false, isBold: false, lineColor: '#767676', textColor: '#6B6B6B', bgColour:'#f1f4ff', numberOfLines: 1 });
@@ -106,8 +117,16 @@ module.exports = {
             this.cell({doc, x, y, width, height, textArr, trimWidth: false, isBold: false, lineColor: '#767676', textColor: '#6B6B6B', bgColour:'#f1f4ff', numberOfLines: 1 });
         }
     },
-    cell: function({ doc, x, y, width, height, textArr, trimWidth,
-           isBold, lineColor, textColor, bgColour, numberOfLines }) {
+    wrappedFieldNoEllipsis: function(doc, x, y, width, height, text) {
+        if (!text || Array.isArray(text)) {
+            this.cellNoEllipsis({doc, x, y, width, height, textArr: text, trimWidth: false, isBold: false, lineColor: '#767676', textColor: '#6B6B6B', bgColour:'#f1f4ff', numberOfLines: 1 });
+        } else {
+            let textArr = [text];
+            this.cellNoEllipsis({doc, x, y, width, height, textArr, trimWidth: false, isBold: false, lineColor: '#767676', textColor: '#6B6B6B', bgColour:'#f1f4ff', numberOfLines: 1 });
+        }
+    },
+    cellImpl: function({ doc, x, y, width, height, textArr, trimWidth,
+           isBold, lineColor, textColor, bgColour, numberOfLines, ellipsis = true }) {
 
         let yPos = y;
         doc.undash();
@@ -134,7 +153,7 @@ module.exports = {
             doc.text(txtFirstElement, x + 4, yPos + 4, {
                 width: width - 4,
                 lineBreak: true,
-                ellipsis: true
+                ellipsis
             });
 
             doc.font(PdfStyle.FONT.REGULAR);
@@ -152,10 +171,16 @@ module.exports = {
                 doc.text(txt, x + 4, yPos + 4, {
                     width: width - 4,
                     lineBreak: true,
-                    ellipsis: true
+                    ellipsis
                 });
             }
         }
+    },
+    cell: function(params) {
+        this.cellImpl({ ...params, ellipsis: true });
+    },
+    cellNoEllipsis: function(params) {
+        this.cellImpl({ ...params, ellipsis: false });
     },
     heading: function(doc, text) {
         let imageFile = path.join(__dirname, '../resources/hmgovlogo.png');
@@ -222,7 +247,8 @@ module.exports = {
     },
     todaysDate: function() {
         const currentDate = new Date();
-        const month = currentDate.getMonth() > 8 ? `${currentDate.getMonth() + 1}` : `0${currentDate.getMonth() + 1}`;
-        return `${currentDate.getDate()}/${month}/${currentDate.getFullYear()}`;
+        const day = String(currentDate.getDate()).padStart(2, '0');
+        const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+        return `${day}/${month}/${currentDate.getFullYear()}`;
     }
 }

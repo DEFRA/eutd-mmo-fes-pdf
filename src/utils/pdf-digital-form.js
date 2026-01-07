@@ -5,7 +5,6 @@
 
 const _ = require('lodash'),
 muhammara = require('muhammara');
-const PDFStreamForNodeJsStream = require('../../src/pdf/PDFStreamForNodeJsStream');
 
 function toText(item) {
     if(item.getType() === muhammara.ePDFObjectLiteralString) {
@@ -91,11 +90,7 @@ function parseTextFieldValue(pdfParser, fieldDictionary,fieldName) {
         return toText(valueField);
     } else if(valueField.getType() == muhammara.ePDFObjectStream) {
         let bytes = [];
-        const inStream = new muhammara.PDFRStreamForFile(valueField.toPDFStream().getUnfilteredStreamBuffer());
-        const pdfStream = new PDFStreamForNodeJsStream();
         // stream. read it into the value
-        const pdfReader = muhammara.createReader(new muhammara.PDFRStreamForBuffer(valueField.toPDFStream().getUnfilteredStreamBuffer()));
-        const pdfWriter = muhammara.createWriterToModify(inStream, pdfStream);
         let readStream = pdfReader.startReadingFromStream(valueField.toPDFStream());
         while(readStream.notEnded())
         {
@@ -104,7 +99,7 @@ function parseTextFieldValue(pdfParser, fieldDictionary,fieldName) {
             bytes.push(readData[0]);
         }
         // now turn to text string
-        return pdfWriter.createPDFTextString(bytes).toString();
+        return new PDFTextString(bytes).toString();
     } else {
         return null;
     }

@@ -1,5 +1,17 @@
 const {parsePdfBuffer} = require('../../../src/pdf/pdfParser');
+const { parseTransport } = require('../../../src/pdf/parseExportCert');
 const fs = require('fs');
+
+describe('parseTransport', () => {
+    it('should map Point of destination to transport.exportedTo.pointOfDestination', () => {
+        const pointOfDestination = 'Rotterdam';
+        const raw = {
+            'Point of destination': pointOfDestination
+        };
+        const transport = parseTransport(raw);
+        expect(transport.exportedTo.pointOfDestination).toBe(pointOfDestination);
+    });
+});
 
 describe('parseExportCert', () => {
 

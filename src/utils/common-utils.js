@@ -44,7 +44,9 @@ module.exports = {
     });
     PdfUtils.heading(doc, headingText);
   
-    doc.lineWidth(2);
-    doc.moveTo(PdfStyle.MARGIN.LEFT, startY + 70).lineTo(560, startY + 70).stroke();
+    doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
+      doc.lineWidth(2);
+      doc.moveTo(PdfStyle.MARGIN.LEFT, startY + 70).lineTo(560, startY + 70).stroke();
+    }));
   }
 }

@@ -76,6 +76,10 @@ describe('pdfService', () => {
                                         licenceValidTo: "2027-12-31T00:00:00",
                                         label: "GOLDEN BELLS 11 (B192)"
                                     },
+                                    faoArea: "FAO27",
+                                    exclusiveEconomicZones: [{ isoCodeAlpha2: "GB" }],
+                                    rfmo: "International Commission for the Conservation of Atlantic Tunas (ICCAT)",
+                                    highSeasArea: "Yes",
                                     dateLanded: "2019-01-28T00:00:00.000Z",
                                     exportWeight: "10"
                                 }
@@ -113,6 +117,10 @@ describe('pdfService', () => {
                                         licenceValidTo: "2027-12-31T00:00:00",
                                         label: "GOLDEN BELLS 11 (B192)"
                                     },
+                                    faoArea: "FAO27",
+                                    exclusiveEconomicZones: [{ isoCodeAlpha2: "GB" }, { isoCodeAlpha2: "FR" }],
+                                    rfmo: "Indian Ocean Tuna Commission (IOTC)",
+                                    highSeasArea: "No",
                                     dateLanded: "2019-01-28T00:00:00.000Z",
                                     exportWeight: "10"
                                 }
@@ -150,6 +158,10 @@ describe('pdfService', () => {
                                         licenceValidTo: "2027-12-31T00:00:00",
                                         label: "GOLDEN BELLS 11 (B192)"
                                     },
+                                    faoArea: "FAO21",
+                                    exclusiveEconomicZones: [{ isoCodeAlpha2: "NO" }, { isoCodeAlpha2: "IS" }, { isoCodeAlpha2: "DK" }],
+                                    rfmo: "North East Atlantic Fisheries Commission (NEAFC)",
+                                    highSeasArea: "Yes",
                                     dateLanded: "2019-01-28T00:00:00.000Z",
                                     exportWeight: "10"
                                 }
@@ -187,6 +199,10 @@ describe('pdfService', () => {
                                         licenceValidTo: "2027-12-31T00:00:00",
                                         label: "GOLDEN BELLS 11 (B192)"
                                     },
+                                    faoArea: "FAO87",
+                                    exclusiveEconomicZones: [{ isoCodeAlpha2: "US" }],
+                                    rfmo: "Western and Central Pacific Fisheries Commission (WCPFC)",
+                                    highSeasArea: "Yes",
                                     dateLanded: "2019-01-28T00:00:00.000Z",
                                     exportWeight: "10"
                                 }
@@ -224,6 +240,10 @@ describe('pdfService', () => {
                                         licenceValidTo: "2027-12-31T00:00:00",
                                         label: "GOLDEN BELLS 11 (B192)"
                                     },
+                                    faoArea: "FAO34",
+                                    exclusiveEconomicZones: [{ isoCodeAlpha2: "CA" }, { isoCodeAlpha2: "US" }],
+                                    rfmo: "Northwest Atlantic Fisheries Organization (NAFO)",
+                                    highSeasArea: "No",
                                     dateLanded: "2019-01-28T00:00:00.000Z",
                                     exportWeight: "10"
                                 }
@@ -261,6 +281,10 @@ describe('pdfService', () => {
                                         licenceValidTo: "2027-12-31T00:00:00",
                                         label: "GOLDEN BELLS 11 (B192)"
                                     },
+                                    faoArea: "FAO51",
+                                    exclusiveEconomicZones: [{ isoCodeAlpha2: "AE" }],
+                                    rfmo: "General Fisheries Commission for the Mediterranean (GFCM)",
+                                    highSeasArea: "No",
                                     dateLanded: "2019-01-28T00:00:00.000Z",
                                     exportWeight: "10"
                                 }
@@ -298,6 +322,10 @@ describe('pdfService', () => {
                                         licenceValidTo: "2027-12-31T00:00:00",
                                         label: "GOLDEN BELLS 11 (B192)"
                                     },
+                                    faoArea: "FAO77",
+                                    exclusiveEconomicZones: [{ isoCodeAlpha2: "MX" }, { isoCodeAlpha2: "GT" }],
+                                    rfmo: "Commission for the Conservation of Southern Bluefin Tuna (CCSBT)",
+                                    highSeasArea: "Yes",
                                     dateLanded: "2019-01-28T00:00:00.000Z",
                                     exportWeight: "10"
                                 }
@@ -335,6 +363,10 @@ describe('pdfService', () => {
                                         licenceValidTo: "2027-12-31T00:00:00",
                                         label: "GOLDEN BELLS 11 (B192)"
                                     },
+                                    faoArea: "FAO48",
+                                    exclusiveEconomicZones: [{ isoCodeAlpha2: "AU" }, { isoCodeAlpha2: "NZ" }],
+                                    rfmo: "South East Atlantic Fisheries Organisation (SEAFO)",
+                                    highSeasArea: "No",
                                     dateLanded: "2019-01-28T00:00:00.000Z",
                                     exportWeight: "10"
                                 }
@@ -372,6 +404,10 @@ describe('pdfService', () => {
                                         licenceValidTo: "2027-12-31T00:00:00",
                                         label: "GOLDEN BELLS 11 (B192)"
                                     },
+                                    faoArea: "FAO48",
+                                    exclusiveEconomicZones: [{ isoCodeAlpha2: "AU" }, { isoCodeAlpha2: "NZ" }],
+                                    rfmo: "South East Atlantic Fisheries Organisation (SEAFO)",
+                                    highSeasArea: "No",
                                     dateLanded: "2019-01-28T00:00:00.000Z",
                                     exportWeight: "10"
                                 }

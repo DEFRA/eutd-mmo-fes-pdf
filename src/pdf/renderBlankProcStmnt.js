@@ -41,22 +41,15 @@ const renderBlankProcStmnt = async (data, isSample, uri, stream, pathToTemplate)
     }
     pageModifier.endContext().writePage();
 
+    // Handle page 1 (the additional schedule page in the template)
+    pageModifier = new muhammara.PDFPageModifier(pdfWriter, 1);
+    ctx = pageModifier.startContext().getContext();
+    
     if (isSample) {
-        pageModifier = new muhammara.PDFPageModifier(pdfWriter, 1);
-        ctx = pageModifier.startContext().getContext();
         renderSampleWatermark(pdfWriter, ctx, watermarkStreamImageXObject, 30, 100);
-        pageModifier.endContext().writePage();
-
-        pageModifier = new muhammara.PDFPageModifier(pdfWriter, 2);
-        ctx = pageModifier.startContext().getContext();
-        renderSampleWatermark(pdfWriter, ctx, watermarkStreamImageXObject, 30, 100);
-        pageModifier.endContext().writePage();
-
-        pageModifier = new muhammara.PDFPageModifier(pdfWriter, 3);
-        ctx = pageModifier.startContext().getContext();
-        renderSampleWatermark(pdfWriter, ctx, watermarkStreamImageXObject, 30, 100);
-        pageModifier.endContext().writePage();
     }
+    
+    pageModifier.endContext().writePage();
 
     pdfWriter.end();
     stream.end();
