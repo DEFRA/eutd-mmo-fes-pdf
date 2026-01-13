@@ -4,6 +4,12 @@ const PdfUtils = require('./mmoPdfUtils');
 const moment = require('moment');
 const CommonUtils = require('../utils/common-utils');
 
+// Constants for multi-vessel schedule calculations
+const MIN_ROW_HEIGHT_MULTIPLIER = 3;
+const MIN_HEIGHT_ADJUSTMENT = 5;
+const LICENCE_HOLDER_COLUMN_WIDTH = 45;
+const LICENCE_DETAIL_COLUMN_WIDTH = 75;
+
 const renderExportCert = async (data, isSample, uri, stream) => {
     let buff = null;
     if (!data.isBlankTemplate && !isSample) {
@@ -114,9 +120,9 @@ const calculateRowHeight = (row) => {
     const licenceHolderText = row.licenceHolder || '';
     const licenceDetailText = `${row.licenceDetail || ''} ${row.homePort || ''}`;
     
-    const minHeight = (PdfStyle.ROW.HEIGHT * 3) - 5;
-    const licenceHolderHeight = calculateRequiredCellHeightStatic(licenceHolderText, 45, PdfStyle.FONT_SIZE.SMALLER);
-    const licenceDetailHeight = calculateRequiredCellHeightStatic(licenceDetailText, 75, PdfStyle.FONT_SIZE.SMALLER);
+    const minHeight = (PdfStyle.ROW.HEIGHT * MIN_ROW_HEIGHT_MULTIPLIER) - MIN_HEIGHT_ADJUSTMENT;
+    const licenceHolderHeight = calculateRequiredCellHeightStatic(licenceHolderText, LICENCE_HOLDER_COLUMN_WIDTH, PdfStyle.FONT_SIZE.SMALLER);
+    const licenceDetailHeight = calculateRequiredCellHeightStatic(licenceDetailText, LICENCE_DETAIL_COLUMN_WIDTH, PdfStyle.FONT_SIZE.SMALLER);
     
     return Math.max(minHeight, licenceHolderHeight, licenceDetailHeight);
 };
@@ -371,8 +377,8 @@ const renderMultiVesselScheduleHeader = (doc, data, isSample, buff, startY) => {
     createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 350, yPos, 55, cellHeight, ['Verified weight landed(net catch weight in kg)']);
     createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 405, yPos, 65, cellHeight, ['Vessel name and PLN / Callsign']);
     createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 470, yPos, 70, cellHeight, ['IMO number or other unique vessel identifier (if applicable)']);
-    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 540, yPos, 45, cellHeight, 'Master / Licence Holder');
-    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 585, yPos, 75, cellHeight, ['Licence Number /', 'Flag-Homeport']);
+    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 540, yPos, LICENCE_HOLDER_COLUMN_WIDTH, cellHeight, 'Master / Licence Holder');
+    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 585, yPos, LICENCE_DETAIL_COLUMN_WIDTH, cellHeight, ['Licence Number /', 'Flag-Homeport']);
     createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 660, yPos, 75, cellHeight, ['Catch Area(s) (Catch Area, EEZ, RFMO, High Seas)']);
     createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 735, yPos, 45, cellHeight, ['Fishing', 'Gear']);
     tableHeadRow.end();
@@ -406,13 +412,13 @@ const multiVesselScheduleHeading = (doc, data, isSample, buff, page, pageSize, s
     const maxPageHeight = 565;
 
     for (let rowIdx = fromIdx; rowIdx < (fromIdx + pageSize); rowIdx++) {
-        let dynamicCellHeight = (PdfStyle.ROW.HEIGHT*3)-5;
+        let dynamicCellHeight = (PdfStyle.ROW.HEIGHT * MIN_ROW_HEIGHT_MULTIPLIER) - MIN_HEIGHT_ADJUSTMENT;
         if (rowIdx < rowDataLimit && rows[rowIdx]) {
             const licenceHolderText = rows[rowIdx].licenceHolder || '';
             const licenceDetailText = `${rows[rowIdx].licenceDetail || ''} ${rows[rowIdx].homePort || ''}`;
             
-            const licenceHolderHeight = calculateRequiredCellHeight(doc, licenceHolderText, 45, PdfStyle.FONT_SIZE.SMALLER);
-            const licenceDetailHeight = calculateRequiredCellHeight(doc, licenceDetailText, 75, PdfStyle.FONT_SIZE.SMALLER);
+            const licenceHolderHeight = calculateRequiredCellHeight(doc, licenceHolderText, LICENCE_HOLDER_COLUMN_WIDTH, PdfStyle.FONT_SIZE.SMALLER);
+            const licenceDetailHeight = calculateRequiredCellHeight(doc, licenceDetailText, LICENCE_DETAIL_COLUMN_WIDTH, PdfStyle.FONT_SIZE.SMALLER);
             
             dynamicCellHeight = Math.max(dynamicCellHeight, licenceHolderHeight, licenceDetailHeight);
         }
@@ -498,7 +504,7 @@ const formatCatchAreaData = (row) => {
 };
 
 const calculateRequiredCellHeight = (doc, text, width, fontSize) => {
-    if (!text || text === '') return (PdfStyle.ROW.HEIGHT * 3) - 5;
+    if (!text || text === '') return (PdfStyle.ROW.HEIGHT * MIN_ROW_HEIGHT_MULTIPLIER) - MIN_HEIGHT_ADJUSTMENT;
     
     doc.font(PdfStyle.FONT.REGULAR);
     doc.fontSize(fontSize);
@@ -511,7 +517,7 @@ const calculateRequiredCellHeight = (doc, text, width, fontSize) => {
     const lineHeight = 10; 
     const topPadding = 4;
     const bottomPadding = 4;
-    const minHeight = (PdfStyle.ROW.HEIGHT * 3) - 5;
+    const minHeight = (PdfStyle.ROW.HEIGHT * MIN_ROW_HEIGHT_MULTIPLIER) - MIN_HEIGHT_ADJUSTMENT;
     
     const calculatedHeight = topPadding + (linesNeeded * lineHeight) + bottomPadding;
     
@@ -519,7 +525,7 @@ const calculateRequiredCellHeight = (doc, text, width, fontSize) => {
 };
 
 const calculateRequiredCellHeightStatic = (text, width, fontSize) => {
-    if (!text || text === '') return (PdfStyle.ROW.HEIGHT * 3) - 5;
+    if (!text || text === '') return (PdfStyle.ROW.HEIGHT * MIN_ROW_HEIGHT_MULTIPLIER) - MIN_HEIGHT_ADJUSTMENT;
     
     const avgCharWidth = fontSize * 0.55; 
     const textLength = text.toString().length;
@@ -531,8 +537,8 @@ const calculateRequiredCellHeightStatic = (text, width, fontSize) => {
     const lineHeight = 10;
     const topPadding = 4;
     const bottomPadding = 4;
-    const extraMargin = 5; 
-    const minHeight = (PdfStyle.ROW.HEIGHT * 3) - 5; 
+    const extraMargin = MIN_HEIGHT_ADJUSTMENT; 
+    const minHeight = (PdfStyle.ROW.HEIGHT * MIN_ROW_HEIGHT_MULTIPLIER) - MIN_HEIGHT_ADJUSTMENT; 
     
     const calculatedHeight = topPadding + (linesNeeded * lineHeight) + bottomPadding + extraMargin;
     
@@ -550,8 +556,8 @@ const generateMultiVesselTableRows = (tableBodyRow, doc, yPos, cellHeight, rowId
         { x: PdfStyle.MARGIN.LEFT + 350, width: 55, text: rowIdx < rowDataLimit ? `${rows[rowIdx].verifiedWeight}` : '' },
         { x: PdfStyle.MARGIN.LEFT + 405, width: 65, text: rowIdx < rowDataLimit ? `${rows[rowIdx].vessel} (${rows[rowIdx].pln})` : '' },
         { x: PdfStyle.MARGIN.LEFT + 470, width: 70, text: rowIdx < rowDataLimit ? `${getImoOrCfrForMultiVesselSchedule(rows[rowIdx])}` : '' },
-        { x: PdfStyle.MARGIN.LEFT + 540, width: 45, text: rowIdx < rowDataLimit ? `${rows[rowIdx].licenceHolder}` : '' },
-        { x: PdfStyle.MARGIN.LEFT + 585, width: 75, text: rowIdx < rowDataLimit ? `${rows[rowIdx].licenceDetail} ${rows[rowIdx].homePort}` : '' },
+        { x: PdfStyle.MARGIN.LEFT + 540, width: LICENCE_HOLDER_COLUMN_WIDTH, text: rowIdx < rowDataLimit ? `${rows[rowIdx].licenceHolder}` : '' },
+        { x: PdfStyle.MARGIN.LEFT + 585, width: LICENCE_DETAIL_COLUMN_WIDTH, text: rowIdx < rowDataLimit ? `${rows[rowIdx].licenceDetail} ${rows[rowIdx].homePort}` : '' },
         { x: PdfStyle.MARGIN.LEFT + 660, width: 75, text: rowIdx < rowDataLimit ? formatCatchAreaData(rows[rowIdx]) : '' },
         { x: PdfStyle.MARGIN.LEFT + 735, width: 45, text: rowIdx < rowDataLimit && rows[rowIdx].gearCode ? `${rows[rowIdx].gearCode}` : '' }
     ];
@@ -2090,3 +2096,9 @@ module.exports.getContainerIdentificationNumber = getContainerIdentificationNumb
 module.exports.getDeparturePlace = getDeparturePlace;
 module.exports.getOtherTransportDocuments = getOtherTransportDocuments;
 module.exports.getVehicleType = getVehicleType;
+// Export multi-vessel schedule helper functions for testing
+module.exports.calculateRowHeight = calculateRowHeight;
+module.exports.calculatePageDimensions = calculatePageDimensions;
+module.exports.paginateRows = paginateRows;
+module.exports.calculateRequiredCellHeightStatic = calculateRequiredCellHeightStatic;
+module.exports.calculateRequiredCellHeight = calculateRequiredCellHeight;
