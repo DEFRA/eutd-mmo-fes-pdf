@@ -111,33 +111,77 @@ function processBlankTemplate(data, doc, isDictionaryTabs, isSample, buff) {
 }
 
 function processMultiData(data, doc, isDictionaryTabs, isSample, buff) {
-        const { catchLength } = getVesselCount(data.exportPayload);
-        if (isMultiVessel(data.exportPayload)) {
-            let pageSize = 8;
-            let page = 1;
-            const maxPages = Math.ceil(catchLength / pageSize);
-            for (let i = 0; i < maxPages; i++) {
-                // Add a schedule
-                doc.addPage({
-                    size: 'A4',
-                    margins: {
-                        top: PdfStyle.MARGIN.TOP,
-                        bottom: PdfStyle.MARGIN.BOT,
-                        left: PdfStyle.MARGIN.LEFT,
-                        right: PdfStyle.MARGIN.RIGHT,
-                    },
-                    layout: 'landscape'
+    if (isMultiVessel(data.exportPayload)) {
+        // Pre-calculate row heights and pagination
+        let rows = getProductScheduleRows(data.exportPayload);
+        
+        const pageHeight = 595;
+        const bottomMargin = 30;
+        const rowsStartY = 229;
+        const pageCountHeight = 20; 
+        const safetyMargin = 15; 
+        
+        const availableHeight = pageHeight - rowsStartY - bottomMargin - pageCountHeight - safetyMargin;
+        
+        // Calculate pages based on dynamic row heights
+        let pages = [];
+        let currentPageRows = [];
+        let currentPageHeight = 0;
+        
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const licenceHolderText = row.licenceHolder || '';
+            const licenceDetailText = `${row.licenceDetail || ''} ${row.homePort || ''}`;
+            
+            let tempHeight = (PdfStyle.ROW.HEIGHT * 3) - 5;
+            const licenceHolderHeight = calculateRequiredCellHeightStatic(licenceHolderText, 45, PdfStyle.FONT_SIZE.SMALLER);
+            const licenceDetailHeight = calculateRequiredCellHeightStatic(licenceDetailText, 75, PdfStyle.FONT_SIZE.SMALLER);
+            tempHeight = Math.max(tempHeight, licenceHolderHeight, licenceDetailHeight);
+            
+            if (currentPageHeight + tempHeight > availableHeight && currentPageRows.length > 0) {
+                pages.push({ 
+                    rows: currentPageRows, 
+                    startIdx: pages.length === 0 ? 0 : pages[pages.length - 1].startIdx + pages[pages.length - 1].rows.length 
                 });
-                multiVesselScheduleHeading(doc, data, isSample, buff, page, pageSize, PdfStyle.MARGIN.TOP);
+                currentPageRows = [];
+                currentPageHeight = 0;
+            }
+            
+            currentPageRows.push({ index: i, height: tempHeight });
+            currentPageHeight += tempHeight;
+        }
+        
+        if (currentPageRows.length > 0) {
+            pages.push({ 
+                rows: currentPageRows, 
+                startIdx: pages.length === 0 ? 0 : pages[pages.length - 1].startIdx + pages[pages.length - 1].rows.length 
+            });
+        }
+        
+        const maxPages = pages.length;
+        
+        for (let pageNum = 0; pageNum < maxPages; pageNum++) {
+            doc.addPage({
+                size: 'A4',
+                margins: {
+                    top: PdfStyle.MARGIN.TOP,
+                    bottom: PdfStyle.MARGIN.BOT,
+                    left: PdfStyle.MARGIN.LEFT,
+                    right: PdfStyle.MARGIN.RIGHT,
+                },
+                layout: 'landscape'
+            });
+            
+            const currentPage = pages[pageNum];
+            multiVesselScheduleHeadingDynamic(doc, data, isSample, buff, pageNum + 1, currentPage, rows, maxPages, PdfStyle.MARGIN.TOP);
             isSample ?? CommonUtils.addSampleWatermark(doc, 70, 70);
-                page += 1;
 
             if (isDictionaryTabs) {
-                  doc.page.dictionary.data.Tabs = 'S';
-                }
+                doc.page.dictionary.data.Tabs = 'S';
             }
         }
     }
+}
 
 function getVesselCount(exportPayload){
     let items = [];
@@ -334,21 +378,172 @@ const multiVesselScheduleHeading = (doc, data, isSample, buff, page, pageSize, s
     }
     let rowDataLimit = fromIdx + numDataRows;
 
-     cellHeight = (PdfStyle.ROW.HEIGHT*3)-5;
-
     const tableBody = doc.struct('TBody');
     myTable.add(tableBody);
 
+    const maxPageHeight = 565;
+
     for (let rowIdx = fromIdx; rowIdx < (fromIdx + pageSize); rowIdx++) {
+        let dynamicCellHeight = (PdfStyle.ROW.HEIGHT*3)-5;
+        if (rowIdx < rowDataLimit && rows[rowIdx]) {
+            const licenceHolderText = rows[rowIdx].licenceHolder || '';
+            const licenceDetailText = `${rows[rowIdx].licenceDetail || ''} ${rows[rowIdx].homePort || ''}`;
+            
+            const licenceHolderHeight = calculateRequiredCellHeight(doc, licenceHolderText, 45, PdfStyle.FONT_SIZE.SMALLER);
+            const licenceDetailHeight = calculateRequiredCellHeight(doc, licenceDetailText, 75, PdfStyle.FONT_SIZE.SMALLER);
+            
+            dynamicCellHeight = Math.max(dynamicCellHeight, licenceHolderHeight, licenceDetailHeight);
+        }
+        
+        if (yPos + dynamicCellHeight > maxPageHeight && rowIdx < rowDataLimit) {
+            const remainingRows = (fromIdx + pageSize) - rowIdx;
+            for (let emptyIdx = 0; emptyIdx < remainingRows; emptyIdx++) {
+                const emptyRow = doc.struct('TR');
+                tableBody.add(emptyRow);
+                generateMultiVesselTableRows(emptyRow, doc, yPos, (PdfStyle.ROW.HEIGHT*3)-5, fromIdx + pageSize + emptyIdx, rowDataLimit, rows);
+                emptyRow.end();
+                yPos = yPos + ((PdfStyle.ROW.HEIGHT*3)-5);
+            }
+            break;
+        }
+        
         const tableBodyRow = doc.struct('TR');
         tableBody.add(tableBodyRow);
-        generateMultiVesselTableRows(tableBodyRow, doc, yPos, cellHeight, rowIdx, rowDataLimit, rows);
+        generateMultiVesselTableRows(tableBodyRow, doc, yPos, dynamicCellHeight, rowIdx, rowDataLimit, rows);
         tableBodyRow.end();
-        yPos = yPos + cellHeight;
+        yPos = yPos + dynamicCellHeight;
     }
 
     const pageCountRow = doc.struct('TR', () => {
         mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT, y: yPos, width: 780, height: PdfStyle.ROW.HEIGHT, text: 'Page ' + page + ' of ' + pageCount}, true, PdfStyle.FONT_SIZE.SMALLER, 'left', MVS_STYLES.DEFAULT);
+    });
+    tableBody.add(pageCountRow);
+    pageCountRow.end();
+
+    tableBody.end();
+    myTable.end();
+};
+
+const multiVesselScheduleHeadingDynamic = (doc, data, isSample, buff, pageNum, currentPage, allRows, totalPages, startY) => {
+    let imageFile = path.join(__dirname, '../resources/hmgovlogo.png');
+    doc.addStructure(doc.struct('Figure', {
+        alt: 'HM Government logo'
+    }, () => {
+        doc.image(imageFile, {
+            width: 220
+        });
+    }));
+    let cellHeight = PdfStyle.ROW.HEIGHT * 2;
+    doc.addStructure(doc.struct('P', () => {
+        mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 430, y: startY, width: 350, height: cellHeight, text: 'UNITED KINGDOM'}, true, PdfStyle.FONT_SIZE.LARGEST, 'center', MVS_STYLES.YELLOW_HEADER);
+    }));
+    let yPos = startY + cellHeight;
+    doc.addStructure(doc.struct('P', () => {
+        mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT, y: yPos, width: 230, height: PdfStyle.ROW.HEIGHT, text: 'AUTHORITY USE ONLY'}, true, PdfStyle.FONT_SIZE.SMALL, 'left', MVS_STYLES.YELLOW_HEADER);
+    }));
+    doc.addStructure(doc.struct('P', () => {
+        mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 230, y: yPos, width: 550, height: PdfStyle.ROW.HEIGHT,
+            text: 'Schedule for multiple vessel landings as permitted by Article 12 (3) of Council Regulation (EC) No 1005/2008'},
+            true, PdfStyle.FONT_SIZE.SMALL, 'center', MVS_STYLES.DEFAULT);
+    }));
+    yPos = yPos + PdfStyle.ROW.HEIGHT;
+
+    cellHeight = PdfStyle.ROW.HEIGHT * 2 + 20;
+    doc.addStructure(doc.struct('P', () => {
+        mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT, y: yPos, width: 90, height: cellHeight, text: ['Catch Certificate', 'Number']}, true, PdfStyle.FONT_SIZE.SMALL, 'center', MVS_STYLES.YELLOW_HEADER);
+    }));
+
+    let documentNumber = '';
+    if (!data.isBlankTemplate) {
+        if (isSample) {
+            documentNumber = '###-####-##-#########';
+        } else {
+            documentNumber = data.documentNumber;
+        }
+    }
+
+    doc.addStructure(doc.struct('P', () => {
+        mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 90, y: yPos, width: 140, height: cellHeight, text: documentNumber}, true, PdfStyle.FONT_SIZE.SMALL, 'center', MVS_STYLES.DEFAULT);
+    }));
+    doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
+        mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 230, y: yPos, width: 270, height: cellHeight, text: undefined}, true, PdfStyle.FONT_SIZE.SMALL, 'center', MVS_STYLES.DEFAULT);
+    }));
+
+    cellHeight = PdfStyle.ROW.HEIGHT * 4 + 25;
+
+    doc.addStructure(doc.struct('P', () => {
+        mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 500, y: yPos, width: 80, height: cellHeight, text: ['UK Authority', 'QR Code']}, true, PdfStyle.FONT_SIZE.SMALL, 'center', MVS_STYLES.YELLOW_HEADER);
+    }));
+    doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
+        mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 580, y: yPos, width: 200, height: cellHeight, text: undefined}, true, PdfStyle.FONT_SIZE.SMALL, 'center', MVS_STYLES.DEFAULT);
+    }));
+
+    yPos = yPos + PdfStyle.ROW.HEIGHT * 2 + 20;
+    cellHeight = PdfStyle.ROW.HEIGHT * 2 + 5;
+
+    doc.addStructure(doc.struct('P', () => {
+        mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT, y: yPos, width: 90, height: cellHeight, text: 'Date'}, true, PdfStyle.FONT_SIZE.SMALL, 'center', MVS_STYLES.YELLOW_HEADER);
+    }));
+    let todaysDate = '';
+    if (!data.isBlankTemplate) {
+        todaysDate = PdfUtils.todaysDate();
+    }
+    doc.addStructure(doc.struct('P', () => {
+        mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 90, y: yPos, width: 140, height: cellHeight, text: todaysDate}, true, PdfStyle.FONT_SIZE.SMALL, 'center', MVS_STYLES.DEFAULT);
+    }));
+    doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
+        mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 230, y: yPos, width: 270, height: cellHeight, text: undefined}, true, PdfStyle.FONT_SIZE.SMALL, 'center', MVS_STYLES.DEFAULT);
+    }));
+
+    if (!data.isBlankTemplate && !isSample) {
+        PdfUtils.qrCode(doc, buff, PdfStyle.MARGIN.LEFT + 590, yPos - 45);
+    }
+    yPos = yPos + cellHeight + 10;
+    cellHeight = PdfStyle.ROW.HEIGHT * 3 + 14;
+
+    const myTable = doc.struct('Table');
+    doc.addStructure(myTable);
+
+    const tableHead = doc.struct('THead');
+    myTable.add(tableHead);
+
+    const tableHeadRow = doc.struct('TR');
+    tableHead.add(tableHeadRow);
+
+    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT, yPos, 75, cellHeight, 'Species');
+    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 75, yPos, 60, cellHeight, ['Presentation']);
+    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 135, yPos, 50, cellHeight, ['Product', 'code']);
+    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 185, yPos, 60, cellHeight, ['Catch Date(s)', '(from-to)']);
+    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 245, yPos, 55, cellHeight, ['Estimated weight to be landed in kg']);
+    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 300, yPos, 50, cellHeight, ['Net catch', 'weight in kg']);
+    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 350, yPos, 55, cellHeight, ['Verified weight landed(net catch weight in kg)']);
+    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 405, yPos, 65, cellHeight, ['Vessel name and PLN / Callsign']);
+    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 470, yPos, 70, cellHeight, ['IMO number or other unique vessel identifier (if applicable)']);
+    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 540, yPos, 45, cellHeight, 'Master / Licence Holder');
+    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 585, yPos, 75, cellHeight, ['Licence Number /', 'Flag-Homeport']);
+    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 660, yPos, 75, cellHeight, ['Catch Area(s) (Catch Area, EEZ, RFMO, High Seas)']);
+    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 735, yPos, 45, cellHeight, ['Fishing', 'Gear']);
+    tableHeadRow.end();
+    tableHead.end();
+
+    yPos = yPos + cellHeight;
+
+    const tableBody = doc.struct('TBody');
+    myTable.add(tableBody);
+
+    currentPage.rows.forEach(rowInfo => {
+        const rowIdx = rowInfo.index;
+        const dynamicCellHeight = rowInfo.height;
+        
+        const tableBodyRow = doc.struct('TR');
+        tableBody.add(tableBodyRow);
+        generateMultiVesselTableRows(tableBodyRow, doc, yPos, dynamicCellHeight, rowIdx, allRows.length, allRows);
+        tableBodyRow.end();
+        yPos = yPos + dynamicCellHeight;
+    });
+
+    const pageCountRow = doc.struct('TR', () => {
+        mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT, y: yPos, width: 780, height: PdfStyle.ROW.HEIGHT, text: 'Page ' + pageNum + ' of ' + totalPages}, true, PdfStyle.FONT_SIZE.SMALLER, 'left', MVS_STYLES.DEFAULT);
     });
     tableBody.add(pageCountRow);
     pageCountRow.end();
@@ -378,6 +573,48 @@ const formatCatchAreaData = (row) => {
     }
     
     return catchAreaText;
+};
+
+const calculateRequiredCellHeight = (doc, text, width, fontSize) => {
+    if (!text || text === '') return (PdfStyle.ROW.HEIGHT * 3) - 5;
+    
+    doc.font(PdfStyle.FONT.REGULAR);
+    doc.fontSize(fontSize);
+    
+    const textWidth = doc.widthOfString(text.toString());
+    const availableWidth = width - 8;
+    
+    const linesNeeded = Math.ceil(textWidth / availableWidth);
+    
+    const lineHeight = 10; 
+    const topPadding = 4;
+    const bottomPadding = 4;
+    const minHeight = (PdfStyle.ROW.HEIGHT * 3) - 5;
+    
+    const calculatedHeight = topPadding + (linesNeeded * lineHeight) + bottomPadding;
+    
+    return Math.max(calculatedHeight, minHeight);
+};
+
+const calculateRequiredCellHeightStatic = (text, width, fontSize) => {
+    if (!text || text === '') return (PdfStyle.ROW.HEIGHT * 3) - 5;
+    
+    const avgCharWidth = fontSize * 0.55; 
+    const textLength = text.toString().length;
+    const textWidth = textLength * avgCharWidth;
+    const availableWidth = width - 8; 
+    
+    const linesNeeded = Math.ceil(textWidth / availableWidth);
+    
+    const lineHeight = 10;
+    const topPadding = 4;
+    const bottomPadding = 4;
+    const extraMargin = 5; 
+    const minHeight = (PdfStyle.ROW.HEIGHT * 3) - 5; 
+    
+    const calculatedHeight = topPadding + (linesNeeded * lineHeight) + bottomPadding + extraMargin;
+    
+    return Math.max(calculatedHeight, minHeight);
 };
 
 const generateMultiVesselTableRows = (tableBodyRow, doc, yPos, cellHeight, rowIdx, rowDataLimit, rows) => {
