@@ -110,76 +110,91 @@ function processBlankTemplate(data, doc, isDictionaryTabs, isSample, buff) {
         }
 }
 
-function processMultiData(data, doc, isDictionaryTabs, isSample, buff) {
-    if (isMultiVessel(data.exportPayload)) {
-        // Pre-calculate row heights and pagination
-        let rows = getProductScheduleRows(data.exportPayload);
+const calculateRowHeight = (row) => {
+    const licenceHolderText = row.licenceHolder || '';
+    const licenceDetailText = `${row.licenceDetail || ''} ${row.homePort || ''}`;
+    
+    const minHeight = (PdfStyle.ROW.HEIGHT * 3) - 5;
+    const licenceHolderHeight = calculateRequiredCellHeightStatic(licenceHolderText, 45, PdfStyle.FONT_SIZE.SMALLER);
+    const licenceDetailHeight = calculateRequiredCellHeightStatic(licenceDetailText, 75, PdfStyle.FONT_SIZE.SMALLER);
+    
+    return Math.max(minHeight, licenceHolderHeight, licenceDetailHeight);
+};
+
+const calculatePageDimensions = () => {
+    const pageHeight = 595;
+    const bottomMargin = 30;
+    const rowsStartY = 229;
+    const pageCountHeight = 20;
+    const safetyMargin = 15;
+    
+    return pageHeight - rowsStartY - bottomMargin - pageCountHeight - safetyMargin;
+};
+
+const paginateRows = (rows, availableHeight) => {
+    const pages = [];
+    let currentPageRows = [];
+    let currentPageHeight = 0;
+    
+    for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const tempHeight = calculateRowHeight(row);
         
-        const pageHeight = 595;
-        const bottomMargin = 30;
-        const rowsStartY = 229;
-        const pageCountHeight = 20; 
-        const safetyMargin = 15; 
-        
-        const availableHeight = pageHeight - rowsStartY - bottomMargin - pageCountHeight - safetyMargin;
-        
-        // Calculate pages based on dynamic row heights
-        let pages = [];
-        let currentPageRows = [];
-        let currentPageHeight = 0;
-        
-        for (let i = 0; i < rows.length; i++) {
-            const row = rows[i];
-            const licenceHolderText = row.licenceHolder || '';
-            const licenceDetailText = `${row.licenceDetail || ''} ${row.homePort || ''}`;
-            
-            let tempHeight = (PdfStyle.ROW.HEIGHT * 3) - 5;
-            const licenceHolderHeight = calculateRequiredCellHeightStatic(licenceHolderText, 45, PdfStyle.FONT_SIZE.SMALLER);
-            const licenceDetailHeight = calculateRequiredCellHeightStatic(licenceDetailText, 75, PdfStyle.FONT_SIZE.SMALLER);
-            tempHeight = Math.max(tempHeight, licenceHolderHeight, licenceDetailHeight);
-            
-            if (currentPageHeight + tempHeight > availableHeight && currentPageRows.length > 0) {
-                pages.push({ 
-                    rows: currentPageRows, 
-                    startIdx: pages.length === 0 ? 0 : pages[pages.length - 1].startIdx + pages[pages.length - 1].rows.length 
-                });
-                currentPageRows = [];
-                currentPageHeight = 0;
-            }
-            
-            currentPageRows.push({ index: i, height: tempHeight });
-            currentPageHeight += tempHeight;
-        }
-        
-        if (currentPageRows.length > 0) {
+        if (currentPageHeight + tempHeight > availableHeight && currentPageRows.length > 0) {
             pages.push({ 
                 rows: currentPageRows, 
                 startIdx: pages.length === 0 ? 0 : pages[pages.length - 1].startIdx + pages[pages.length - 1].rows.length 
             });
+            currentPageRows = [];
+            currentPageHeight = 0;
         }
         
-        const maxPages = pages.length;
-        
-        for (let pageNum = 0; pageNum < maxPages; pageNum++) {
-            doc.addPage({
-                size: 'A4',
-                margins: {
-                    top: PdfStyle.MARGIN.TOP,
-                    bottom: PdfStyle.MARGIN.BOT,
-                    left: PdfStyle.MARGIN.LEFT,
-                    right: PdfStyle.MARGIN.RIGHT,
-                },
-                layout: 'landscape'
-            });
-            
-            const currentPage = pages[pageNum];
-            multiVesselScheduleHeadingDynamic(doc, data, isSample, buff, pageNum + 1, currentPage, rows, maxPages, PdfStyle.MARGIN.TOP);
-            isSample ?? CommonUtils.addSampleWatermark(doc, 70, 70);
+        currentPageRows.push({ index: i, height: tempHeight });
+        currentPageHeight += tempHeight;
+    }
+    
+    if (currentPageRows.length > 0) {
+        pages.push({ 
+            rows: currentPageRows, 
+            startIdx: pages.length === 0 ? 0 : pages[pages.length - 1].startIdx + pages[pages.length - 1].rows.length 
+        });
+    }
+    
+    return pages;
+};
 
-            if (isDictionaryTabs) {
-                doc.page.dictionary.data.Tabs = 'S';
-            }
+const renderMultiVesselPages = (doc, data, pages, rows, isDictionaryTabs, isSample, buff) => {
+    const maxPages = pages.length;
+    
+    for (let pageNum = 0; pageNum < maxPages; pageNum++) {
+        doc.addPage({
+            size: 'A4',
+            margins: {
+                top: PdfStyle.MARGIN.TOP,
+                bottom: PdfStyle.MARGIN.BOT,
+                left: PdfStyle.MARGIN.LEFT,
+                right: PdfStyle.MARGIN.RIGHT,
+            },
+            layout: 'landscape'
+        });
+        
+        const currentPage = pages[pageNum];
+        multiVesselScheduleHeadingDynamic(doc, data, isSample, buff, pageNum + 1, currentPage, rows, maxPages, PdfStyle.MARGIN.TOP);
+        isSample ?? CommonUtils.addSampleWatermark(doc, 70, 70);
+
+        if (isDictionaryTabs) {
+            doc.page.dictionary.data.Tabs = 'S';
         }
+    }
+};
+
+function processMultiData(data, doc, isDictionaryTabs, isSample, buff) {
+    if (isMultiVessel(data.exportPayload)) {
+        const rows = getProductScheduleRows(data.exportPayload);
+        const availableHeight = calculatePageDimensions();
+        const pages = paginateRows(rows, availableHeight);
+        
+        renderMultiVesselPages(doc, data, pages, rows, isDictionaryTabs, isSample, buff);
     }
 }
 
