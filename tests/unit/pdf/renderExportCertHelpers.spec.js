@@ -4,6 +4,7 @@ const {
   calculatePageDimensions,
   paginateRows,
   calculateRequiredCellHeightStatic,
+  multiVesselScheduleHeading,
   multiVesselScheduleHeadingDynamic
 } = require('../../../src/pdf/renderExportCert');
 
@@ -432,7 +433,7 @@ describe('renderExportCert helper functions', () => {
       ];
 
       expect(() => {
-        multiVesselScheduleHeadingDynamic(mockDoc, data, false, null, 1, currentPage, allRows, 1, 30);
+        multiVesselScheduleHeadingDynamic(mockDoc, data, false, null, { pageNum: 1, currentPage, allRows, totalPages: 3, startY: 30 });
       }).not.toThrow();
     });
 
@@ -504,7 +505,7 @@ describe('renderExportCert helper functions', () => {
       ];
 
       expect(() => {
-        multiVesselScheduleHeadingDynamic(mockDoc, data, false, null, 1, currentPage, allRows, 1, 30);
+        multiVesselScheduleHeadingDynamic(mockDoc, data, false, null, { pageNum: 1, currentPage, allRows, totalPages: 1, startY: 30 });
       }).not.toThrow();
     });
 
@@ -539,7 +540,7 @@ describe('renderExportCert helper functions', () => {
       }));
 
       expect(() => {
-        multiVesselScheduleHeadingDynamic(mockDoc, data, false, null, 2, currentPage, allRows, 3, 30);
+        multiVesselScheduleHeadingDynamic(mockDoc, data, false, null, { pageNum: 2, currentPage, allRows, totalPages: 3, startY: 30 });
       }).not.toThrow();
     });
 
@@ -573,7 +574,7 @@ describe('renderExportCert helper functions', () => {
       }];
 
       expect(() => {
-        multiVesselScheduleHeadingDynamic(mockDoc, data, true, null, 1, currentPage, allRows, 1, 30);
+        multiVesselScheduleHeadingDynamic(mockDoc, data, true, null, { pageNum: 1, currentPage, allRows, totalPages: 1, startY: 30 });
       }).not.toThrow();
     });
 
@@ -606,7 +607,7 @@ describe('renderExportCert helper functions', () => {
       }];
 
       expect(() => {
-        multiVesselScheduleHeadingDynamic(mockDoc, data, false, null, 1, currentPage, allRows, 1, 30);
+        multiVesselScheduleHeadingDynamic(mockDoc, data, false, null, { pageNum: 1, currentPage, allRows, totalPages: 1, startY: 30 });
       }).not.toThrow();
     });
 
@@ -644,7 +645,7 @@ describe('renderExportCert helper functions', () => {
       }];
 
       expect(() => {
-        multiVesselScheduleHeadingDynamic(mockDoc, data, false, null, 1, currentPage, allRows, 1, 30);
+        multiVesselScheduleHeadingDynamic(mockDoc, data, false, null, { pageNum: 1, currentPage, allRows, totalPages: 1, startY: 30 });
       }).not.toThrow();
     });
 
@@ -678,7 +679,7 @@ describe('renderExportCert helper functions', () => {
       }];
 
       expect(() => {
-        multiVesselScheduleHeadingDynamic(mockDoc, data, false, null, 1, currentPage, allRows, 1, 30);
+        multiVesselScheduleHeadingDynamic(mockDoc, data, false, null, { pageNum: 1, currentPage, allRows, totalPages: 1, startY: 30 });
       }).not.toThrow();
     });
 
@@ -712,7 +713,7 @@ describe('renderExportCert helper functions', () => {
       }));
 
       expect(() => {
-        multiVesselScheduleHeadingDynamic(mockDoc, data, false, null, 5, currentPage, allRows, 5, 30);
+        multiVesselScheduleHeadingDynamic(mockDoc, data, false, null, { pageNum: 5, currentPage, allRows, totalPages: 5, startY: 30 });
       }).not.toThrow();
     });
 
@@ -738,8 +739,115 @@ describe('renderExportCert helper functions', () => {
       ];
 
       expect(() => {
-        multiVesselScheduleHeadingDynamic(mockDoc, data, false, null, 1, currentPage, allRows, 2, 30);
+        multiVesselScheduleHeadingDynamic(mockDoc, data, false, null, { pageNum: 1, currentPage, allRows, totalPages: 2, startY: 30 });
       }).not.toThrow();
     });
   });
+
+  describe('multiVesselScheduleHeading - page overflow scenario', () => {
+    let mockDoc;
+
+    beforeEach(() => {
+      mockDoc = {
+        struct: jest.fn((type, arg) => {
+          if (typeof arg === 'function') {
+            arg();
+          }
+          return {
+            add: jest.fn(),
+            end: jest.fn()
+          };
+        }),
+        addStructure: jest.fn(),
+        image: jest.fn(),
+        font: jest.fn(),
+        fontSize: jest.fn(),
+        fillColor: jest.fn(),
+        text: jest.fn(),
+        undash: jest.fn(),
+        lineWidth: jest.fn(),
+        rect: jest.fn(),
+        fill: jest.fn(),
+        fillAndStroke: jest.fn(),
+        stroke: jest.fn(),
+        strokeColor: jest.fn(),
+        widthOfString: jest.fn(() => 200),
+        moveDown: jest.fn(),
+        moveUp: jest.fn(),
+        save: jest.fn(),
+        restore: jest.fn()
+      };
+    });
+
+    test('should trigger page overflow condition when row exceeds maxPageHeight', () => {
+      const data = { 
+        isBlankTemplate: false,
+        documentNumber: 'GBR-2024-CC-OVERFLOW',
+        exportPayload: {
+          items: [
+            {
+              product: {
+                species: { label: 'COD', admin: 'Atlantic Cod' },
+                presentation: { label: 'FIL', admin: 'Filleted' },
+                commodityCode: '030420',
+                commodityCodeAdmin: '030420'
+              },
+              landings: [
+                {
+                  model: {
+                    vessel: {
+                      vesselName: 'Test Vessel 1',
+                      pln: 'PLN001',
+                      licenceNumber: 'LIC001',
+                      licenceHolder: 'VERY LONG LICENCE HOLDER NAME THAT WILL CAUSE OVERFLOW',
+                      homePort: 'PORT1',
+                      imoNumber: 'IMO001',
+                      cfr: 'CFR001'
+                    },
+                    startDate: '2024-01-01',
+                    dateLanded: '2024-01-05',
+                    exportWeight: 150.5,
+                    faoArea: 'FAO27',
+                    exclusiveEconomicZones: [],
+                    rfmo: null,
+                    highSeasArea: 'No',
+                    gearCode: 'OTB'
+                  }
+                },
+                {
+                  model: {
+                    vessel: {
+                      vesselName: 'Test Vessel 2',
+                      pln: 'PLN002',
+                      licenceNumber: 'LIC002',
+                      licenceHolder: 'ANOTHER EXTREMELY LONG LICENCE HOLDER NAME HERE',
+                      homePort: 'PORT2',
+                      imoNumber: 'IMO002',
+                      cfr: 'CFR002'
+                    },
+                    startDate: '2024-01-02',
+                    dateLanded: '2024-01-06',
+                    exportWeight: 200.75,
+                    faoArea: 'FAO27',
+                    exclusiveEconomicZones: [],
+                    rfmo: null,
+                    highSeasArea: 'No',
+                    gearCode: 'PTM'
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      };
+
+      expect(() => {
+        multiVesselScheduleHeading(mockDoc, data, false, null, 1, 2, 520);
+      }).not.toThrow();
+
+      expect(mockDoc.struct).toHaveBeenCalledWith('TR');
+      expect(mockDoc.widthOfString).toHaveBeenCalled();
+    });
+  });
 });
+
