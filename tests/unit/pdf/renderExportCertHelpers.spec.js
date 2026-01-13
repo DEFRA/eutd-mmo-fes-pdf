@@ -1,10 +1,10 @@
-const path = require('path');
 const PdfStyle = require('../../../src/pdf/mmoPdfStyles');
 const {
   calculateRowHeight,
   calculatePageDimensions,
   paginateRows,
-  calculateRequiredCellHeightStatic
+  calculateRequiredCellHeightStatic,
+  multiVesselScheduleHeadingDynamic
 } = require('../../../src/pdf/renderExportCert');
 
 jest.mock('../../../src/pdf/mmoPdfUtils');
@@ -362,6 +362,384 @@ describe('renderExportCert helper functions', () => {
       
       const result2 = calculateRequiredCellHeightStatic('TEST', LICENCE_DETAIL_COLUMN_WIDTH, 8);
       expect(result2).toBeGreaterThanOrEqual(40);
+    });
+  });
+
+  describe('multiVesselScheduleHeadingDynamic', () => {
+    let mockDoc;
+
+    beforeEach(() => {
+      mockDoc = {
+        struct: jest.fn((type, arg) => {
+          if (typeof arg === 'function') {
+            arg();
+          }
+          return {
+            add: jest.fn(),
+            end: jest.fn()
+          };
+        }),
+        addStructure: jest.fn(),
+        image: jest.fn(),
+        font: jest.fn(),
+        fontSize: jest.fn(),
+        fillColor: jest.fn(),
+        text: jest.fn(),
+        undash: jest.fn(),
+        lineWidth: jest.fn(),
+        rect: jest.fn(),
+        fill: jest.fn(),
+        fillAndStroke: jest.fn(),
+        stroke: jest.fn(),
+        strokeColor: jest.fn(),
+        widthOfString: jest.fn(() => 50),
+        moveDown: jest.fn(),
+        moveUp: jest.fn(),
+        save: jest.fn(),
+        restore: jest.fn()
+      };
+    });
+
+    test('should render single row page', () => {
+      const data = { 
+        isBlankTemplate: false,
+        documentNumber: 'GBR-2024-CC-123'
+      };
+      const currentPage = {
+        rows: [
+          { index: 0, height: 40 }
+        ],
+        startIdx: 0
+      };
+      const allRows = [
+        { 
+          species: 'COD',
+          presentation: 'FIL',
+          commodityCode: '030420',
+          dateLanded: '01/01/2024',
+          estimatedWeight: '',
+          exportWeight: 100.5,
+          verifiedWeight: '',
+          vessel: 'Test Vessel',
+          pln: 'ABC123',
+          licenceDetail: 'LIC123',
+          homePort: 'PORT',
+          imo: '',
+          cfr: '',
+          licenceHolder: 'Test Holder',
+          gearCode: 'OTB'
+        }
+      ];
+
+      expect(() => {
+        multiVesselScheduleHeadingDynamic(mockDoc, data, false, null, 1, currentPage, allRows, 1, 30);
+      }).not.toThrow();
+    });
+
+    test('should render multiple rows on single page', () => {
+      const data = { 
+        isBlankTemplate: false,
+        documentNumber: 'GBR-2024-CC-456'
+      };
+      const currentPage = {
+        rows: [
+          { index: 0, height: 40 },
+          { index: 1, height: 73 },
+          { index: 2, height: 43 }
+        ],
+        startIdx: 0
+      };
+      const allRows = [
+        { 
+          species: 'COD',
+          presentation: 'FIL',
+          commodityCode: '030420',
+          dateLanded: '01/01/2024',
+          estimatedWeight: '',
+          exportWeight: 100.5,
+          verifiedWeight: '',
+          vessel: 'Vessel 1',
+          pln: 'ABC123',
+          licenceDetail: 'LIC123',
+          homePort: 'PORT1',
+          imo: '',
+          cfr: '',
+          licenceHolder: 'Holder 1',
+          gearCode: 'OTB'
+        },
+        { 
+          species: 'HAD',
+          presentation: 'FIL',
+          commodityCode: '030420',
+          dateLanded: '02/01/2024',
+          estimatedWeight: '',
+          exportWeight: 200.75,
+          verifiedWeight: '',
+          vessel: 'Vessel 2',
+          pln: 'DEF456',
+          licenceDetail: 'LIC456 - 31/12/2025',
+          homePort: 'PORT2',
+          imo: 'IMO123',
+          cfr: '',
+          licenceHolder: 'RUSSELL A HENRY & SON WELDING AND FABRICATION',
+          gearCode: 'PTM'
+        },
+        { 
+          species: 'WHG',
+          presentation: 'GUT',
+          commodityCode: '030420',
+          dateLanded: '03/01/2024',
+          estimatedWeight: '',
+          exportWeight: 150.25,
+          verifiedWeight: '',
+          vessel: 'Vessel 3',
+          pln: 'GHI789',
+          licenceDetail: 'LIC789',
+          homePort: 'PORT3 WITH LONG NAME',
+          imo: '',
+          cfr: 'CFR999',
+          licenceHolder: 'Holder 3',
+          gearCode: 'GNS'
+        }
+      ];
+
+      expect(() => {
+        multiVesselScheduleHeadingDynamic(mockDoc, data, false, null, 1, currentPage, allRows, 1, 30);
+      }).not.toThrow();
+    });
+
+    test('should handle page 2 of multiple pages', () => {
+      const data = { 
+        isBlankTemplate: false,
+        documentNumber: 'GBR-2024-CC-789'
+      };
+      const currentPage = {
+        rows: [
+          { index: 4, height: 40 },
+          { index: 5, height: 40 }
+        ],
+        startIdx: 4
+      };
+      const allRows = new Array(10).fill(null).map((_, i) => ({
+        species: `Species${i}`,
+        presentation: 'FIL',
+        commodityCode: '030420',
+        dateLanded: '01/01/2024',
+        estimatedWeight: '',
+        exportWeight: 100 + i,
+        verifiedWeight: '',
+        vessel: `Vessel ${i}`,
+        pln: `PLN${i}`,
+        licenceDetail: `LIC${i}`,
+        homePort: `PORT${i}`,
+        imo: '',
+        cfr: '',
+        licenceHolder: `Holder ${i}`,
+        gearCode: 'OTB'
+      }));
+
+      expect(() => {
+        multiVesselScheduleHeadingDynamic(mockDoc, data, false, null, 2, currentPage, allRows, 3, 30);
+      }).not.toThrow();
+    });
+
+    test('should handle sample mode with masked document number', () => {
+      const data = { 
+        isBlankTemplate: false,
+        documentNumber: 'GBR-2024-CC-REAL123'
+      };
+      const currentPage = {
+        rows: [
+          { index: 0, height: 40 }
+        ],
+        startIdx: 0
+      };
+      const allRows = [{
+        species: 'COD',
+        presentation: 'FIL',
+        commodityCode: '030420',
+        dateLanded: '01/01/2024',
+        estimatedWeight: '',
+        exportWeight: 100,
+        verifiedWeight: '',
+        vessel: 'Test',
+        pln: 'ABC',
+        licenceDetail: 'LIC',
+        homePort: 'PORT',
+        imo: '',
+        cfr: '',
+        licenceHolder: 'Test',
+        gearCode: 'OTB'
+      }];
+
+      expect(() => {
+        multiVesselScheduleHeadingDynamic(mockDoc, data, true, null, 1, currentPage, allRows, 1, 30);
+      }).not.toThrow();
+    });
+
+    test('should handle blank template', () => {
+      const data = { 
+        isBlankTemplate: true
+      };
+      const currentPage = {
+        rows: [
+          { index: 0, height: 40 }
+        ],
+        startIdx: 0
+      };
+      const allRows = [{
+        species: '',
+        presentation: '',
+        commodityCode: '',
+        dateLanded: '',
+        estimatedWeight: '',
+        exportWeight: 0,
+        verifiedWeight: '',
+        vessel: '',
+        pln: '',
+        licenceDetail: '',
+        homePort: '',
+        imo: '',
+        cfr: '',
+        licenceHolder: '',
+        gearCode: ''
+      }];
+
+      expect(() => {
+        multiVesselScheduleHeadingDynamic(mockDoc, data, false, null, 1, currentPage, allRows, 1, 30);
+      }).not.toThrow();
+    });
+
+    test('should handle rows with all field types filled', () => {
+      const data = { 
+        isBlankTemplate: false,
+        documentNumber: 'GBR-2024-CC-FULL'
+      };
+      const currentPage = {
+        rows: [
+          { index: 0, height: 73 }
+        ],
+        startIdx: 0
+      };
+      const allRows = [{
+        species: 'Atlantic Cod',
+        presentation: 'Filleted',
+        commodityCode: '030420',
+        dateLanded: '15/12/2023 - 20/12/2023',
+        estimatedWeight: '250.50',
+        exportWeight: 245.75,
+        verifiedWeight: '245.80',
+        vessel: 'NORTHERN STAR FISHING VESSEL WITH VERY LONG NAME',
+        pln: 'ABC123DEF',
+        licenceDetail: 'LIC987654321 - 31/12/2025',
+        homePort: 'VERY LONG PORT NAME WITH MULTIPLE WORDS',
+        imo: 'IMO1234567',
+        cfr: 'CFR.GBR.123456',
+        licenceHolder: 'RUSSELL A HENRY & SON WELDING AND FABRICATION',
+        gearCode: 'OTB',
+        faoArea: 'FAO27',
+        exclusiveEconomicZones: [{isoCodeAlpha2: 'GB'}, {isoCodeAlpha2: 'FR'}],
+        rfmo: 'NEAFC (NEAFC)',
+        highSeasArea: 'Yes'
+      }];
+
+      expect(() => {
+        multiVesselScheduleHeadingDynamic(mockDoc, data, false, null, 1, currentPage, allRows, 1, 30);
+      }).not.toThrow();
+    });
+
+    test('should handle empty strings in row data', () => {
+      const data = { 
+        isBlankTemplate: false,
+        documentNumber: 'GBR-2024-CC-EMPTY'
+      };
+      const currentPage = {
+        rows: [
+          { index: 0, height: 40 }
+        ],
+        startIdx: 0
+      };
+      const allRows = [{
+        species: 'COD',
+        presentation: '',
+        commodityCode: '',
+        dateLanded: '01/01/2024',
+        estimatedWeight: '',
+        exportWeight: 100,
+        verifiedWeight: '',
+        vessel: 'Vessel',
+        pln: '',
+        licenceDetail: '',
+        homePort: '',
+        imo: '',
+        cfr: '',
+        licenceHolder: '',
+        gearCode: ''
+      }];
+
+      expect(() => {
+        multiVesselScheduleHeadingDynamic(mockDoc, data, false, null, 1, currentPage, allRows, 1, 30);
+      }).not.toThrow();
+    });
+
+    test('should handle last page of multipage document', () => {
+      const data = { 
+        isBlankTemplate: false,
+        documentNumber: 'GBR-2024-CC-LAST'
+      };
+      const currentPage = {
+        rows: [
+          { index: 14, height: 40 }
+        ],
+        startIdx: 14
+      };
+      const allRows = new Array(15).fill(null).map((_, i) => ({
+        species: `SP${i}`,
+        presentation: 'FIL',
+        commodityCode: '030420',
+        dateLanded: '01/01/2024',
+        estimatedWeight: '',
+        exportWeight: 100,
+        verifiedWeight: '',
+        vessel: `V${i}`,
+        pln: `P${i}`,
+        licenceDetail: `L${i}`,
+        homePort: `H${i}`,
+        imo: '',
+        cfr: '',
+        licenceHolder: `H${i}`,
+        gearCode: 'OTB'
+      }));
+
+      expect(() => {
+        multiVesselScheduleHeadingDynamic(mockDoc, data, false, null, 5, currentPage, allRows, 5, 30);
+      }).not.toThrow();
+    });
+
+    test('should handle varying row heights on same page', () => {
+      const data = { 
+        isBlankTemplate: false,
+        documentNumber: 'GBR-2024-CC-VARYING'
+      };
+      const currentPage = {
+        rows: [
+          { index: 0, height: 40 },
+          { index: 1, height: 73 },
+          { index: 2, height: 43 },
+          { index: 3, height: 40 }
+        ],
+        startIdx: 0
+      };
+      const allRows = [
+        { species: 'S1', presentation: 'P1', commodityCode: 'C1', dateLanded: 'D1', estimatedWeight: '', exportWeight: 100, verifiedWeight: '', vessel: 'V1', pln: 'P1', licenceDetail: 'L1', homePort: 'H1', imo: '', cfr: '', licenceHolder: 'Short', gearCode: 'G1' },
+        { species: 'S2', presentation: 'P2', commodityCode: 'C2', dateLanded: 'D2', estimatedWeight: '', exportWeight: 200, verifiedWeight: '', vessel: 'V2', pln: 'P2', licenceDetail: 'L2', homePort: 'H2', imo: '', cfr: '', licenceHolder: 'RUSSELL A HENRY & SON WELDING AND FABRICATION', gearCode: 'G2' },
+        { species: 'S3', presentation: 'P3', commodityCode: 'C3', dateLanded: 'D3', estimatedWeight: '', exportWeight: 300, verifiedWeight: '', vessel: 'V3', pln: 'P3', licenceDetail: 'VERY LONG LICENCE DETAIL TEXT', homePort: 'H3', imo: '', cfr: '', licenceHolder: 'H3', gearCode: 'G3' },
+        { species: 'S4', presentation: 'P4', commodityCode: 'C4', dateLanded: 'D4', estimatedWeight: '', exportWeight: 400, verifiedWeight: '', vessel: 'V4', pln: 'P4', licenceDetail: 'L4', homePort: 'H4', imo: '', cfr: '', licenceHolder: 'H4', gearCode: 'G4' }
+      ];
+
+      expect(() => {
+        multiVesselScheduleHeadingDynamic(mockDoc, data, false, null, 1, currentPage, allRows, 2, 30);
+      }).not.toThrow();
     });
   });
 });
