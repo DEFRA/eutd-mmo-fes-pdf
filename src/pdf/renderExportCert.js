@@ -261,170 +261,7 @@ function getProductScheduleRows(exportPayload) {
     return rows;
 }
 
-const multiVesselScheduleHeading = (doc, data, isSample, buff, page, pageSize, startY) => {
-    let imageFile = path.join(__dirname, '../resources/hmgovlogo.png');
-    doc.addStructure(doc.struct('Figure', {
-        alt: 'HM Government logo'
-    }, () => {
-        doc.image(imageFile, /*PdfStyle.MARGIN.LEFT, PdfStyle.MARGIN.TOP,*/ {
-            width: 220
-        });
-    }));
-    let cellHeight = PdfStyle.ROW.HEIGHT * 2;
-    doc.addStructure(doc.struct('P', () => {
-        mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 430, y: startY, width: 350, height: cellHeight, text: 'UNITED KINGDOM'}, true, PdfStyle.FONT_SIZE.LARGEST, 'center', MVS_STYLES.YELLOW_HEADER);
-    }));
-    let yPos = startY + cellHeight;
-    doc.addStructure(doc.struct('P', () => {
-        mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT, y: yPos, width: 230, height: PdfStyle.ROW.HEIGHT, text: 'AUTHORITY USE ONLY'}, true, PdfStyle.FONT_SIZE.SMALL, 'left', MVS_STYLES.YELLOW_HEADER);
-    }));
-    doc.addStructure(doc.struct('P', () => {
-        mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 230, y: yPos, width: 550, height: PdfStyle.ROW.HEIGHT,
-            text: 'Schedule for multiple vessel landings as permitted by Article 12 (3) of Council Regulation (EC) No 1005/2008'},
-            true, PdfStyle.FONT_SIZE.SMALL, 'center', MVS_STYLES.DEFAULT);
-    }));
-    yPos = yPos + PdfStyle.ROW.HEIGHT;
-
-    cellHeight = PdfStyle.ROW.HEIGHT * 2 + 20;
-    doc.addStructure(doc.struct('P', () => {
-        mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT, y: yPos, width: 90, height: cellHeight, text: ['Catch Certificate', 'Number']}, true, PdfStyle.FONT_SIZE.SMALL, 'center', MVS_STYLES.YELLOW_HEADER);
-    }));
-
-    let documentNumber = '';
-    if (!data.isBlankTemplate) {
-        if (isSample) {
-            documentNumber = '###-####-##-#########';
-        } else {
-            documentNumber = data.documentNumber;
-        }
-    }
-
-    doc.addStructure(doc.struct('P', () => {
-        mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 90, y: yPos, width: 140, height: cellHeight, text: documentNumber}, true, PdfStyle.FONT_SIZE.SMALL, 'center', MVS_STYLES.DEFAULT);
-    }));
-    doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
-        mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 230, y: yPos, width: 270, height: cellHeight, text: undefined}, true, PdfStyle.FONT_SIZE.SMALL, 'center', MVS_STYLES.DEFAULT);
-    }));
-
-    cellHeight = PdfStyle.ROW.HEIGHT * 4 + 25;
-
-    doc.addStructure(doc.struct('P', () => {
-        mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 500, y: yPos, width: 80, height: cellHeight, text: ['UK Authority', 'QR Code']}, true, PdfStyle.FONT_SIZE.SMALL, 'center', MVS_STYLES.YELLOW_HEADER);
-    }));
-    doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
-        mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 580, y: yPos, width: 200, height: cellHeight, text: undefined}, true, PdfStyle.FONT_SIZE.SMALL, 'center', MVS_STYLES.DEFAULT);
-    }));
-
-    yPos = yPos + PdfStyle.ROW.HEIGHT * 2 + 20;
-    cellHeight = PdfStyle.ROW.HEIGHT * 2 + 5;
-
-    doc.addStructure(doc.struct('P', () => {
-        mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT, y: yPos, width: 90, height: cellHeight, text: 'Date'}, true, PdfStyle.FONT_SIZE.SMALL, 'center', MVS_STYLES.YELLOW_HEADER);
-    }));
-    let todaysDate = '';
-    if (!data.isBlankTemplate) {
-        todaysDate = PdfUtils.todaysDate();
-    }
-    doc.addStructure(doc.struct('P', () => {
-        mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 90, y: yPos, width: 140, height: cellHeight, text: todaysDate}, true, PdfStyle.FONT_SIZE.SMALL, 'center', MVS_STYLES.DEFAULT);
-    }));
-    doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
-        mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 230, y: yPos, width: 270, height: cellHeight, text: undefined}, true, PdfStyle.FONT_SIZE.SMALL, 'center', MVS_STYLES.DEFAULT);
-    }));
-
-    if (!data.isBlankTemplate && !isSample) {
-        PdfUtils.qrCode(doc, buff, PdfStyle.MARGIN.LEFT + 590, yPos - 45);
-    }
-    yPos = yPos + cellHeight + 10;
-    cellHeight = PdfStyle.ROW.HEIGHT * 3 + 14;
-
-    const myTable = doc.struct('Table');
-    doc.addStructure(myTable);
-
-    const tableHead = doc.struct('THead');
-    myTable.add(tableHead);
-
-    const tableHeadRow = doc.struct('TR');
-    tableHead.add(tableHeadRow);
-
-    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT, yPos, 75, cellHeight, 'Species');
-    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 75, yPos, 60, cellHeight, ['Presentation']);
-    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 135, yPos, 50, cellHeight, ['Product', 'code']);
-    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 185, yPos, 60, cellHeight, ['Catch Date(s)', '(from-to)']);
-    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 245, yPos, 55, cellHeight, ['Estimated weight to be landed in kg']);
-    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 300, yPos, 50, cellHeight, ['Net catch', 'weight in kg']);
-    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 350, yPos, 55, cellHeight, ['Verified weight landed(net catch weight in kg)']);
-    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 405, yPos, 65, cellHeight, ['Vessel name and PLN / Callsign']);
-    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 470, yPos, 70, cellHeight, ['IMO number or other unique vessel identifier (if applicable)']);
-    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 540, yPos, 45, cellHeight, 'Master / Licence Holder');
-    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 585, yPos, 75, cellHeight, ['Licence Number /', 'Flag-Homeport']);
-    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 660, yPos, 75, cellHeight, ['Catch Area(s) (Catch Area, EEZ, RFMO, High Seas)']);
-    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 735, yPos, 45, cellHeight, ['Fishing', 'Gear']);
-    tableHeadRow.end();
-    tableHead.end();
-
-    yPos = yPos + cellHeight;
-
-    let rows = getProductScheduleRows(data.exportPayload);
-    let pageCount = Math.ceil(rows.length / pageSize);
-    if (data.isBlankTemplate) {
-        pageCount = 3;
-    }
-
-    let fromIdx = (page - 1) * pageSize;
-    let numDataRows = pageSize;
-    if (fromIdx + numDataRows > rows.length) {
-        numDataRows = rows.length - fromIdx;
-    }
-    let rowDataLimit = fromIdx + numDataRows;
-
-    const tableBody = doc.struct('TBody');
-    myTable.add(tableBody);
-
-    const maxPageHeight = 565;
-
-    for (let rowIdx = fromIdx; rowIdx < (fromIdx + pageSize); rowIdx++) {
-        let dynamicCellHeight = (PdfStyle.ROW.HEIGHT*3)-5;
-        if (rowIdx < rowDataLimit && rows[rowIdx]) {
-            const licenceHolderText = rows[rowIdx].licenceHolder || '';
-            const licenceDetailText = `${rows[rowIdx].licenceDetail || ''} ${rows[rowIdx].homePort || ''}`;
-            
-            const licenceHolderHeight = calculateRequiredCellHeight(doc, licenceHolderText, 45, PdfStyle.FONT_SIZE.SMALLER);
-            const licenceDetailHeight = calculateRequiredCellHeight(doc, licenceDetailText, 75, PdfStyle.FONT_SIZE.SMALLER);
-            
-            dynamicCellHeight = Math.max(dynamicCellHeight, licenceHolderHeight, licenceDetailHeight);
-        }
-        
-        if (yPos + dynamicCellHeight > maxPageHeight && rowIdx < rowDataLimit) {
-            const remainingRows = (fromIdx + pageSize) - rowIdx;
-            for (let emptyIdx = 0; emptyIdx < remainingRows; emptyIdx++) {
-                const emptyRow = doc.struct('TR');
-                tableBody.add(emptyRow);
-                generateMultiVesselTableRows(emptyRow, doc, yPos, (PdfStyle.ROW.HEIGHT*3)-5, fromIdx + pageSize + emptyIdx, rowDataLimit, rows);
-                emptyRow.end();
-                yPos = yPos + ((PdfStyle.ROW.HEIGHT*3)-5);
-            }
-            break;
-        }
-        
-        const tableBodyRow = doc.struct('TR');
-        tableBody.add(tableBodyRow);
-        generateMultiVesselTableRows(tableBodyRow, doc, yPos, dynamicCellHeight, rowIdx, rowDataLimit, rows);
-        tableBodyRow.end();
-        yPos = yPos + dynamicCellHeight;
-    }
-
-    const pageCountRow = doc.struct('TR', () => {
-        mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT, y: yPos, width: 780, height: PdfStyle.ROW.HEIGHT, text: 'Page ' + page + ' of ' + pageCount}, true, PdfStyle.FONT_SIZE.SMALLER, 'left', MVS_STYLES.DEFAULT);
-    });
-    tableBody.add(pageCountRow);
-    pageCountRow.end();
-
-    tableBody.end();
-    myTable.end();
-};
-
-const multiVesselScheduleHeadingDynamic = (doc, data, isSample, buff, pageNum, currentPage, allRows, totalPages, startY) => {
+const renderMultiVesselScheduleHeader = (doc, data, isSample, buff, startY) => {
     let imageFile = path.join(__dirname, '../resources/hmgovlogo.png');
     doc.addStructure(doc.struct('Figure', {
         alt: 'HM Government logo'
@@ -527,6 +364,76 @@ const multiVesselScheduleHeadingDynamic = (doc, data, isSample, buff, pageNum, c
     tableHead.end();
 
     yPos = yPos + cellHeight;
+
+    return { myTable, yPos };
+};
+
+const multiVesselScheduleHeading = (doc, data, isSample, buff, page, pageSize, startY) => {
+    const { myTable, yPos: initialYPos } = renderMultiVesselScheduleHeader(doc, data, isSample, buff, startY);
+    let yPos = initialYPos;
+
+    let rows = getProductScheduleRows(data.exportPayload);
+    let pageCount = Math.ceil(rows.length / pageSize);
+    if (data.isBlankTemplate) {
+        pageCount = 3;
+    }
+
+    let fromIdx = (page - 1) * pageSize;
+    let numDataRows = pageSize;
+    if (fromIdx + numDataRows > rows.length) {
+        numDataRows = rows.length - fromIdx;
+    }
+    let rowDataLimit = fromIdx + numDataRows;
+
+    const tableBody = doc.struct('TBody');
+    myTable.add(tableBody);
+
+    const maxPageHeight = 565;
+
+    for (let rowIdx = fromIdx; rowIdx < (fromIdx + pageSize); rowIdx++) {
+        let dynamicCellHeight = (PdfStyle.ROW.HEIGHT*3)-5;
+        if (rowIdx < rowDataLimit && rows[rowIdx]) {
+            const licenceHolderText = rows[rowIdx].licenceHolder || '';
+            const licenceDetailText = `${rows[rowIdx].licenceDetail || ''} ${rows[rowIdx].homePort || ''}`;
+            
+            const licenceHolderHeight = calculateRequiredCellHeight(doc, licenceHolderText, 45, PdfStyle.FONT_SIZE.SMALLER);
+            const licenceDetailHeight = calculateRequiredCellHeight(doc, licenceDetailText, 75, PdfStyle.FONT_SIZE.SMALLER);
+            
+            dynamicCellHeight = Math.max(dynamicCellHeight, licenceHolderHeight, licenceDetailHeight);
+        }
+        
+        if (yPos + dynamicCellHeight > maxPageHeight && rowIdx < rowDataLimit) {
+            const remainingRows = (fromIdx + pageSize) - rowIdx;
+            for (let emptyIdx = 0; emptyIdx < remainingRows; emptyIdx++) {
+                const emptyRow = doc.struct('TR');
+                tableBody.add(emptyRow);
+                generateMultiVesselTableRows(emptyRow, doc, yPos, (PdfStyle.ROW.HEIGHT*3)-5, fromIdx + pageSize + emptyIdx, rowDataLimit, rows);
+                emptyRow.end();
+                yPos = yPos + ((PdfStyle.ROW.HEIGHT*3)-5);
+            }
+            break;
+        }
+        
+        const tableBodyRow = doc.struct('TR');
+        tableBody.add(tableBodyRow);
+        generateMultiVesselTableRows(tableBodyRow, doc, yPos, dynamicCellHeight, rowIdx, rowDataLimit, rows);
+        tableBodyRow.end();
+        yPos = yPos + dynamicCellHeight;
+    }
+
+    const pageCountRow = doc.struct('TR', () => {
+        mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT, y: yPos, width: 780, height: PdfStyle.ROW.HEIGHT, text: 'Page ' + page + ' of ' + pageCount}, true, PdfStyle.FONT_SIZE.SMALLER, 'left', MVS_STYLES.DEFAULT);
+    });
+    tableBody.add(pageCountRow);
+    pageCountRow.end();
+
+    tableBody.end();
+    myTable.end();
+};
+
+const multiVesselScheduleHeadingDynamic = (doc, data, isSample, buff, pageNum, currentPage, allRows, totalPages, startY) => {
+    const { myTable, yPos: initialYPos } = renderMultiVesselScheduleHeader(doc, data, isSample, buff, startY);
+    let yPos = initialYPos;
 
     const tableBody = doc.struct('TBody');
     myTable.add(tableBody);
