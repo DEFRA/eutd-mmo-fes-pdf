@@ -30,7 +30,7 @@ const SECTION_4_COL3_WIDTH = 110;    // Approval number
 const SECTION_4_COL4_X = SECTION_4_COL3_X + SECTION_4_COL3_WIDTH;  // 380
 const SECTION_4_COL4_WIDTH = 150;    // Stored as
 const SECTION_4_SUBROW_COL_WIDTH = 50;
-const SECTION_4_SUBROW_COL2_X = SECTION_4_COL4_X + 50;  // 430
+const SECTION_4_SUBROW_COL2_X = SECTION_4_COL4_X + SECTION_4_SUBROW_COL_WIDTH;  // 430
 const SECTION_4_SUBROW_COL3_X = SECTION_4_COL4_X + 100; // 480
 
 // Section 7 (Exporter Details) column widths and positions
@@ -414,8 +414,8 @@ const section7 = (doc, data, startY, dateOfSubmission) => {
     doc.addStructure(doc.struct('H3', () => {
         PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '7.    Exporter details');
     }));
-    let yPos = startY + 12;
-    let cellHeight = PdfStyle.ROW.HEIGHT * 2 - 5;
+    let yPos = startY + TITLE_OFFSET;
+    let cellHeight = PdfStyle.ROW.HEIGHT * 2 - SPACING_SMALL;
 
     const myTable = doc.struct('Table');
     doc.addStructure(myTable);
@@ -430,21 +430,21 @@ const section7 = (doc, data, startY, dateOfSubmission) => {
     myTableHeadRow.add(myTableHeadOne);
     const myTableHeadOneContent = doc.markStructureContent('TH');
     myTableHeadOne.add(myTableHeadOneContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 150, cellHeight, 'Company name');
+    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + MARGIN_OFFSET, yPos, SECTION_7_COL1_WIDTH, cellHeight, 'Company name');
     myTableHeadOne.end();
 
     const myTableHeadTwo = doc.struct('TH');
     myTableHeadRow.add(myTableHeadTwo);
     const myTableHeadTwoContent = doc.markStructureContent('TH');
     myTableHeadTwo.add(myTableHeadTwoContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 165, yPos, 290, cellHeight, 'Address');
+    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + SECTION_7_COL2_X, yPos, SECTION_7_COL2_WIDTH, cellHeight, 'Address');
     myTableHeadTwo.end();
 
     const myTableHeadThree = doc.struct('TH');
     myTableHeadRow.add(myTableHeadThree);
     const myTableHeadThreeContent = doc.markStructureContent('TH');
     myTableHeadThree.add(myTableHeadThreeContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 455, yPos, 85, cellHeight, ['Date of submission of this document by', 'exporter to the competent authority']);
+    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + SECTION_7_COL3_X, yPos, SECTION_7_COL3_WIDTH, cellHeight, ['Date of submission of this document by', 'exporter to the competent authority']);
     myTableHeadThree.end();
 
     myTableHeadRow.end();
@@ -460,21 +460,21 @@ const section7 = (doc, data, startY, dateOfSubmission) => {
     tableBodyRow.add(TdOne);
     const TdOneContent = doc.markStructureContent('TD');
     TdOne.add(TdOneContent);
-    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 15, yPos + cellHeight, 150, PdfStyle.ROW.HEIGHT * 4, data.exporter.exporterCompanyName);
+    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + MARGIN_OFFSET, yPos + cellHeight, SECTION_7_COL1_WIDTH, PdfStyle.ROW.HEIGHT * 4, data.exporter.exporterCompanyName);
     TdOne.end();
 
     const TdTwo = doc.struct('TD');
     tableBodyRow.add(TdTwo);
     const TdTwoContent = doc.markStructureContent('TD');
     TdTwo.add(TdTwoContent);
-    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 165, yPos + cellHeight, 290, PdfStyle.ROW.HEIGHT * 4, formatAddress(data.exporter));
+    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + SECTION_7_COL2_X, yPos + cellHeight, SECTION_7_COL2_WIDTH, PdfStyle.ROW.HEIGHT * 4, formatAddress(data.exporter));
     TdTwo.end();
 
     const TdThree = doc.struct('TD');
     tableBodyRow.add(TdThree);
     const TdThreeContent = doc.markStructureContent('TD');
     TdThree.add(TdThreeContent);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 455, yPos + cellHeight, 85, PdfStyle.ROW.HEIGHT * 4, dateOfSubmission);
+    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + SECTION_7_COL3_X, yPos + cellHeight, SECTION_7_COL3_WIDTH, PdfStyle.ROW.HEIGHT * 4, dateOfSubmission);
     TdThree.end();
 
     tableBodyRow.end();
@@ -608,7 +608,7 @@ const section4 = (doc, data, startY) => {
     doc.addStructure(doc.struct('H3', () => {
         PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '4.    Storage facility details');
     }));
-    let yPos = startY + 12;
+    let yPos = startY + TITLE_OFFSET;
     const cellHeight = PdfStyle.ROW.HEIGHT * 4;
     const dataRowHeight = PdfStyle.ROW.HEIGHT * 6;
     const subCellHeight = PdfStyle.ROW.HEIGHT;
@@ -626,28 +626,28 @@ const section4 = (doc, data, startY) => {
     tableHeadRow.add(tableHeadOne);
     const tableHeadOneContent = doc.markStructureContent('TH');
     tableHeadOne.add(tableHeadOneContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 110, cellHeight, ['Name']);
+    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + MARGIN_OFFSET, yPos, SECTION_4_COL1_WIDTH, cellHeight, ['Name']);
     tableHeadOne.end();
  
     const tableHeadTwo = doc.struct('TH');
     tableHeadRow.add(tableHeadTwo);
     const tableHeadTwoContent = doc.markStructureContent('TH');
     tableHeadTwo.add(tableHeadTwoContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 125, yPos, 145, cellHeight, 'Address');
+    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + SECTION_4_COL2_X, yPos, SECTION_4_COL2_WIDTH, cellHeight, 'Address');
     tableHeadTwo.end();
  
     const tableHeadThree = doc.struct('TH');
     tableHeadRow.add(tableHeadThree);
     const tableHeadThreeContent = doc.markStructureContent('TH');
     tableHeadThree.add(tableHeadThreeContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 270, yPos, 110, cellHeight, ['Approval number', '(if applicable)']);
+    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + SECTION_4_COL3_X, yPos, SECTION_4_COL3_WIDTH, cellHeight, ['Approval number', '(if applicable)']);
     tableHeadThree.end();
  
     const tableHeadFour = doc.struct('TH');
     tableHeadRow.add(tableHeadFour);
     const tableHeadFourContent = doc.markStructureContent('TH');
     tableHeadFour.add(tableHeadFourContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 380, yPos, 150, cellHeight, ['Stored as', '(tick as appropriate)']);
+    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + SECTION_4_COL4_X, yPos, SECTION_4_COL4_WIDTH, cellHeight, ['Stored as', '(tick as appropriate)']);
     tableHeadFour.end();
  
     tableHeadRow.end();
@@ -658,21 +658,21 @@ const section4 = (doc, data, startY) => {
     tableHeadSubRow.add(tableHeadFourSubOne);
     const tableHeadFourSubOneContent = doc.markStructureContent('TH');
     tableHeadFourSubOne.add(tableHeadFourSubOneContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 380, yPos + 30, 50, subCellHeight, 'Chilled');
+    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + SECTION_4_COL4_X, yPos + HEADER_SUBROW_OFFSET, SECTION_4_SUBROW_COL_WIDTH, subCellHeight, 'Chilled');
     tableHeadFourSubOne.end();
  
     const tableHeadFourSubTwo = doc.struct('TH');
     tableHeadSubRow.add(tableHeadFourSubTwo);
     const tableHeadFourSubTwoContent = doc.markStructureContent('TH');
     tableHeadFourSubTwo.add(tableHeadFourSubTwoContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 430, yPos + 30, 50, subCellHeight, 'Frozen');
+    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + SECTION_4_SUBROW_COL2_X, yPos + HEADER_SUBROW_OFFSET, SECTION_4_SUBROW_COL_WIDTH, subCellHeight, 'Frozen');
     tableHeadFourSubTwo.end();
  
     const tableHeadFourSubThree = doc.struct('TH');
     tableHeadSubRow.add(tableHeadFourSubThree);
     const tableHeadFourSubThreeContent = doc.markStructureContent('TH');
     tableHeadFourSubThree.add(tableHeadFourSubThreeContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 480, yPos + 30, 50, subCellHeight, 'Other');
+    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + SECTION_4_SUBROW_COL3_X, yPos + HEADER_SUBROW_OFFSET, SECTION_4_SUBROW_COL_WIDTH, subCellHeight, 'Other');
     tableHeadFourSubThree.end();
  
     tableHeadSubRow.end();
@@ -695,42 +695,42 @@ const section4 = (doc, data, startY) => {
     tableBodyRow.add(TdOne);
     const TdOneContent = doc.markStructureContent('TD');
     TdOne.add(TdOneContent);
-    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 15, yPos - 15, 110, dataRowHeight, data.facilityName);
+    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + MARGIN_OFFSET, yPos - 15, SECTION_4_COL1_WIDTH, dataRowHeight, data.facilityName);
     TdOne.end();
  
     const TdTwo = doc.struct('TD');
     tableBodyRow.add(TdTwo);
     const TdTwoContent = doc.markStructureContent('TD');
     TdTwo.add(TdTwoContent)
-    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 125, yPos - 15, 145, dataRowHeight, sfAddress);
+    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + SECTION_4_COL2_X, yPos - 15, SECTION_4_COL2_WIDTH, dataRowHeight, sfAddress);
     TdTwo.end();
     
     const TdThree = doc.struct('TD');
     tableBodyRow.add(TdThree);
     const TdThreeContent = doc.markStructureContent('TD');
     TdThree.add(TdThreeContent);
-    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 270, yPos - 15, 110, dataRowHeight, data.facilityApprovalNumber);
+    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + SECTION_4_COL3_X, yPos - 15, SECTION_4_COL3_WIDTH, dataRowHeight, data.facilityApprovalNumber);
     TdThree.end();
  
     const TdFourSubOne = doc.struct('TD');
     tableBodyRow.add(TdFourSubOne);
     const TdFourSubOneContent = doc.markStructureContent('TD');
     TdFourSubOne.add(TdFourSubOneContent);
-    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 380, yPos - 15, 50, dataRowHeight, data.facilityStorage === "Chilled" ? "Chilled" : "");
+    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + SECTION_4_COL4_X, yPos - 15, SECTION_4_SUBROW_COL_WIDTH, dataRowHeight, data.facilityStorage === "Chilled" ? "Chilled" : "");
     TdFourSubOne.end();
  
     const TdFourSubTwo = doc.struct('TD');
     tableBodyRow.add(TdFourSubTwo);
     const TdFourSubTwoContent = doc.markStructureContent('TD');
     TdFourSubTwo.add(TdFourSubTwoContent);
-    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 430, yPos - 15, 50, dataRowHeight, data.facilityStorage === "Frozen" ? "Frozen" : "");
+    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + SECTION_4_SUBROW_COL2_X, yPos - 15, SECTION_4_SUBROW_COL_WIDTH, dataRowHeight, data.facilityStorage === "Frozen" ? "Frozen" : "");
     TdFourSubTwo.end();
  
     const TdFourSubThree = doc.struct('TD');
     tableBodyRow.add(TdFourSubThree);
     const TdFourSubThreeContent = doc.markStructureContent('TD');
     TdFourSubThree.add(TdFourSubThreeContent);
-    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 480, yPos - 15, 50, dataRowHeight, data.facilityStorage === "Other" ? "Other" : "");
+    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + SECTION_4_SUBROW_COL3_X, yPos - 15, SECTION_4_SUBROW_COL_WIDTH, dataRowHeight, data.facilityStorage === "Other" ? "Other" : "");
     TdFourSubThree.end();
  
     tableBodyRow.end();
