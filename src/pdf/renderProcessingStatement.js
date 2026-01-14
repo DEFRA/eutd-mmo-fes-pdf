@@ -293,9 +293,9 @@ const getCatchTableCells = (catchData) => [
     { x: PdfStyle.MARGIN.LEFT + 15, width: 150, content: catchData?.catchCertificateNumber || catchData.catchCertificateNumber, isWrapped: true },
     { x: PdfStyle.MARGIN.LEFT + 165, width: 85, content: ['See catch', 'certificate'], isWrapped: true },
     { x: PdfStyle.MARGIN.LEFT + 250, width: 100, content: catchData?.species || catchData.species, isWrapped: true },
-    { x: PdfStyle.MARGIN.LEFT + 350, width: 60, content: catchData?.totalWeightLanded || catchData.totalWeightLanded, isWrapped: false },
-    { x: PdfStyle.MARGIN.LEFT + 410, width: 60, content: catchData?.exportWeightBeforeProcessing || catchData.exportWeightBeforeProcessing, isWrapped: false },
-    { x: PdfStyle.MARGIN.LEFT + 470, width: 60, content: catchData?.exportWeightAfterProcessing || catchData.exportWeightAfterProcessing, isWrapped: false }
+    { x: PdfStyle.MARGIN.LEFT + 350, width: 60, content: Number(catchData?.totalWeightLanded || catchData.totalWeightLanded).toFixed(2), isWrapped: false },
+    { x: PdfStyle.MARGIN.LEFT + 410, width: 60, content: Number(catchData?.exportWeightBeforeProcessing || catchData.exportWeightBeforeProcessing).toFixed(2), isWrapped: false },
+    { x: PdfStyle.MARGIN.LEFT + 470, width: 60, content: Number(catchData?.exportWeightAfterProcessing || catchData.exportWeightAfterProcessing).toFixed(2), isWrapped: false }
 ];
 
 const renderProductTableRow = (doc, catchData, startY, cellHeight, tableBody) => {
