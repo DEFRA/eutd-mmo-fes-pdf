@@ -574,9 +574,9 @@ const section4 = (doc, data, startY) => {
         PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '4.    Storage facility details');
     }));
     let yPos = startY + 12;
-    let cellHeight = PdfStyle.ROW.HEIGHT * 4;
-    let dataRowHeight = PdfStyle.ROW.HEIGHT * 6;
-    let subCellHeight = PdfStyle.ROW.HEIGHT;
+    const cellHeight = PdfStyle.ROW.HEIGHT * 4;
+    const dataRowHeight = PdfStyle.ROW.HEIGHT * 6;
+    const subCellHeight = PdfStyle.ROW.HEIGHT;
  
     const myTable = doc.struct('Table');
     doc.addStructure(myTable);
