@@ -11,6 +11,41 @@ const PAGE_HEIGHT = 780;
 const GAP = 15;
 const SECTION_4_SEPARATOR_GAP = 30;
 const CONSIGNMENT_SEPARATOR_OFFSET = 5;
+
+// Spacing and layout constants
+const TITLE_OFFSET = 12;
+const HEADER_SUBROW_OFFSET = 30;
+const MARGIN_OFFSET = 15;
+const SPACING_SMALL = 5;
+const SPACING_MEDIUM = 9;
+const SPACING_LARGE = 15;
+
+// Section 4 (Storage Facility Details) column widths and positions
+const SECTION_4_COL1_WIDTH = 110;    // Name
+const SECTION_4_COL1_X = MARGIN_OFFSET;
+const SECTION_4_COL2_X = SECTION_4_COL1_X + SECTION_4_COL1_WIDTH;  // 125
+const SECTION_4_COL2_WIDTH = 145;    // Address
+const SECTION_4_COL3_X = SECTION_4_COL2_X + SECTION_4_COL2_WIDTH;  // 270
+const SECTION_4_COL3_WIDTH = 110;    // Approval number
+const SECTION_4_COL4_X = SECTION_4_COL3_X + SECTION_4_COL3_WIDTH;  // 380
+const SECTION_4_COL4_WIDTH = 150;    // Stored as
+const SECTION_4_SUBROW_COL_WIDTH = 50;
+const SECTION_4_SUBROW_COL2_X = SECTION_4_COL4_X + 50;  // 430
+const SECTION_4_SUBROW_COL3_X = SECTION_4_COL4_X + 100; // 480
+
+// Section 7 (Exporter Details) column widths and positions
+const SECTION_7_COL1_WIDTH = 150;    // Company name
+const SECTION_7_COL1_X = MARGIN_OFFSET;
+const SECTION_7_COL2_X = SECTION_7_COL1_X + SECTION_7_COL1_WIDTH;  // 165
+const SECTION_7_COL2_WIDTH = 290;    // Address
+const SECTION_7_COL3_X = SECTION_7_COL2_X + SECTION_7_COL2_WIDTH;  // 455
+const SECTION_7_COL3_WIDTH = 85;     // Date of submission
+
+// Row height multipliers
+const CONSIGNMENT_HEADER_MULTIPLIER = 2.8;
+const CONSIGNMENT_CELL_MULTIPLIER = 3;
+const SECTION_4_HEADER_MULTIPLIER = 4;
+const SECTION_4_DATA_MULTIPLIER = 6;
 let currentPage = 1;
  
 const formatCurrentDate = () => {
@@ -136,15 +171,15 @@ const estimateSection2 = () => {
 };
 
 const estimateConsignmentSection = () => {
-    const headerCellHeight = PdfStyle.ROW.HEIGHT * 2.8;
-    const cellHeight = PdfStyle.ROW.HEIGHT * 3;
-    return 12 + headerCellHeight + (3 * cellHeight) + CONSIGNMENT_SEPARATOR_OFFSET + PdfStyle.ROW.HEIGHT;
+    const headerCellHeight = PdfStyle.ROW.HEIGHT * CONSIGNMENT_HEADER_MULTIPLIER;
+    const cellHeight = PdfStyle.ROW.HEIGHT * CONSIGNMENT_CELL_MULTIPLIER;
+    return TITLE_OFFSET + headerCellHeight + (3 * cellHeight) + CONSIGNMENT_SEPARATOR_OFFSET + PdfStyle.ROW.HEIGHT;
 };
  
 const estimateSection4 = () => {
     const headerHeight = PdfStyle.ROW.HEIGHT * 2;
     const dataRowHeight = PdfStyle.ROW.HEIGHT * 5;
-    return 12 + headerHeight + dataRowHeight + 15;
+    return TITLE_OFFSET + headerHeight + dataRowHeight + SPACING_LARGE;
 };
  
 const estimateSection6 = () => {
@@ -158,16 +193,16 @@ const estimateSection6 = () => {
     let sum = 0;
     rows.forEach(key => {
         const height = shouldUseExpandedHeight(key) ? PdfStyle.ROW.HEIGHT * 3.5 : PdfStyle.ROW.HEIGHT * 2;
-        sum += (height + 10);
+        sum += (height + SPACING_MEDIUM);
     });
-    return 12 + sum + 8;
+    return TITLE_OFFSET + sum + SPACING_LARGE;
 };
 
 const estimateSection7 = () => {
-    const headerHeight = PdfStyle.ROW.HEIGHT * 2 - 5;
-    const contentHeight = PdfStyle.ROW.HEIGHT * 4 - 9;
+    const headerHeight = PdfStyle.ROW.HEIGHT * 2 - SPACING_SMALL;
+    const contentHeight = PdfStyle.ROW.HEIGHT * 4 - SPACING_MEDIUM;
     const footerHeight = PdfStyle.ROW.HEIGHT;
-    return 12 + headerHeight + contentHeight + 5 + footerHeight;
+    return TITLE_OFFSET + headerHeight + contentHeight + SPACING_SMALL + footerHeight;
 };
 
 const estimateSection8 = () => {
