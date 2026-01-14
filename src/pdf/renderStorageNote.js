@@ -11,6 +11,9 @@ const PAGE_HEIGHT = 780;
 const GAP = 15;
 const SECTION_4_SEPARATOR_GAP = 30;
 const CONSIGNMENT_SEPARATOR_OFFSET = 5;
+const COL3=3
+const COL5=5
+const SECTION_1_SPACING= 560
 
 // Spacing and layout constants
 const TITLE_OFFSET = 12;
@@ -83,8 +86,23 @@ const SECTION_1_LINE_WIDTH_THICK = 2;
 const SECTION_1_LINE_DASH_SIZE = 2;
 const SECTION_1_LINE_SPACE = 2;
 
+// Consignment table column widths
+const CONSIGNMENT_COL_DESCRIPTION_WIDTH = 85;
+const CONSIGNMENT_COL_SPECIES_WIDTH = 65;
+const CONSIGNMENT_COL_PRODUCT_CODE_WIDTH = 45;
+const CONSIGNMENT_COL_CERTIFICATE_WIDTH = 135;
+const CONSIGNMENT_COL_NET_WEIGHT_WIDTH = 80;
+const CONSIGNMENT_COL_FISHERY_PRODUCT_WIDTH = 105;
+const CONSIGNMENT_COL_WIDTHS = [
+    CONSIGNMENT_COL_DESCRIPTION_WIDTH,
+    CONSIGNMENT_COL_SPECIES_WIDTH,
+    CONSIGNMENT_COL_PRODUCT_CODE_WIDTH,
+    CONSIGNMENT_COL_CERTIFICATE_WIDTH,
+    CONSIGNMENT_COL_NET_WEIGHT_WIDTH,
+    CONSIGNMENT_COL_FISHERY_PRODUCT_WIDTH
+];
+
 // Consignment table constants
-const CONSIGNMENT_COL_WIDTHS = [85, 65, 45, 135, 80, 105];
 const CONSIGNMENT_PADDING_X = 15;
 const CONSIGNMENT_ROW_PADDING = 10;
 
@@ -362,21 +380,21 @@ const createConsignmentTable = (doc, data, startY, type, maxRows = null, showSep
     myTableHeadRow.add(myTableHeadFour);
     const myTableHeadFourContent = doc.markStructureContent('TH');
     myTableHeadFour.add(myTableHeadFourContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + CONSIGNMENT_PADDING_X + colWidths[0] + colWidths[1] + colWidths[2], yPos, colWidths[3], headerCellHeight, ['Catch Certificate / Processing', 'Statement/non-manipulation ', 'declaration number(s) (if',  'applicable)']);
+    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + CONSIGNMENT_PADDING_X + colWidths[0] + colWidths[1] + colWidths[2], yPos, colWidths[COL3], headerCellHeight, ['Catch Certificate / Processing', 'Statement/non-manipulation ', 'declaration number(s) (if',  'applicable)']);
     myTableHeadFour.end();
 
     const myTableHeadFive = doc.struct('TH');
     myTableHeadRow.add(myTableHeadFive);
     const myTableHeadFiveContent = doc.markStructureContent('TH');
     myTableHeadFive.add(myTableHeadFiveContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + CONSIGNMENT_PADDING_X + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], yPos, colWidths[4], headerCellHeight, ['Net weight in kg', `${weightLabel} the`, 'place of storage']);
+    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + CONSIGNMENT_PADDING_X + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[COL3], yPos, colWidths[4], headerCellHeight, ['Net weight in kg', `${weightLabel} the`, 'place of storage']);
     myTableHeadFive.end();
 
     const myTableHeadSix = doc.struct('TH');
     myTableHeadRow.add(myTableHeadSix);
     const myTableHeadSixContent = doc.markStructureContent('TH');
     myTableHeadSix.add(myTableHeadSixContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + CONSIGNMENT_PADDING_X + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4], yPos, colWidths[5], headerCellHeight, ['Net fishery product', `weight in kg ${weightLabel}`, 'the place of storage']);
+    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + CONSIGNMENT_PADDING_X + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[COL3] + colWidths[4], yPos, colWidths[5], headerCellHeight, ['Net fishery product', `weight in kg ${weightLabel}`, 'the place of storage']);
     myTableHeadSix.end();
 
     myTableHeadRow.end();
@@ -420,21 +438,21 @@ const createConsignmentTable = (doc, data, startY, type, maxRows = null, showSep
         tableBodyRow.add(TdFour);
         const TdFourContent = doc.markStructureContent('TD');
         TdFour.add(TdFourContent);
-        PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + CONSIGNMENT_PADDING_X + colWidths[0] + colWidths[1] + colWidths[2], rowY, colWidths[3], cellHeight, c?.certificateNumber || ' ');
+        PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + CONSIGNMENT_PADDING_X + colWidths[0] + colWidths[1] + colWidths[2], rowY, colWidths[COL3], cellHeight, c?.certificateNumber || ' ');
         TdFour.end();
 
         const TdFive = doc.struct('TD');
         tableBodyRow.add(TdFive);
         const TdFiveContent = doc.markStructureContent('TD');
         TdFive.add(TdFiveContent);
-        PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + CONSIGNMENT_PADDING_X + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], rowY, colWidths[4], cellHeight, c?.[weightField] ? Number(c[weightField]).toFixed(2) : ' ');
+        PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + CONSIGNMENT_PADDING_X + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[COL3], rowY, colWidths[4], cellHeight, c?.[weightField] ? Number(c[weightField]).toFixed(2) : ' ');
         TdFive.end();
 
         const TdSix = doc.struct('TD');
         tableBodyRow.add(TdSix);
         const TdSixContent = doc.markStructureContent('TD');
         TdSix.add(TdSixContent);
-        PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + CONSIGNMENT_PADDING_X + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4], rowY, colWidths[5], cellHeight, c?.netWeightFisheryProductDeparture ? Number(c.netWeightFisheryProductDeparture).toFixed(2) : ' ');
+        PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + CONSIGNMENT_PADDING_X + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[COL3] + colWidths[4], rowY, colWidths[COL5], cellHeight, c?.netWeightFisheryProductDeparture ? Number(c.netWeightFisheryProductDeparture).toFixed(2) : ' ');
         TdSix.end();
 
         tableBodyRow.end();
@@ -662,8 +680,8 @@ const section4 = (doc, data, startY) => {
         PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '4.    Storage facility details');
     }));
     let yPos = startY + TITLE_OFFSET;
-    const cellHeight = PdfStyle.ROW.HEIGHT * 4;
-    const dataRowHeight = PdfStyle.ROW.HEIGHT * 6;
+    const cellHeight = PdfStyle.ROW.HEIGHT * SECTION_4_HEADER_MULTIPLIER;
+    const dataRowHeight = PdfStyle.ROW.HEIGHT * SECTION_4_DATA_MULTIPLIER;
     const subCellHeight = PdfStyle.ROW.HEIGHT;
  
     const myTable = doc.struct('Table');
@@ -748,42 +766,42 @@ const section4 = (doc, data, startY) => {
     tableBodyRow.add(TdOne);
     const TdOneContent = doc.markStructureContent('TD');
     TdOne.add(TdOneContent);
-    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + MARGIN_OFFSET, yPos - 15, SECTION_4_COL1_WIDTH, dataRowHeight, data.facilityName);
+    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + MARGIN_OFFSET, yPos - MARGIN_OFFSET, SECTION_4_COL1_WIDTH, dataRowHeight, data.facilityName);
     TdOne.end();
  
     const TdTwo = doc.struct('TD');
     tableBodyRow.add(TdTwo);
     const TdTwoContent = doc.markStructureContent('TD');
     TdTwo.add(TdTwoContent)
-    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + SECTION_4_COL2_X, yPos - 15, SECTION_4_COL2_WIDTH, dataRowHeight, sfAddress);
+    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + SECTION_4_COL2_X, yPos - MARGIN_OFFSET, SECTION_4_COL2_WIDTH, dataRowHeight, sfAddress);
     TdTwo.end();
     
     const TdThree = doc.struct('TD');
     tableBodyRow.add(TdThree);
     const TdThreeContent = doc.markStructureContent('TD');
     TdThree.add(TdThreeContent);
-    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + SECTION_4_COL3_X, yPos - 15, SECTION_4_COL3_WIDTH, dataRowHeight, data.facilityApprovalNumber);
+    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + SECTION_4_COL3_X, yPos - MARGIN_OFFSET, SECTION_4_COL3_WIDTH, dataRowHeight, data.facilityApprovalNumber);
     TdThree.end();
  
     const TdFourSubOne = doc.struct('TD');
     tableBodyRow.add(TdFourSubOne);
     const TdFourSubOneContent = doc.markStructureContent('TD');
     TdFourSubOne.add(TdFourSubOneContent);
-    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + SECTION_4_COL4_X, yPos - 15, SECTION_4_SUBROW_COL_WIDTH, dataRowHeight, data.facilityStorage === "Chilled" ? "Chilled" : "");
+    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + SECTION_4_COL4_X, yPos - MARGIN_OFFSET, SECTION_4_SUBROW_COL_WIDTH, dataRowHeight, data.facilityStorage === "Chilled" ? "Chilled" : "");
     TdFourSubOne.end();
  
     const TdFourSubTwo = doc.struct('TD');
     tableBodyRow.add(TdFourSubTwo);
     const TdFourSubTwoContent = doc.markStructureContent('TD');
     TdFourSubTwo.add(TdFourSubTwoContent);
-    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + SECTION_4_SUBROW_COL2_X, yPos - 15, SECTION_4_SUBROW_COL_WIDTH, dataRowHeight, data.facilityStorage === "Frozen" ? "Frozen" : "");
+    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + SECTION_4_SUBROW_COL2_X, yPos - MARGIN_OFFSET, SECTION_4_SUBROW_COL_WIDTH, dataRowHeight, data.facilityStorage === "Frozen" ? "Frozen" : "");
     TdFourSubTwo.end();
  
     const TdFourSubThree = doc.struct('TD');
     tableBodyRow.add(TdFourSubThree);
     const TdFourSubThreeContent = doc.markStructureContent('TD');
     TdFourSubThree.add(TdFourSubThreeContent);
-    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + SECTION_4_SUBROW_COL3_X, yPos - 15, SECTION_4_SUBROW_COL_WIDTH, dataRowHeight, data.facilityStorage === "Other" ? "Other" : "");
+    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + SECTION_4_SUBROW_COL3_X, yPos - MARGIN_OFFSET, SECTION_4_SUBROW_COL_WIDTH, dataRowHeight, data.facilityStorage === "Other" ? "Other" : "");
     TdFourSubThree.end();
  
     tableBodyRow.end();
@@ -918,7 +936,7 @@ const section1 = (doc, data, isSample, startY) => {
  
     doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
         doc.lineWidth(SECTION_1_LINE_WIDTH_THICK);
-        doc.moveTo(PdfStyle.MARGIN.LEFT, startY + SECTION_1_TOP_LINE_OFFSET).lineTo(560, startY + SECTION_1_TOP_LINE_OFFSET).stroke();
+        doc.moveTo(PdfStyle.MARGIN.LEFT, startY + SECTION_1_TOP_LINE_OFFSET).lineTo(SECTION_1_SPACING, startY + SECTION_1_TOP_LINE_OFFSET).stroke();
     }));
  
     doc.addStructure(doc.struct('Span', () => {
@@ -932,7 +950,7 @@ const section1 = (doc, data, isSample, startY) => {
         PdfUtils.label(doc, SECTION_1_DECLARING_AUTHORITY_X, startY + SECTION_1_LABEL_OFFSET, 'Declaring Authority');
     }));
     doc.addStructure(doc.struct('Span', () => {
-        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 380, startY + SECTION_1_DECLARING_AUTHORITY_Y, SECTION_1_DECLARING_AUTHORITY_WIDTH, PdfStyle.ROW.HEIGHT, 'Marine Management Organisation');
+        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + SECTION_4_COL4_X, startY + SECTION_1_DECLARING_AUTHORITY_Y, SECTION_1_DECLARING_AUTHORITY_WIDTH, PdfStyle.ROW.HEIGHT, 'Marine Management Organisation');
     }));    doc.addStructure(doc.struct('H3', () => {
         PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY + SECTION_1_NAME_Y, '1.    Name');
     }));
