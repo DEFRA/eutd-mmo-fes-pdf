@@ -46,6 +46,54 @@ const CONSIGNMENT_HEADER_MULTIPLIER = 2.8;
 const CONSIGNMENT_CELL_MULTIPLIER = 3;
 const SECTION_4_HEADER_MULTIPLIER = 4;
 const SECTION_4_DATA_MULTIPLIER = 6;
+
+// Section 1 (Declaration) layout constants
+const SECTION_1_TOP_LINE_OFFSET = 4;
+const SECTION_1_LABEL_OFFSET = 17;
+const SECTION_1_FIELD_OFFSET_X = 95;
+const SECTION_1_FIELD_OFFSET_Y = 15;
+const SECTION_1_FIELD_WIDTH = 160;
+const SECTION_1_DECLARING_AUTHORITY_X = 300;
+const SECTION_1_DECLARING_AUTHORITY_WIDTH = 150;
+const SECTION_1_DECLARING_AUTHORITY_Y = 15;
+const SECTION_1_NAME_Y = 40;
+const SECTION_1_NAME_LABEL_Y = 40;
+const SECTION_1_NAME_FIELD_X = 65;
+const SECTION_1_NAME_FIELD_Y = 38;
+const SECTION_1_NAME_FIELD_WIDTH = 465;
+const SECTION_1_ADDRESS_LABEL_X = 15;
+const SECTION_1_ADDRESS_LABEL_Y = 60;
+const SECTION_1_ADDRESS_FIELD_X = 65;
+const SECTION_1_ADDRESS_FIELD_Y = 58;
+const SECTION_1_ADDRESS_FIELD_WIDTH = 465;
+const SECTION_1_ADDRESS_FIELD_HEIGHT_MULTIPLIER = 2;
+const SECTION_1_TEL_LABEL_Y = 100;
+const SECTION_1_TEL_FIELD_X = 90;
+const SECTION_1_TEL_FIELD_Y = 98;
+const SECTION_1_TEL_FIELD_WIDTH = 200;
+const SECTION_1_EMAIL_LABEL_X = 300;
+const SECTION_1_EMAIL_LABEL_Y = 100;
+const SECTION_1_EMAIL_FIELD_X = 330;
+const SECTION_1_EMAIL_FIELD_Y = 98;
+const SECTION_1_EMAIL_FIELD_WIDTH = 200;
+const SECTION_1_BOTTOM_LINE_Y = 120;
+const SECTION_1_BOTTOM_LINE_X_END = 600;
+const SECTION_1_LINE_WIDTH_THIN = 0.75;
+const SECTION_1_LINE_WIDTH_THICK = 2;
+const SECTION_1_LINE_DASH_SIZE = 2;
+const SECTION_1_LINE_SPACE = 2;
+
+// Consignment table constants
+const CONSIGNMENT_COL_WIDTHS = [85, 65, 45, 135, 80, 105];
+const CONSIGNMENT_PADDING_X = 15;
+const CONSIGNMENT_ROW_PADDING = 10;
+
+// Section 6 constants
+const SECTION_6_ADDITIONAL_HEIGHT = 8;
+
+// Separator spacing
+const SEPARATOR_OFFSET_AFTER_CELL = 8;
+
 let currentPage = 1;
  
 const formatCurrentDate = () => {
@@ -170,15 +218,20 @@ const estimateSection2 = () => {
     return 12 + sum + 8;
 };
 
+const CONSIGNMENT_ROWS_COUNT = 3;
+
 const estimateConsignmentSection = () => {
     const headerCellHeight = PdfStyle.ROW.HEIGHT * CONSIGNMENT_HEADER_MULTIPLIER;
     const cellHeight = PdfStyle.ROW.HEIGHT * CONSIGNMENT_CELL_MULTIPLIER;
-    return TITLE_OFFSET + headerCellHeight + (3 * cellHeight) + CONSIGNMENT_SEPARATOR_OFFSET + PdfStyle.ROW.HEIGHT;
+    return TITLE_OFFSET + headerCellHeight + (CONSIGNMENT_ROWS_COUNT * cellHeight) + CONSIGNMENT_SEPARATOR_OFFSET + PdfStyle.ROW.HEIGHT;
 };
  
+const SECTION_4_HEADER_ROW_MULTIPLIER = 2;
+const SECTION_4_DATA_ROW_MULTIPLIER = 5;
+
 const estimateSection4 = () => {
-    const headerHeight = PdfStyle.ROW.HEIGHT * 2;
-    const dataRowHeight = PdfStyle.ROW.HEIGHT * 5;
+    const headerHeight = PdfStyle.ROW.HEIGHT * SECTION_4_HEADER_ROW_MULTIPLIER;
+    const dataRowHeight = PdfStyle.ROW.HEIGHT * SECTION_4_DATA_ROW_MULTIPLIER;
     return TITLE_OFFSET + headerHeight + dataRowHeight + SPACING_LARGE;
 };
  
@@ -288,42 +341,42 @@ const createConsignmentTable = (doc, data, startY, type, maxRows = null, showSep
     myTableHeadRow.add(myTableHeadOne);
     const myTableHeadOneContent = doc.markStructureContent('TH');
     myTableHeadOne.add(myTableHeadOneContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, colWidths[0], headerCellHeight, 'Description of fisheries products');
+    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + CONSIGNMENT_PADDING_X, yPos, colWidths[0], headerCellHeight, 'Description of fisheries products');
     myTableHeadOne.end();
 
     const myTableHeadTwo = doc.struct('TH');
     myTableHeadRow.add(myTableHeadTwo);
     const myTableHeadTwoContent = doc.markStructureContent('TH');
     myTableHeadTwo.add(myTableHeadTwoContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15 + colWidths[0], yPos, colWidths[1], headerCellHeight, 'Species');
+    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + CONSIGNMENT_PADDING_X + colWidths[0], yPos, colWidths[1], headerCellHeight, 'Species');
     myTableHeadTwo.end();
 
     const myTableHeadThree = doc.struct('TH');
     myTableHeadRow.add(myTableHeadThree);
     const myTableHeadThreeContent = doc.markStructureContent('TH');
     myTableHeadThree.add(myTableHeadThreeContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15 + colWidths[0] + colWidths[1], yPos, colWidths[2], headerCellHeight, 'Product Code');
+    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + CONSIGNMENT_PADDING_X + colWidths[0] + colWidths[1], yPos, colWidths[2], headerCellHeight, 'Product Code');
     myTableHeadThree.end();
 
     const myTableHeadFour = doc.struct('TH');
     myTableHeadRow.add(myTableHeadFour);
     const myTableHeadFourContent = doc.markStructureContent('TH');
     myTableHeadFour.add(myTableHeadFourContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15 + colWidths[0] + colWidths[1] + colWidths[2], yPos, colWidths[3], headerCellHeight, ['Catch Certificate / Processing', 'Statement/non-manipulation ', 'declaration number(s) (if',  'applicable)']);
+    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + CONSIGNMENT_PADDING_X + colWidths[0] + colWidths[1] + colWidths[2], yPos, colWidths[3], headerCellHeight, ['Catch Certificate / Processing', 'Statement/non-manipulation ', 'declaration number(s) (if',  'applicable)']);
     myTableHeadFour.end();
 
     const myTableHeadFive = doc.struct('TH');
     myTableHeadRow.add(myTableHeadFive);
     const myTableHeadFiveContent = doc.markStructureContent('TH');
     myTableHeadFive.add(myTableHeadFiveContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15 + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], yPos, colWidths[4], headerCellHeight, ['Net weight in kg', `${weightLabel} the`, 'place of storage']);
+    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + CONSIGNMENT_PADDING_X + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], yPos, colWidths[4], headerCellHeight, ['Net weight in kg', `${weightLabel} the`, 'place of storage']);
     myTableHeadFive.end();
 
     const myTableHeadSix = doc.struct('TH');
     myTableHeadRow.add(myTableHeadSix);
     const myTableHeadSixContent = doc.markStructureContent('TH');
     myTableHeadSix.add(myTableHeadSixContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15 + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4], yPos, colWidths[5], headerCellHeight, ['Net fishery product', `weight in kg ${weightLabel}`, 'the place of storage']);
+    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + CONSIGNMENT_PADDING_X + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4], yPos, colWidths[5], headerCellHeight, ['Net fishery product', `weight in kg ${weightLabel}`, 'the place of storage']);
     myTableHeadSix.end();
 
     myTableHeadRow.end();
@@ -346,42 +399,42 @@ const createConsignmentTable = (doc, data, startY, type, maxRows = null, showSep
         tableBodyRow.add(TdOne);
         const TdOneContent = doc.markStructureContent('TD');
         TdOne.add(TdOneContent);
-        PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 15, rowY, colWidths[0], cellHeight, c?.productDescription || ' ');
+        PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + CONSIGNMENT_PADDING_X, rowY, colWidths[0], cellHeight, c?.productDescription || ' ');
         TdOne.end();
 
         const TdTwo = doc.struct('TD');
         tableBodyRow.add(TdTwo);
         const TdTwoContent = doc.markStructureContent('TD');
         TdTwo.add(TdTwoContent);
-        PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 15 + colWidths[0], rowY, colWidths[1], cellHeight, c?.product || ' ');
+        PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + CONSIGNMENT_PADDING_X + colWidths[0], rowY, colWidths[1], cellHeight, c?.product || ' ');
         TdTwo.end();
 
         const TdThree = doc.struct('TD');
         tableBodyRow.add(TdThree);
         const TdThreeContent = doc.markStructureContent('TD');
         TdThree.add(TdThreeContent);
-        PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 15 + colWidths[0] + colWidths[1], rowY, colWidths[2], cellHeight, c?.commodityCode || ' ');
+        PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + CONSIGNMENT_PADDING_X + colWidths[0] + colWidths[1], rowY, colWidths[2], cellHeight, c?.commodityCode || ' ');
         TdThree.end();
 
         const TdFour = doc.struct('TD');
         tableBodyRow.add(TdFour);
         const TdFourContent = doc.markStructureContent('TD');
         TdFour.add(TdFourContent);
-        PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 15 + colWidths[0] + colWidths[1] + colWidths[2], rowY, colWidths[3], cellHeight, c?.certificateNumber || ' ');
+        PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + CONSIGNMENT_PADDING_X + colWidths[0] + colWidths[1] + colWidths[2], rowY, colWidths[3], cellHeight, c?.certificateNumber || ' ');
         TdFour.end();
 
         const TdFive = doc.struct('TD');
         tableBodyRow.add(TdFive);
         const TdFiveContent = doc.markStructureContent('TD');
         TdFive.add(TdFiveContent);
-        PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 15 + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], rowY, colWidths[4], cellHeight, c?.[weightField] ? Number(c[weightField]).toFixed(2) : ' ');
+        PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + CONSIGNMENT_PADDING_X + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], rowY, colWidths[4], cellHeight, c?.[weightField] ? Number(c[weightField]).toFixed(2) : ' ');
         TdFive.end();
 
         const TdSix = doc.struct('TD');
         tableBodyRow.add(TdSix);
         const TdSixContent = doc.markStructureContent('TD');
         TdSix.add(TdSixContent);
-        PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 15 + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4], rowY, colWidths[5], cellHeight, c?.netWeightFisheryProductDeparture ? Number(c.netWeightFisheryProductDeparture).toFixed(2) : ' ');
+        PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + CONSIGNMENT_PADDING_X + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4], rowY, colWidths[5], cellHeight, c?.netWeightFisheryProductDeparture ? Number(c.netWeightFisheryProductDeparture).toFixed(2) : ' ');
         TdSix.end();
 
         tableBodyRow.end();
@@ -393,7 +446,7 @@ const createConsignmentTable = (doc, data, startY, type, maxRows = null, showSep
  
     if (showSeparator) {
         const rowsCount = maxRows === null ? (data?.catches?.length || 1) : maxRows;
-        const finalY = yPos + headerCellHeight + (rowsCount * cellHeight) + 5;
+        const finalY = yPos + headerCellHeight + (rowsCount * cellHeight) + CONSIGNMENT_ROW_PADDING;
         doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
             PdfUtils.separator(doc, finalY + PdfStyle.ROW.HEIGHT);
         }));
@@ -415,7 +468,7 @@ const section7 = (doc, data, startY, dateOfSubmission) => {
         PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '7.    Exporter details');
     }));
     let yPos = startY + TITLE_OFFSET;
-    let cellHeight = PdfStyle.ROW.HEIGHT * 2 - SPACING_SMALL;
+    const cellHeight = PdfStyle.ROW.HEIGHT * 2 - SPACING_SMALL;
 
     const myTable = doc.struct('Table');
     doc.addStructure(myTable);
@@ -482,10 +535,10 @@ const section7 = (doc, data, startY, dateOfSubmission) => {
     tableBody.end();
     myTable.end();
 
-    yPos += cellHeight + PdfStyle.ROW.HEIGHT * 4 + 5;
+    yPos += cellHeight + PdfStyle.ROW.HEIGHT * 4 + SPACING_SMALL;
 
     doc.addStructure(doc.struct('P', () => {
-        doc.text('* Date of acceptance by exporter of the veracity of the contents of this document', PdfStyle.MARGIN.LEFT + 15, yPos);
+        doc.text('* Date of acceptance by exporter of the veracity of the contents of this document', PdfStyle.MARGIN.LEFT + CONSIGNMENT_PADDING_X, yPos);
     }));
 
     doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
@@ -739,7 +792,7 @@ const section4 = (doc, data, startY) => {
     myTable.end();
  
     doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
-        PdfUtils.separator(doc, yPos + dataRowHeight + 8);
+        PdfUtils.separator(doc, yPos + dataRowHeight + SEPARATOR_OFFSET_AFTER_CELL);
     }));
 }
 
@@ -864,51 +917,51 @@ const section1 = (doc, data, isSample, startY) => {
     }
  
     doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
-        doc.lineWidth(2);
-        doc.moveTo(PdfStyle.MARGIN.LEFT, startY + 4).lineTo(560, startY + 4).stroke();
+        doc.lineWidth(SECTION_1_LINE_WIDTH_THICK);
+        doc.moveTo(PdfStyle.MARGIN.LEFT, startY + SECTION_1_TOP_LINE_OFFSET).lineTo(560, startY + SECTION_1_TOP_LINE_OFFSET).stroke();
     }));
  
     doc.addStructure(doc.struct('Span', () => {
-        PdfUtils.label(doc, PdfStyle.MARGIN.LEFT, startY + 17, 'Document Number');
+        PdfUtils.label(doc, PdfStyle.MARGIN.LEFT, startY + SECTION_1_LABEL_OFFSET, 'Document Number');
     }));
     doc.addStructure(doc.struct('Span', () => {
-        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 95, startY + 15, 160, PdfStyle.ROW.HEIGHT, documentNumber);
+        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + SECTION_1_FIELD_OFFSET_X, startY + SECTION_1_FIELD_OFFSET_Y, SECTION_1_FIELD_WIDTH, PdfStyle.ROW.HEIGHT, documentNumber);
     }));
 
     doc.addStructure(doc.struct('Span', () => {
-        PdfUtils.label(doc, 300, startY + 17, 'Declaring Authority');
+        PdfUtils.label(doc, SECTION_1_DECLARING_AUTHORITY_X, startY + SECTION_1_LABEL_OFFSET, 'Declaring Authority');
     }));
     doc.addStructure(doc.struct('Span', () => {
-        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 380, startY + 15, 150, PdfStyle.ROW.HEIGHT, 'Marine Management Organisation');
+        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 380, startY + SECTION_1_DECLARING_AUTHORITY_Y, SECTION_1_DECLARING_AUTHORITY_WIDTH, PdfStyle.ROW.HEIGHT, 'Marine Management Organisation');
     }));    doc.addStructure(doc.struct('H3', () => {
-        PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY + 40, '1.    Name');
+        PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY + SECTION_1_NAME_Y, '1.    Name');
     }));
     doc.addStructure(doc.struct('Span', () => {
-        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 65, startY + 38, 465, PdfStyle.ROW.HEIGHT, 'Illegal Unreported and Unregulated (IUU) Fishing Team');
+        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + SECTION_1_NAME_FIELD_X, startY + SECTION_1_NAME_FIELD_Y, SECTION_1_NAME_FIELD_WIDTH, PdfStyle.ROW.HEIGHT, 'Illegal Unreported and Unregulated (IUU) Fishing Team');
     }));
 
     doc.addStructure(doc.struct('Span', () => {
-        PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 15, startY + 60, 'Address');
+        PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + SECTION_1_ADDRESS_LABEL_X, startY + SECTION_1_ADDRESS_LABEL_Y, 'Address');
     }));
     doc.addStructure(doc.struct('Span', () => {
-        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 65, startY + 58, 465, PdfStyle.ROW.HEIGHT * 2 + 5, 'Tyneside House, Skinnerburn Rd, Newcastle upon Tyne, United Kingdom. NE4 7AR');
+        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + SECTION_1_ADDRESS_FIELD_X, startY + SECTION_1_ADDRESS_FIELD_Y, SECTION_1_ADDRESS_FIELD_WIDTH, PdfStyle.ROW.HEIGHT * SECTION_1_ADDRESS_FIELD_HEIGHT_MULTIPLIER + SPACING_SMALL, 'Tyneside House, Skinnerburn Rd, Newcastle upon Tyne, United Kingdom. NE4 7AR');
     }));
  
     doc.addStructure(doc.struct('Span', () => {
-        PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 65, startY + 100, 'Tel.');
+        PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + SECTION_1_ADDRESS_FIELD_X, startY + SECTION_1_TEL_LABEL_Y, 'Tel.');
     }));
     doc.addStructure(doc.struct('Span', () => {
-        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 90, startY + 98, 200, PdfStyle.ROW.HEIGHT, '0300 123 1032');
+        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + SECTION_1_TEL_FIELD_X, startY + SECTION_1_TEL_FIELD_Y, SECTION_1_TEL_FIELD_WIDTH, PdfStyle.ROW.HEIGHT, '0300 123 1032');
     }));
 
     doc.addStructure(doc.struct('Span', () => {
-        PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 300, startY + 100, 'Email');
+        PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + SECTION_1_EMAIL_LABEL_X, startY + SECTION_1_EMAIL_LABEL_Y, 'Email');
     }));
     doc.addStructure(doc.struct('Span', () => {
-        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 330, startY + 98, 200, PdfStyle.ROW.HEIGHT, 'ukiuuslo@marinemanagement.org.uk');
+        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + SECTION_1_EMAIL_FIELD_X, startY + SECTION_1_EMAIL_FIELD_Y, SECTION_1_EMAIL_FIELD_WIDTH, PdfStyle.ROW.HEIGHT, 'ukiuuslo@marinemanagement.org.uk');
     }));    doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
-        doc.lineWidth(0.75);
-        doc.moveTo(0, startY + 120).lineTo(600, startY + 120).dash(2, {space: 2}).stroke();
+        doc.lineWidth(SECTION_1_LINE_WIDTH_THIN);
+        doc.moveTo(0, startY + SECTION_1_BOTTOM_LINE_Y).lineTo(SECTION_1_BOTTOM_LINE_X_END, startY + SECTION_1_BOTTOM_LINE_Y).dash(SECTION_1_LINE_DASH_SIZE, {space: SECTION_1_LINE_SPACE}).stroke();
     }));
 };
  
