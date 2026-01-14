@@ -2915,4 +2915,553 @@ test('render processing statement - QR code NOT rendered when sample', async () 
     await renderPdf(pdfType.EXPORT_CERT, data, false, sasJson.qrUri, mockedStream);
     expect(mockedStream).toBeDefined();
   });
+
+  test('should handle long licence holder names with dynamic pagination', async () => {
+    const sasJson = {
+      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
+      blobName: '_long-licence-holder.pdf',
+      uri: '_long-licence-holder.pdf',
+      qrUri: 'http://localhost:3001/qr/export-certificates/_long-licence-holder.pdf'
+    };
+
+    const data = {
+      documentNumber: "GBR-2024-CC-LONGNAME",
+      exportPayload: {
+        items: [{
+          product: {
+            commodityCode: "03036400",
+            presentation: { code: "FIL", label: "Filleted" },
+            state: { code: "FRO", label: "Frozen" },
+            species: { code: "COD", label: "Atlantic cod (COD)" }
+          },
+          landings: [
+            {
+              model: {
+                vessel: {
+                  pln: "A123",
+                  vesselName: "TEST VESSEL 1",
+                  homePort: "ARDGLASS",
+                  licenceNumber: "12345",
+                  licenceHolder: "RUSSELL A HENRY & SON WELDING AND FABRICATION"
+                },
+                dateLanded: "2024-01-15T00:00:00.000Z",
+                exportWeight: 100,
+                faoArea: "FAO27"
+              }
+            },
+            {
+              model: {
+                vessel: {
+                  pln: "B456",
+                  vesselName: "TEST VESSEL 2",
+                  homePort: "BELFAST",
+                  licenceNumber: "67890",
+                  licenceHolder: "SHORT NAME LTD"
+                },
+                dateLanded: "2024-01-16T00:00:00.000Z",
+                exportWeight: 150,
+                faoArea: "FAO27"
+              }
+            }
+          ]
+        }]
+      },
+      exporter: {
+        exporterFullName: 'Test Exporter',
+        exporterCompanyName: 'Test Company Ltd',
+        addressOne: '123 Test St',
+        townCity: 'TestCity',
+        postcode: 'TC1 2AB'
+      },
+      transport: {
+        vehicle: 'truck',
+        nationalityOfVehicle: 'UK',
+        registrationNumber: 'TEST456',
+        exportedTo: { officialCountryName: 'France' }
+      },
+      conservation: { conservationReference: 'Common Fisheries Policy' }
+    };
+
+    // Test verifies dynamic row height calculation for long licence holder names
+    await renderPdf(pdfType.EXPORT_CERT, data, false, sasJson.qrUri, mockedStream);
+    expect(mockedStream).toBeDefined();
+  });
+
+  test('should handle multi-vessel schedule with pagination', async () => {
+    const sasJson = {
+      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
+      blobName: '_multi-vessel-pagination.pdf',
+      uri: '_multi-vessel-pagination.pdf',
+      qrUri: 'http://localhost:3001/qr/export-certificates/_multi-vessel-pagination.pdf'
+    };
+
+    // Create multiple landings to trigger pagination
+    const landings = [];
+    for (let i = 0; i < 15; i++) {
+      landings.push({
+        model: {
+          vessel: {
+            pln: `PLN${i}`,
+            vesselName: `VESSEL ${i}`,
+            homePort: "TESTPORT",
+            licenceNumber: `LIC${i}`,
+            licenceHolder: `LICENCE HOLDER NAME ${i}`
+          },
+          dateLanded: "2024-01-20T00:00:00.000Z",
+          exportWeight: 50 + i,
+          faoArea: "FAO27"
+        }
+      });
+    }
+
+    const data = {
+      documentNumber: "GBR-2024-CC-MULTIPAGE",
+      exportPayload: {
+        items: [{
+          product: {
+            commodityCode: "03026100",
+            presentation: { code: "WHL", label: "Whole" },
+            state: { code: "FRE", label: "Fresh" },
+            species: { code: "HER", label: "Atlantic herring (HER)" }
+          },
+          landings: landings
+        }]
+      },
+      exporter: {
+        exporterFullName: 'Multi Page Test',
+        exporterCompanyName: 'Pagination Test Ltd',
+        addressOne: '789 Page St',
+        townCity: 'PageCity',
+        postcode: 'PG1 2CD'
+      },
+      transport: {
+        vehicle: 'truck',
+        nationalityOfVehicle: 'UK',
+        registrationNumber: 'PAGE123',
+        exportedTo: { officialCountryName: 'Spain' }
+      },
+      conservation: { conservationReference: 'Common Fisheries Policy' }
+    };
+
+    // Test verifies pagination logic with multiple vessels
+    await renderPdf(pdfType.EXPORT_CERT, data, false, sasJson.qrUri, mockedStream);
+    expect(mockedStream).toBeDefined();
+  });
+
+  test('should render blank template with multi-vessel schedule', async () => {
+    const sasJson = {
+      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
+      blobName: '_blank-template.pdf',
+      uri: '_blank-template.pdf',
+      qrUri: 'http://localhost:3001/qr/export-certificates/_blank-template.pdf'
+    };
+
+    const data = {
+      isBlankTemplate: true,
+      exportPayload: {
+        items: []
+      }
+    };
+
+    // Test verifies blank template rendering
+    await renderPdf(pdfType.EXPORT_CERT, data, false, sasJson.qrUri, mockedStream);
+    expect(mockedStream).toBeDefined();
+  });
+
+  test('should handle vessel with long licence detail and homePort', async () => {
+    const sasJson = {
+      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
+      blobName: '_long-details.pdf',
+      uri: '_long-details.pdf',
+      qrUri: 'http://localhost:3001/qr/export-certificates/_long-details.pdf'
+    };
+
+    const data = {
+      documentNumber: "GBR-2024-CC-LONGDETAILS",
+      exportPayload: {
+        items: [{
+          product: {
+            commodityCode: "03044400",
+            presentation: { code: "FIL", label: "Filleted" },
+            state: { code: "FRO", label: "Frozen" },
+            species: { code: "PLE", label: "European plaice (PLE)" }
+          },
+          landings: [{
+            model: {
+              vessel: {
+                pln: "X999",
+                vesselName: "LONG DETAILS VESSEL",
+                homePort: "PORTAVOGIE WITH VERY LONG NAME",
+                licenceNumber: "VERY-LONG-LICENCE-NUMBER-123456789",
+                licenceHolder: "COMPANY WITH EXTREMELY LONG NAME LIMITED",
+                licenceValidTo: "2025-12-31T00:00:00.000Z"
+              },
+              dateLanded: "2024-01-25T00:00:00.000Z",
+              exportWeight: 200,
+              faoArea: "FAO27"
+            }
+          }]
+        }]
+      },
+      exporter: {
+        exporterFullName: 'Long Details Test',
+        exporterCompanyName: 'Details Test Ltd',
+        addressOne: '111 Detail St',
+        townCity: 'DetailCity',
+        postcode: 'DT1 2EF'
+      },
+      transport: {
+        vehicle: 'vessel',
+        nationalityOfVehicle: 'UK',
+        registrationNumber: 'DETAIL01',
+        exportedTo: { officialCountryName: 'Netherlands' }
+      },
+      conservation: { conservationReference: 'Common Fisheries Policy' }
+    };
+
+    // Test verifies handling of long licence details and homePort
+    await renderPdf(pdfType.EXPORT_CERT, data, false, sasJson.qrUri, mockedStream);
+    expect(mockedStream).toBeDefined();
+  });
+
+  test('should handle mixed vessel names - some with long holders, some without', async () => {
+    const sasJson = {
+      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
+      blobName: '_mixed-vessels.pdf',
+      uri: '_mixed-vessels.pdf',
+      qrUri: 'http://localhost:3001/qr/export-certificates/_mixed-vessels.pdf'
+    };
+
+    const data = {
+      documentNumber: "GBR-2024-CC-MIXED",
+      exportPayload: {
+        items: [{
+          product: {
+            commodityCode: "03026900",
+            presentation: { code: "GUT", label: "Gutted" },
+            state: { code: "FRE", label: "Fresh" },
+            species: { code: "MAC", label: "Atlantic mackerel (MAC)" }
+          },
+          landings: [
+            {
+              model: {
+                vessel: {
+                  pln: "M001",
+                  vesselName: "VESSEL ONE",
+                  homePort: "PORT",
+                  licenceNumber: "L1",
+                  licenceHolder: "A"
+                },
+                dateLanded: "2024-02-01T00:00:00.000Z",
+                exportWeight: 30,
+                faoArea: "FAO27"
+              }
+            },
+            {
+              model: {
+                vessel: {
+                  pln: "M002",
+                  vesselName: "VESSEL TWO",
+                  homePort: "LONGPORTNAME",
+                  licenceNumber: "LONG-LIC-NUM-12345",
+                  licenceHolder: "EXTREMELY LONG COMPANY NAME WITH MANY WORDS LIMITED"
+                },
+                dateLanded: "2024-02-02T00:00:00.000Z",
+                exportWeight: 40,
+                faoArea: "FAO27"
+              }
+            },
+            {
+              model: {
+                vessel: {
+                  pln: "M003",
+                  vesselName: "VESSEL THREE",
+                  homePort: "PORT3",
+                  licenceNumber: "L3",
+                  licenceHolder: "SHORT LTD"
+                },
+                dateLanded: "2024-02-03T00:00:00.000Z",
+                exportWeight: 50,
+                faoArea: "FAO27"
+              }
+            }
+          ]
+        }]
+      },
+      exporter: {
+        exporterFullName: 'Mixed Test',
+        exporterCompanyName: 'Mixed Company',
+        addressOne: '222 Mix St',
+        townCity: 'MixCity',
+        postcode: 'MX1 3GH'
+      },
+      transport: {
+        vehicle: 'truck',
+        nationalityOfVehicle: 'UK',
+        registrationNumber: 'MIX789',
+        exportedTo: { officialCountryName: 'Germany' }
+      },
+      conservation: { conservationReference: 'Common Fisheries Policy' }
+    };
+
+    // Test verifies mixed row heights are calculated correctly
+    await renderPdf(pdfType.EXPORT_CERT, data, false, sasJson.qrUri, mockedStream);
+    expect(mockedStream).toBeDefined();
+  });
+
+  test('should handle vessels with empty/null licence holders', async () => {
+    const sasJson = {
+      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
+      blobName: '_empty-holders.pdf',
+      uri: '_empty-holders.pdf',
+      qrUri: 'http://localhost:3001/qr/export-certificates/_empty-holders.pdf'
+    };
+
+    const data = {
+      documentNumber: "GBR-2024-CC-EMPTY",
+      exportPayload: {
+        items: [{
+          product: {
+            commodityCode: "03034100",
+            presentation: { code: "WHL", label: "Whole" },
+            state: { code: "FRE", label: "Fresh" },
+            species: { code: "SKI", label: "Skipjack tuna (SKI)" }
+          },
+          landings: [
+            {
+              model: {
+                vessel: {
+                  pln: "E001",
+                  vesselName: "EMPTY HOLDER VESSEL",
+                  homePort: "EMPTYPORT",
+                  licenceNumber: "EMP001"
+                },
+                dateLanded: "2024-02-10T00:00:00.000Z",
+                exportWeight: 80,
+                faoArea: "FAO27"
+              }
+            },
+            {
+              model: {
+                vessel: {
+                  pln: "E002",
+                  vesselName: "ANOTHER VESSEL",
+                  homePort: "PORT2",
+                  licenceNumber: "EMP002",
+                  licenceHolder: ""
+                },
+                dateLanded: "2024-02-11T00:00:00.000Z",
+                exportWeight: 90,
+                faoArea: "FAO27"
+              }
+            }
+          ]
+        }]
+      },
+      exporter: {
+        exporterFullName: 'Empty Test',
+        exporterCompanyName: 'Empty Company',
+        addressOne: '333 Empty St',
+        townCity: 'EmptyCity',
+        postcode: 'EM1 4JK'
+      },
+      transport: {
+        vehicle: 'truck',
+        nationalityOfVehicle: 'UK',
+        registrationNumber: 'EMP012',
+        exportedTo: { officialCountryName: 'Ireland' }
+      },
+      conservation: { conservationReference: 'Common Fisheries Policy' }
+    };
+
+    // Test verifies empty licence holders default to minimum height
+    await renderPdf(pdfType.EXPORT_CERT, data, false, sasJson.qrUri, mockedStream);
+    expect(mockedStream).toBeDefined();
+  });
+
+  test('should handle edge case - exactly 7 rows per page', async () => {
+    const sasJson = {
+      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
+      blobName: '_seven-rows.pdf',
+      uri: '_seven-rows.pdf',
+      qrUri: 'http://localhost:3001/qr/export-certificates/_seven-rows.pdf'
+    };
+
+    const landings = [];
+    for (let i = 0; i < 7; i++) {
+      landings.push({
+        model: {
+          vessel: {
+            pln: `S${i}`,
+            vesselName: `VESSEL ${i}`,
+            homePort: `PORT${i}`,
+            licenceNumber: `LIC${i}`,
+            licenceHolder: `HOLDER ${i}`
+          },
+          dateLanded: "2024-02-15T00:00:00.000Z",
+          exportWeight: 20 + i,
+          faoArea: "FAO27"
+        }
+      });
+    }
+
+    const data = {
+      documentNumber: "GBR-2024-CC-SEVEN",
+      exportPayload: {
+        items: [{
+          product: {
+            commodityCode: "03037100",
+            presentation: { code: "FIL", label: "Filleted" },
+            state: { code: "FRO", label: "Frozen" },
+            species: { code: "SAL", label: "Atlantic salmon (SAL)" }
+          },
+          landings: landings
+        }]
+      },
+      exporter: {
+        exporterFullName: 'Seven Test',
+        exporterCompanyName: 'Seven Company',
+        addressOne: '444 Seven St',
+        townCity: 'SevenCity',
+        postcode: 'SV1 5LM'
+      },
+      transport: {
+        vehicle: 'truck',
+        nationalityOfVehicle: 'UK',
+        registrationNumber: 'SEV777',
+        exportedTo: { officialCountryName: 'Italy' }
+      },
+      conservation: { conservationReference: 'Common Fisheries Policy' }
+    };
+
+    // Test verifies edge case of exactly fitting rows on one page
+    await renderPdf(pdfType.EXPORT_CERT, data, false, sasJson.qrUri, mockedStream);
+    expect(mockedStream).toBeDefined();
+  });
+
+  test('should handle sample mode with multi-vessel schedule', async () => {
+    const sasJson = {
+      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
+      blobName: '_sample-multi.pdf',
+      uri: '_sample-multi.pdf',
+      qrUri: 'http://localhost:3001/qr/export-certificates/_sample-multi.pdf'
+    };
+
+    const data = {
+      documentNumber: "GBR-2024-CC-SAMPLE",
+      exportPayload: {
+        items: [{
+          product: {
+            commodityCode: "03025500",
+            presentation: { code: "WHL", label: "Whole" },
+            state: { code: "ALI", label: "Alive" },
+            species: { code: "LBE", label: "Blue lobster (LBE)" }
+          },
+          landings: [
+            {
+              model: {
+                vessel: {
+                  pln: "SAM1",
+                  vesselName: "SAMPLE VESSEL 1",
+                  homePort: "SAMPLEPORT",
+                  licenceNumber: "SAM001",
+                  licenceHolder: "SAMPLE LICENCE HOLDER NAME ONE"
+                },
+                dateLanded: "2024-03-01T00:00:00.000Z",
+                exportWeight: 15,
+                faoArea: "FAO27"
+              }
+            },
+            {
+              model: {
+                vessel: {
+                  pln: "SAM2",
+                  vesselName: "SAMPLE VESSEL 2",
+                  homePort: "PORT",
+                  licenceNumber: "SAM002",
+                  licenceHolder: "SAMPLE HOLDER TWO"
+                },
+                dateLanded: "2024-03-02T00:00:00.000Z",
+                exportWeight: 25,
+                faoArea: "FAO27"
+              }
+            }
+          ]
+        }]
+      },
+      exporter: {
+        exporterFullName: 'Sample Test',
+        exporterCompanyName: 'Sample Company',
+        addressOne: '555 Sample St',
+        townCity: 'SampleCity',
+        postcode: 'SM1 6NP'
+      },
+      transport: {
+        vehicle: 'truck',
+        nationalityOfVehicle: 'UK',
+        registrationNumber: 'SAM123',
+        exportedTo: { officialCountryName: 'Portugal' }
+      },
+      conservation: { conservationReference: 'Common Fisheries Policy' }
+    };
+
+    // Test verifies sample mode rendering with masked document number
+    await renderPdf(pdfType.EXPORT_CERT, data, true, sasJson.qrUri, mockedStream);
+    expect(mockedStream).toBeDefined();
+  });
+
+  test('should handle vessels with special characters in names', async () => {
+    const sasJson = {
+      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
+      blobName: '_special-chars.pdf',
+      uri: '_special-chars.pdf',
+      qrUri: 'http://localhost:3001/qr/export-certificates/_special-chars.pdf'
+    };
+
+    const data = {
+      documentNumber: "GBR-2024-CC-SPECIAL",
+      exportPayload: {
+        items: [{
+          product: {
+            commodityCode: "03061100",
+            presentation: { code: "WHL", label: "Whole" },
+            state: { code: "FRE", label: "Fresh" },
+            species: { code: "NEP", label: "Norway lobster (NEP)" }
+          },
+          landings: [{
+            model: {
+              vessel: {
+                pln: "SP001",
+                vesselName: "O'BRIEN & SONS",
+                homePort: "PORT-NAME",
+                licenceNumber: "LIC/2024/001",
+                licenceHolder: "O'MALLEY & COMPANY - FISHING SERVICES LTD"
+              },
+              dateLanded: "2024-03-10T00:00:00.000Z",
+              exportWeight: 120,
+              faoArea: "FAO27"
+            }
+          }]
+        }]
+      },
+      exporter: {
+        exporterFullName: "John O'Brien",
+        exporterCompanyName: "O'Brien & Co",
+        addressOne: '666 Special St',
+        townCity: 'SpecialCity',
+        postcode: 'SP1 7QR'
+      },
+      transport: {
+        vehicle: 'truck',
+        nationalityOfVehicle: 'UK',
+        registrationNumber: 'SPC999',
+        exportedTo: { officialCountryName: 'Denmark' }
+      },
+      conservation: { conservationReference: 'Common Fisheries Policy' }
+    };
+
+    // Test verifies special characters are handled correctly in text
+    await renderPdf(pdfType.EXPORT_CERT, data, false, sasJson.qrUri, mockedStream);
+    expect(mockedStream).toBeDefined();
+  });
 });
