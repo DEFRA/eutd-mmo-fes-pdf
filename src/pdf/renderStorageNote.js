@@ -9,6 +9,8 @@ const getSectionContinuedTitle = (sectionNumber, type) => {
 
 const PAGE_HEIGHT = 780;
 const GAP = 15;
+const SECTION_4_SEPARATOR_GAP = 30;
+const CONSIGNMENT_SEPARATOR_OFFSET = 5;
 let currentPage = 1;
  
 const formatCurrentDate = () => {
@@ -80,7 +82,7 @@ const renderAllSections = (doc, data, isSample, buff, initialStartY, dateOfSubmi
     ensureSpaceAndMaybeNewPage(section4Height);
     section4(doc, data, startY);
     
-    startY = startY + section4Height + GAP + 30;
+    startY = startY + section4Height + GAP + SECTION_4_SEPARATOR_GAP;
  
     // Section 5
     const section5Height = estimateConsignmentSection();
@@ -136,7 +138,7 @@ const estimateSection2 = () => {
 const estimateConsignmentSection = () => {
     const headerCellHeight = PdfStyle.ROW.HEIGHT * 2.8;
     const cellHeight = PdfStyle.ROW.HEIGHT * 3;
-    return 12 + headerCellHeight + (3 * cellHeight) + 5 + PdfStyle.ROW.HEIGHT;
+    return 12 + headerCellHeight + (3 * cellHeight) + CONSIGNMENT_SEPARATOR_OFFSET + PdfStyle.ROW.HEIGHT;
 };
  
 const estimateSection4 = () => {
