@@ -394,7 +394,7 @@ const createConsignmentTable = (doc, data, startY, type, maxRows = null, showSep
     myTableHeadRow.add(myTableHeadSix);
     const myTableHeadSixContent = doc.markStructureContent('TH');
     myTableHeadSix.add(myTableHeadSixContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + CONSIGNMENT_PADDING_X + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[COL3] + colWidths[4], yPos, colWidths[5], headerCellHeight, ['Net fishery product', `weight in kg ${weightLabel}`, 'the place of storage']);
+    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + CONSIGNMENT_PADDING_X + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[COL3] + colWidths[4], yPos, colWidths[COL5], headerCellHeight, ['Net fishery product', `weight in kg ${weightLabel}`, 'the place of storage']);
     myTableHeadSix.end();
 
     myTableHeadRow.end();
