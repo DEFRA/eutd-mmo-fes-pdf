@@ -1341,13 +1341,14 @@ const section14 = (doc, data, startY) => {
 const section13 = (doc, data, startY) => {
 
     // Section 13 - Refusal of catch certificate (EU2026 changes)
-    const yPos = startY + PdfStyle.ROW.HEIGHT * 3;
+    const ROW_MULTIPLIER_FOR_YPOS = 3;
+    const yPos = startY + PdfStyle.ROW.HEIGHT * ROW_MULTIPLIER_FOR_YPOS;
     doc.addStructure(doc.struct('P', () => {
         PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, yPos, '13');
     }));
-    const headerHeight = PdfStyle.ROW.HEIGHT * 2 - 3;
+    const headerHeight = PdfStyle.ROW.HEIGHT * 2 - ROW_MULTIPLIER_FOR_YPOS;
     const rowHeight = PdfStyle.ROW.HEIGHT+20;
-    const cellHeight = PdfStyle.ROW.HEIGHT * 2 - 3;
+    const cellHeight = PdfStyle.ROW.HEIGHT * 2 - ROW_MULTIPLIER_FOR_YPOS;
 
     // Build table head and body with three columns: blank left column, provision text, tick column
     const provisionTexts = [
@@ -1628,29 +1629,43 @@ const section6 = (doc, data, startY) => {
         ])
     ]));
 
-    yPos += cellHeight + 30;
+    const YPOS_INCREMENT = 30;
+    yPos += cellHeight + YPOS_INCREMENT;
+
+    const MASTER_COL_OFFSET = 15;
+    const MASTER_COL_WIDTH = 100;
+    const SIGNATURE_COL_OFFSET = 115;
+    const SIGNATURE_COL_WIDTH = 100;
+    const VESSEL_NAME_COL_OFFSET = 215;
+    const VESSEL_NAME_COL_WIDTH = 90;
+    const CALL_SIGN_COL_OFFSET = 305;
+    const CALL_SIGN_COL_WIDTH = 90;
+    const IMO_IDENTIFIER_COL_OFFSET = 395;
+    const IMO_IDENTIFIER_COL_WIDTH = 135;
 
     doc.addStructure(doc.struct('Table', [
         doc.struct('THead', [
             doc.struct('TR', [
-                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 100, cellHeight, ['Master of Receiving', 'Vessel'])),
-                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 115, yPos, 100, cellHeight, 'Signature')),
-                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 215, yPos, 90, cellHeight, 'Vessel Name')),
-                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 305, yPos, 90, cellHeight, 'Call Sign')),
-                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 395, yPos, 135, cellHeight, [IMO_VESSEL_IDENTIFIER_TEXT]))
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + MASTER_COL_OFFSET, yPos, MASTER_COL_WIDTH, cellHeight, ['Master of Receiving', 'Vessel'])),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + SIGNATURE_COL_OFFSET, yPos, SIGNATURE_COL_WIDTH, cellHeight, 'Signature')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + VESSEL_NAME_COL_OFFSET, yPos, VESSEL_NAME_COL_WIDTH, cellHeight, 'Vessel Name')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + CALL_SIGN_COL_OFFSET, yPos, CALL_SIGN_COL_WIDTH, cellHeight, 'Call Sign')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + IMO_IDENTIFIER_COL_OFFSET, yPos, IMO_IDENTIFIER_COL_WIDTH, cellHeight, [IMO_VESSEL_IDENTIFIER_TEXT]))
             ])
         ]),
         doc.struct('TBody', [
             doc.struct('TR', [
-                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos + cellHeight, 100, cellHeight)),
-                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 115, yPos + cellHeight, 100, cellHeight)),
-                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 215, yPos + cellHeight, 90, cellHeight)),
-                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 305, yPos + cellHeight, 90, cellHeight)),
-                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 395, yPos + cellHeight, 135, cellHeight))
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + MASTER_COL_OFFSET, yPos + cellHeight, MASTER_COL_WIDTH, cellHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + SIGNATURE_COL_OFFSET, yPos + cellHeight, SIGNATURE_COL_WIDTH, cellHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + VESSEL_NAME_COL_OFFSET, yPos + cellHeight, VESSEL_NAME_COL_WIDTH, cellHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + CALL_SIGN_COL_OFFSET, yPos + cellHeight, CALL_SIGN_COL_WIDTH, cellHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + IMO_IDENTIFIER_COL_OFFSET, yPos + cellHeight, IMO_IDENTIFIER_COL_WIDTH, cellHeight))
             ])
         ])
     ]));
-    PdfUtils.separator(doc, startY + 130);
+    
+    const SEPARATOR_OFFSET = 130;
+    PdfUtils.separator(doc, startY + SEPARATOR_OFFSET);
 };
 
 const section5 = (doc, data, startY) => {
