@@ -19,6 +19,13 @@ const DATE_SECTION_HEIGHT_OFFSET = 5;
 const TABLE_HEADER_ROW_HEIGHT_MULTIPLIER = 3;
 const TABLE_HEADER_HEIGHT_OFFSET = 14;
 
+// Page section offset constants
+const SECTION14_Y_OFFSET = 70;
+const SECTION15_Y_OFFSET = 280;
+const SECTION16_Y_OFFSET = 400;
+const SECTION17_Y_OFFSET = 530;
+const APPENDIX_TRANSPORT_Y_OFFSET = 40;
+
 const renderExportCert = async (data, isSample, uri, stream) => {
     let buff = null;
     if (!data.isBlankTemplate && !isSample) {
@@ -68,17 +75,17 @@ const renderExportCert = async (data, isSample, uri, stream) => {
     // Page 5: Re-Export Certificate - Sections 1-4
     doc.addPage();
     reExportCertificateHeader(doc, data, isSample, PdfStyle.MARGIN.TOP);
-    section14(doc, data, PdfStyle.MARGIN.TOP + 70);
-    section15(doc, data, PdfStyle.MARGIN.TOP + 280);
-    section16(doc, data, PdfStyle.MARGIN.TOP + 400);
-    section17(doc, data, PdfStyle.MARGIN.TOP + 530);
+    section14(doc, data, PdfStyle.MARGIN.TOP + SECTION14_Y_OFFSET);
+    section15(doc, data, PdfStyle.MARGIN.TOP + SECTION15_Y_OFFSET);
+    section16(doc, data, PdfStyle.MARGIN.TOP + SECTION16_Y_OFFSET);
+    section17(doc, data, PdfStyle.MARGIN.TOP + SECTION17_Y_OFFSET);
     isSample ?? CommonUtils.addSampleWatermark(doc);
     PdfUtils.endOfPage(doc, 5);
 
     // Page 6: Appendix - Transport Details
     doc.addPage();
     appendixHeading(doc, PdfStyle.MARGIN.TOP);
-    appendixTransportDetails(doc, data, PdfStyle.MARGIN.TOP + 40);
+    appendixTransportDetails(doc, data, PdfStyle.MARGIN.TOP + APPENDIX_TRANSPORT_Y_OFFSET);
     isSample ?? CommonUtils.addSampleWatermark(doc);
     PdfUtils.endOfPage(doc, 6);
 
