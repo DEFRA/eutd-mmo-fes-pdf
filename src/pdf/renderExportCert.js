@@ -26,6 +26,9 @@ const SECTION16_Y_OFFSET = 400;
 const SECTION17_Y_OFFSET = 530;
 const APPENDIX_TRANSPORT_Y_OFFSET = 40;
 
+// Text constants
+const IMO_VESSEL_IDENTIFIER_TEXT = 'IMO number or other unique vessel identifier (if applicable)';
+
 const renderExportCert = async (data, isSample, uri, stream) => {
     let buff = null;
     if (!data.isBlankTemplate && !isSample) {
@@ -402,7 +405,7 @@ const createTableHeaderCells = (doc, tableHeadRow, yPos) => {
     createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 300, yPos, 50, cellHeight, ['Net catch', 'weight in kg']);
     createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 350, yPos, 55, cellHeight, ['Verified weight landed(net catch weight in kg)']);
     createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 405, yPos, 65, cellHeight, ['Vessel name and PLN / Callsign']);
-    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 470, yPos, 70, cellHeight, ['IMO number or other unique vessel identifier (if applicable)']);
+    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 470, yPos, 70, cellHeight, [IMO_VESSEL_IDENTIFIER_TEXT]);
     createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + LICENCE_HOLDER_X_OFFSET, yPos, LICENCE_HOLDER_COLUMN_WIDTH, cellHeight, 'Master / Licence Holder');
     createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + LICENCE_DETAIL_X_OFFSET, yPos, LICENCE_DETAIL_COLUMN_WIDTH, cellHeight, ['Licence Number /', 'Flag-Homeport']);
     createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 660, yPos, 75, cellHeight, ['Catch Area(s) (Catch Area, EEZ, RFMO, High Seas)']);
@@ -537,7 +540,9 @@ const multiVesselScheduleHeadingDynamic = (doc, data, isSample, buff, pageConfig
 };
 
 const formatCatchAreaData = (row) => {
-    if (!row) return '';
+    if (!row) {
+        return '';
+    }
     
     let catchAreaText = row.faoArea || '';
     
@@ -629,7 +634,7 @@ const generateMultiVesselTableRows = (tableBodyRow, doc, yPos, cellHeight, rowId
 
 const appendixTransportDetails = (doc, data, startY) => {
     doc.font(PdfStyle.FONT.REGULAR);
-    let yPos = startY;
+    const yPos = startY;
     
     // Get first transport mode for country/departure/destination (backward compatible)
     const transportModes = getTransportModes(data);
@@ -817,7 +822,9 @@ const extractVesselFromTransport = (transport) => {
 
 const extractVesselFromExportPayload = (data) => {
     const vessel = data.exportPayload?.items?.[0]?.landings?.[0]?.model?.vessel;
-    if (!vessel) return null;
+    if (!vessel) {
+        return null;
+    }
     
     const pln = vessel.pln ? `(${vessel.pln})` : '';
     return formatVesselDetail(vessel.vesselName, pln);
@@ -982,7 +989,7 @@ const getOtherTransportDocuments = (data) => {
                     .filter(line => line.length > 0);
                 
                 documentLines = documentLines.concat(formattedDocs);
-            } else if (typeof docs === 'string') {
+            } else {
                 // Handle string format (newline-separated)
                 const lines = docs.split('\n').map(line => line.trim()).filter(line => line.length > 0);
                 documentLines = documentLines.concat(lines);
@@ -1308,13 +1315,13 @@ const section14 = (doc, data, startY) => {
 const section13 = (doc, data, startY) => {
 
     // Section 13 - Refusal of catch certificate (EU2026 changes)
-    let yPos = startY + PdfStyle.ROW.HEIGHT * 3;
+    const yPos = startY + PdfStyle.ROW.HEIGHT * 3;
     doc.addStructure(doc.struct('P', () => {
         PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, yPos, '13');
     }));
     const headerHeight = PdfStyle.ROW.HEIGHT * 2 - 3;
     const rowHeight = PdfStyle.ROW.HEIGHT+20;
-    let cellHeight = PdfStyle.ROW.HEIGHT * 2 - 3;
+    const cellHeight = PdfStyle.ROW.HEIGHT * 2 - 3;
 
     // Build table head and body with three columns: blank left column, provision text, tick column
     const provisionTexts = [
@@ -1545,7 +1552,7 @@ const section7 = (doc, data, startY) => {
     doc.addStructure(doc.struct('Table', [
         doc.struct('THead', [
             doc.struct('TR', [
-                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 185, cellHeight, 'IMO number or other unique vessel identifier (if applicable)')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 185, cellHeight, IMO_VESSEL_IDENTIFIER_TEXT)),
                 doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 200, yPos, 125, cellHeight, 'Port of transhipment (as appropriate)')),
                 doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 325, yPos, 75, cellHeight, 'Date of transhipment (as appropriate)')),
                 doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 400, yPos, 50, cellHeight, 'Name and registration number of receiving vessel')),
@@ -1604,7 +1611,7 @@ const section6 = (doc, data, startY) => {
                 doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 115, yPos, 100, cellHeight, 'Signature')),
                 doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 215, yPos, 90, cellHeight, 'Vessel Name')),
                 doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 305, yPos, 90, cellHeight, 'Call Sign')),
-                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 395, yPos, 135, cellHeight, ['IMO number or other unique vessel identifier (if applicable)']))
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 395, yPos, 135, cellHeight, [IMO_VESSEL_IDENTIFIER_TEXT]))
             ])
         ]),
         doc.struct('TBody', [
@@ -1817,8 +1824,9 @@ const getVesselNameField = (vesselCounts, items) => {
         return items[0].landings[0].model.vessel.vesselName;
     } else if (vesselCount > 1) {
         return 'Multiple vessels - SEE SCHEDULE';
+    } else {
+        return '';
     }
-    return '';
 };
 
 const getSingleVesselDetails = (vesselCounts, items) => {

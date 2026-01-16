@@ -28,6 +28,10 @@ const SECTION_4_COL1_WIDTH = 110;    // Name
 const SECTION_4_COL1_X = MARGIN_OFFSET;
 const SECTION_4_COL2_X = SECTION_4_COL1_X + SECTION_4_COL1_WIDTH;  // 125
 const SECTION_4_COL2_WIDTH = 145;    // Address
+
+// Transport field keys
+const ARRIVAL_TRANSPORT_CONTAINER_NUMBERS = 'arrivalTransport.containerNumbers';
+const TRANSPORT_CONTAINER_NUMBERS = 'transport.containerNumbers';
 const SECTION_4_COL3_X = SECTION_4_COL2_X + SECTION_4_COL2_WIDTH;  // 270
 const SECTION_4_COL3_WIDTH = 110;    // Approval number
 const SECTION_4_COL4_X = SECTION_4_COL3_X + SECTION_4_COL3_WIDTH;  // 380
@@ -224,7 +228,7 @@ const estimateSection2 = () => {
         'arrivalTransport.departureDate',
         'arrivalTransport.departurePort',
         'arrivalTransport.vehicle',
-        'arrivalTransport.containerNumbers',
+        ARRIVAL_TRANSPORT_CONTAINER_NUMBERS,
         'facilityArrivalDate',
         'arrivalTransport.placeOfUnloading'
     ];
@@ -258,7 +262,7 @@ const estimateSection6 = () => {
         'transport.exportDate',
         'transport.departurePlace',
         'transport.vehicle',
-        'transport.containerNumbers',
+        TRANSPORT_CONTAINER_NUMBERS,
         'transport.exportedTo.officialCountryName'
     ];
     let sum = 0;
@@ -573,7 +577,7 @@ const section6 = (doc, data, startY) => {
         { label: 'Date of departure from the place of storage (reloading)', key: 'transport.exportDate' },
         { label: 'Last port, airport or point of departure from the country of storage', key: 'transport.departurePlace' },
         { label: 'Details of transport (Vessel name and flag / flight number - airway bill / railway bill / freight bill - truck registration number)', key: 'transport.vehicle' },
-        { label: 'Container number(s) (where applicable)', key: 'transport.containerNumbers' },
+        { label: 'Container number(s) (where applicable)', key: TRANSPORT_CONTAINER_NUMBERS },
         { label: 'Point of destination: Port, airport or other point of destination', key: 'transport.pointOfDestination' }
     ];
 
@@ -826,7 +830,7 @@ const isVehicleTransportKey = (key) =>
     key === 'arrivalTransport.vehicle' || key === 'transport.vehicle';
 
 const isContainerNumberKey = (key) =>
-    key === 'arrivalTransport.containerNumbers' || key === 'transport.containerNumbers';
+    key === ARRIVAL_TRANSPORT_CONTAINER_NUMBERS || key === TRANSPORT_CONTAINER_NUMBERS;
 
 const shouldUseExpandedHeight = (key) =>
     isVehicleTransportKey(key) || isContainerNumberKey(key);
@@ -918,7 +922,7 @@ const section2 = (doc, data, startY) => {
         { label: 'Date of departure:', key: 'arrivalTransport.departureDate' },
         { label: 'Last port, airport or other point of departure before arrival to the country of storage', key: 'arrivalTransport.departurePort' },
         { label: 'Details of transport (Vessel name and flag / flight number - airway bill / railway bill / freight bill - truck registration number)', key: 'arrivalTransport.vehicle' },
-        { label: 'Container number(s) (where applicable)', key: 'arrivalTransport.containerNumbers' },
+        { label: 'Container number(s) (where applicable)', key: ARRIVAL_TRANSPORT_CONTAINER_NUMBERS },
         { label: 'Date of arrival to the place of storage (unloading)', key: 'facilityArrivalDate' },
         { label: 'Place of storage', key: 'arrivalTransport.placeOfUnloading' }
     ];
