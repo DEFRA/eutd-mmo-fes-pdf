@@ -29,6 +29,32 @@ const APPENDIX_TRANSPORT_Y_OFFSET = 40;
 // Text constants
 const IMO_VESSEL_IDENTIFIER_TEXT = 'IMO number or other unique vessel identifier (if applicable)';
 
+// Multi-vessel schedule table column positions (x-offset from MARGIN.LEFT)
+const MVS_COL_SPECIES_X = 0;
+const MVS_COL_PRESENTATION_X = 75;
+const MVS_COL_PRODUCT_CODE_X = 135;
+const MVS_COL_CATCH_DATE_X = 185;
+const MVS_COL_EST_WEIGHT_X = 245;
+const MVS_COL_NET_WEIGHT_X = 300;
+const MVS_COL_VERIFIED_WEIGHT_X = 350;
+const MVS_COL_VESSEL_NAME_X = 405;
+const MVS_COL_IMO_X = 470;
+const MVS_COL_CATCH_AREA_X = 660;
+const MVS_COL_FISHING_GEAR_X = 735;
+
+// Multi-vessel schedule table column widths
+const MVS_COL_SPECIES_WIDTH = 75;
+const MVS_COL_PRESENTATION_WIDTH = 60;
+const MVS_COL_PRODUCT_CODE_WIDTH = 50;
+const MVS_COL_CATCH_DATE_WIDTH = 60;
+const MVS_COL_EST_WEIGHT_WIDTH = 55;
+const MVS_COL_NET_WEIGHT_WIDTH = 50;
+const MVS_COL_VERIFIED_WEIGHT_WIDTH = 55;
+const MVS_COL_VESSEL_NAME_WIDTH = 65;
+const MVS_COL_IMO_WIDTH = 70;
+const MVS_COL_CATCH_AREA_WIDTH = 75;
+const MVS_COL_FISHING_GEAR_WIDTH = 45;
+
 const renderExportCert = async (data, isSample, uri, stream) => {
     let buff = null;
     if (!data.isBlankTemplate && !isSample) {
@@ -397,19 +423,19 @@ const renderDateSection = (doc, data, isSample, buff, yPos) => {
 
 const createTableHeaderCells = (doc, tableHeadRow, yPos) => {
     const cellHeight = PdfStyle.ROW.HEIGHT * TABLE_HEADER_ROW_HEIGHT_MULTIPLIER + TABLE_HEADER_HEIGHT_OFFSET;
-    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT, yPos, 75, cellHeight, 'Species');
-    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 75, yPos, 60, cellHeight, ['Presentation']);
-    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 135, yPos, 50, cellHeight, ['Product', 'code']);
-    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 185, yPos, 60, cellHeight, ['Catch Date(s)', '(from-to)']);
-    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 245, yPos, 55, cellHeight, ['Estimated weight to be landed in kg']);
-    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 300, yPos, 50, cellHeight, ['Net catch', 'weight in kg']);
-    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 350, yPos, 55, cellHeight, ['Verified weight landed(net catch weight in kg)']);
-    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 405, yPos, 65, cellHeight, ['Vessel name and PLN / Callsign']);
-    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 470, yPos, 70, cellHeight, [IMO_VESSEL_IDENTIFIER_TEXT]);
+    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + MVS_COL_SPECIES_X, yPos, MVS_COL_SPECIES_WIDTH, cellHeight, 'Species');
+    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + MVS_COL_PRESENTATION_X, yPos, MVS_COL_PRESENTATION_WIDTH, cellHeight, ['Presentation']);
+    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + MVS_COL_PRODUCT_CODE_X, yPos, MVS_COL_PRODUCT_CODE_WIDTH, cellHeight, ['Product', 'code']);
+    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + MVS_COL_CATCH_DATE_X, yPos, MVS_COL_CATCH_DATE_WIDTH, cellHeight, ['Catch Date(s)', '(from-to)']);
+    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + MVS_COL_EST_WEIGHT_X, yPos, MVS_COL_EST_WEIGHT_WIDTH, cellHeight, ['Estimated weight to be landed in kg']);
+    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + MVS_COL_NET_WEIGHT_X, yPos, MVS_COL_NET_WEIGHT_WIDTH, cellHeight, ['Net catch', 'weight in kg']);
+    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + MVS_COL_VERIFIED_WEIGHT_X, yPos, MVS_COL_VERIFIED_WEIGHT_WIDTH, cellHeight, ['Verified weight landed(net catch weight in kg)']);
+    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + MVS_COL_VESSEL_NAME_X, yPos, MVS_COL_VESSEL_NAME_WIDTH, cellHeight, ['Vessel name and PLN / Callsign']);
+    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + MVS_COL_IMO_X, yPos, MVS_COL_IMO_WIDTH, cellHeight, [IMO_VESSEL_IDENTIFIER_TEXT]);
     createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + LICENCE_HOLDER_X_OFFSET, yPos, LICENCE_HOLDER_COLUMN_WIDTH, cellHeight, 'Master / Licence Holder');
     createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + LICENCE_DETAIL_X_OFFSET, yPos, LICENCE_DETAIL_COLUMN_WIDTH, cellHeight, ['Licence Number /', 'Flag-Homeport']);
-    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 660, yPos, 75, cellHeight, ['Catch Area(s) (Catch Area, EEZ, RFMO, High Seas)']);
-    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + 735, yPos, 45, cellHeight, ['Fishing', 'Gear']);
+    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + MVS_COL_CATCH_AREA_X, yPos, MVS_COL_CATCH_AREA_WIDTH, cellHeight, ['Catch Area(s) (Catch Area, EEZ, RFMO, High Seas)']);
+    createMVSTableHeaderCell(doc, tableHeadRow, PdfStyle.MARGIN.LEFT + MVS_COL_FISHING_GEAR_X, yPos, MVS_COL_FISHING_GEAR_WIDTH, cellHeight, ['Fishing', 'Gear']);
     return yPos + cellHeight;
 };
 
