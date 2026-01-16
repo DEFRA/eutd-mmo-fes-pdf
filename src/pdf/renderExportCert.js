@@ -1514,22 +1514,31 @@ const section8 = (doc, data, isSample, buff, startY) => {
         dateOfAcceptance = '';
     }
 
+    const EXPORTER_NAME_COL_OFFSET = 15;
+    const EXPORTER_NAME_COL_WIDTH = 230;
+    const SIGNATURE_COL_OFFSET = 245;
+    const SIGNATURE_COL_WIDTH = 115;
+    const DATE_ACCEPTANCE_COL_OFFSET = 360;
+    const DATE_ACCEPTANCE_COL_WIDTH = 95;
+    const SEAL_COL_OFFSET = 455;
+    const SEAL_COL_WIDTH = 75;
+
     doc.addStructure(doc.struct('Table', [
         doc.struct('THead', [
             doc.struct('TR', [
-                doc.struct('TH', ()=> PdfUtils.tableHeaderCellBold(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 230, PdfStyle.ROW.HEIGHT, 'Name and address of Exporter')),
-                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 245, yPos, 115, PdfStyle.ROW.HEIGHT, 'Signature')),
-                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 360, yPos, 95, PdfStyle.ROW.HEIGHT, 'Date of acceptance(*)')),
-                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 455, yPos, 75, PdfStyle.ROW.HEIGHT, 'Seal'))
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCellBold(doc, PdfStyle.MARGIN.LEFT + EXPORTER_NAME_COL_OFFSET, yPos, EXPORTER_NAME_COL_WIDTH, PdfStyle.ROW.HEIGHT, 'Name and address of Exporter')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + SIGNATURE_COL_OFFSET, yPos, SIGNATURE_COL_WIDTH, PdfStyle.ROW.HEIGHT, 'Signature')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + DATE_ACCEPTANCE_COL_OFFSET, yPos, DATE_ACCEPTANCE_COL_WIDTH, PdfStyle.ROW.HEIGHT, 'Date of acceptance(*)')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + SEAL_COL_OFFSET, yPos, SEAL_COL_WIDTH, PdfStyle.ROW.HEIGHT, 'Seal'))
             ])
         ]),
         doc.struct('TBody', [
             doc.struct('TR', [
-                doc.struct('TD', ()=> PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 15, yPos + PdfStyle.ROW.HEIGHT, 230, cellHeight,
+                doc.struct('TD', ()=> PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + EXPORTER_NAME_COL_OFFSET, yPos + PdfStyle.ROW.HEIGHT, EXPORTER_NAME_COL_WIDTH, cellHeight,
                     [exporterFullName, exporterCompanyName, exporterAddress])),
-                doc.struct('TD', ()=> PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 245, yPos + PdfStyle.ROW.HEIGHT, 115, cellHeight, exporterFullName)),
-                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 360, yPos + PdfStyle.ROW.HEIGHT, 95, cellHeight, dateOfAcceptance)),
-                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 455, yPos + PdfStyle.ROW.HEIGHT, 75, cellHeight))
+                doc.struct('TD', ()=> PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + SIGNATURE_COL_OFFSET, yPos + PdfStyle.ROW.HEIGHT, SIGNATURE_COL_WIDTH, cellHeight, exporterFullName)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + DATE_ACCEPTANCE_COL_OFFSET, yPos + PdfStyle.ROW.HEIGHT, DATE_ACCEPTANCE_COL_WIDTH, cellHeight, dateOfAcceptance)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + SEAL_COL_OFFSET, yPos + PdfStyle.ROW.HEIGHT, SEAL_COL_WIDTH, cellHeight))
             ])
         ])
     ]));
@@ -1544,61 +1553,98 @@ const section8 = (doc, data, isSample, buff, startY) => {
 
 const section7 = (doc, data, startY) => {
 
+    const YPOS_OFFSET = 12;
+    const CELL_HEIGHT_MULTIPLIER = 2.5;
+    const CELL_HEIGHT_ADJUSTMENT = 6;
+    const YPOS_INCREMENT_BETWEEN_TABLES = 32;
+    const SECOND_TABLE_HEIGHT_MULTIPLIER = 4.5;
+    const SEPARATOR_OFFSET = 209;
+
+    // First table column definitions
+    const NAME_COL_OFFSET = 15;
+    const NAME_COL_WIDTH = 65;
+    const AUTHORITY_COL_OFFSET = 80;
+    const AUTHORITY_COL_WIDTH = 60;
+    const SIGNATURE_COL_OFFSET = 140;
+    const SIGNATURE_COL_WIDTH = 60;
+    const ADDRESS_COL_OFFSET = 200;
+    const ADDRESS_COL_WIDTH = 65;
+    const TEL_COL_OFFSET = 265;
+    const TEL_COL_WIDTH = 60;
+    const PORT_LANDING_COL_OFFSET = 325;
+    const PORT_LANDING_COL_WIDTH = 75;
+    const DATE_LANDING_COL_OFFSET = 400;
+    const DATE_LANDING_COL_WIDTH = 130;
+
+    // Second table column definitions
+    const IMO_VESSEL_COL_OFFSET = 15;
+    const IMO_VESSEL_COL_WIDTH = 185;
+    const PORT_TRANSHIP_COL_OFFSET = 200;
+    const PORT_TRANSHIP_COL_WIDTH = 125;
+    const DATE_TRANSHIP_COL_OFFSET = 325;
+    const DATE_TRANSHIP_COL_WIDTH = 75;
+    const RECEIVING_VESSEL_COL_OFFSET = 400;
+    const RECEIVING_VESSEL_COL_WIDTH = 50;
+    const SEAL1_COL_OFFSET = 450;
+    const SEAL1_COL_WIDTH = 40;
+    const SEAL2_COL_OFFSET = 490;
+    const SEAL2_COL_WIDTH = 40;
+
     doc.addStructure(doc.struct('P', () => {
         PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '7    Transhipment and/or landing authorisation within a port area:');
     }));
-    let yPos = startY + 12;
-    let cellHeight = PdfStyle.ROW.HEIGHT  * 2.5 - 6;
+    let yPos = startY + YPOS_OFFSET;
+    let cellHeight = PdfStyle.ROW.HEIGHT * CELL_HEIGHT_MULTIPLIER - CELL_HEIGHT_ADJUSTMENT;
 
     doc.addStructure(doc.struct('Table', [
         doc.struct('THead', [
             doc.struct('TR', [
-                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 65, cellHeight, 'Name')),
-                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 80, yPos, 60, cellHeight, 'Authority')),
-                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 140, yPos, 60, cellHeight, 'Signature')),
-                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 200, yPos, 65, cellHeight, 'Address')),
-                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 265, yPos, 60, cellHeight, 'Tel.')),
-                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 325, yPos, 75, cellHeight, 'Port of landing (as appropriate)')),
-                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 400, yPos, 130, cellHeight, 'Date of landing (as appropriate)')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + NAME_COL_OFFSET, yPos, NAME_COL_WIDTH, cellHeight, 'Name')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + AUTHORITY_COL_OFFSET, yPos, AUTHORITY_COL_WIDTH, cellHeight, 'Authority')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + SIGNATURE_COL_OFFSET, yPos, SIGNATURE_COL_WIDTH, cellHeight, 'Signature')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + ADDRESS_COL_OFFSET, yPos, ADDRESS_COL_WIDTH, cellHeight, 'Address')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + TEL_COL_OFFSET, yPos, TEL_COL_WIDTH, cellHeight, 'Tel.')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + PORT_LANDING_COL_OFFSET, yPos, PORT_LANDING_COL_WIDTH, cellHeight, 'Port of landing (as appropriate)')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + DATE_LANDING_COL_OFFSET, yPos, DATE_LANDING_COL_WIDTH, cellHeight, 'Date of landing (as appropriate)')),
             ])
         ]),
         doc.struct('TBody', [
             doc.struct('TR', [
-                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos + cellHeight, 65, cellHeight)),
-                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 80, yPos + cellHeight, 60, cellHeight)),
-                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 140, yPos + cellHeight, 60, cellHeight)),
-                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 200, yPos + cellHeight, 65, cellHeight)),
-                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 265, yPos + cellHeight, 60, cellHeight)),
-                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 325, yPos + cellHeight, 75, cellHeight)),
-                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 400, yPos + cellHeight, 130, cellHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + NAME_COL_OFFSET, yPos + cellHeight, NAME_COL_WIDTH, cellHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + AUTHORITY_COL_OFFSET, yPos + cellHeight, AUTHORITY_COL_WIDTH, cellHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + SIGNATURE_COL_OFFSET, yPos + cellHeight, SIGNATURE_COL_WIDTH, cellHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + ADDRESS_COL_OFFSET, yPos + cellHeight, ADDRESS_COL_WIDTH, cellHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + TEL_COL_OFFSET, yPos + cellHeight, TEL_COL_WIDTH, cellHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + PORT_LANDING_COL_OFFSET, yPos + cellHeight, PORT_LANDING_COL_WIDTH, cellHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + DATE_LANDING_COL_OFFSET, yPos + cellHeight, DATE_LANDING_COL_WIDTH, cellHeight)),
             ])
         ])
     ]));
-    yPos += cellHeight + 32;
-    cellHeight = PdfStyle.ROW.HEIGHT  * 4.5 - 6;
+    yPos += cellHeight + YPOS_INCREMENT_BETWEEN_TABLES;
+    cellHeight = PdfStyle.ROW.HEIGHT * SECOND_TABLE_HEIGHT_MULTIPLIER - CELL_HEIGHT_ADJUSTMENT;
     doc.addStructure(doc.struct('Table', [
         doc.struct('THead', [
             doc.struct('TR', [
-                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 185, cellHeight, IMO_VESSEL_IDENTIFIER_TEXT)),
-                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 200, yPos, 125, cellHeight, 'Port of transhipment (as appropriate)')),
-                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 325, yPos, 75, cellHeight, 'Date of transhipment (as appropriate)')),
-                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 400, yPos, 50, cellHeight, 'Name and registration number of receiving vessel')),
-                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 450, yPos, 40, cellHeight, 'Seal (Stamp)')),
-                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 490, yPos, 40, cellHeight, 'Seal (Stamp)'))
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + IMO_VESSEL_COL_OFFSET, yPos, IMO_VESSEL_COL_WIDTH, cellHeight, IMO_VESSEL_IDENTIFIER_TEXT)),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + PORT_TRANSHIP_COL_OFFSET, yPos, PORT_TRANSHIP_COL_WIDTH, cellHeight, 'Port of transhipment (as appropriate)')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + DATE_TRANSHIP_COL_OFFSET, yPos, DATE_TRANSHIP_COL_WIDTH, cellHeight, 'Date of transhipment (as appropriate)')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + RECEIVING_VESSEL_COL_OFFSET, yPos, RECEIVING_VESSEL_COL_WIDTH, cellHeight, 'Name and registration number of receiving vessel')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + SEAL1_COL_OFFSET, yPos, SEAL1_COL_WIDTH, cellHeight, 'Seal (Stamp)')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + SEAL2_COL_OFFSET, yPos, SEAL2_COL_WIDTH, cellHeight, 'Seal (Stamp)'))
             ])
         ]),
         doc.struct('TBody', [
             doc.struct('TR', [
-                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos + cellHeight, 185, cellHeight)),
-                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 200, yPos + cellHeight, 125, cellHeight)),
-                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 325, yPos + cellHeight, 75, cellHeight)),
-                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 400, yPos + cellHeight, 50, cellHeight)),
-                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 450, yPos + cellHeight, 40, cellHeight)),
-                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 490, yPos + cellHeight, 40, cellHeight))
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + IMO_VESSEL_COL_OFFSET, yPos + cellHeight, IMO_VESSEL_COL_WIDTH, cellHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + PORT_TRANSHIP_COL_OFFSET, yPos + cellHeight, PORT_TRANSHIP_COL_WIDTH, cellHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + DATE_TRANSHIP_COL_OFFSET, yPos + cellHeight, DATE_TRANSHIP_COL_WIDTH, cellHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + RECEIVING_VESSEL_COL_OFFSET, yPos + cellHeight, RECEIVING_VESSEL_COL_WIDTH, cellHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + SEAL1_COL_OFFSET, yPos + cellHeight, SEAL1_COL_WIDTH, cellHeight)),
+                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + SEAL2_COL_OFFSET, yPos + cellHeight, SEAL2_COL_WIDTH, cellHeight))
             ])
         ])
     ]));
-     PdfUtils.separator(doc, startY + 209);
+     PdfUtils.separator(doc, startY + SEPARATOR_OFFSET);
 };
 
 const section6 = (doc, data, startY) => {
