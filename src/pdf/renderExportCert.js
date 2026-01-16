@@ -1551,16 +1551,7 @@ const section8 = (doc, data, isSample, buff, startY) => {
     PdfUtils.separator(doc, startY + 137);
 };
 
-const section7 = (doc, data, startY) => {
-
-    const YPOS_OFFSET = 12;
-    const CELL_HEIGHT_MULTIPLIER = 2.5;
-    const CELL_HEIGHT_ADJUSTMENT = 6;
-    const YPOS_INCREMENT_BETWEEN_TABLES = 32;
-    const SECOND_TABLE_HEIGHT_MULTIPLIER = 4.5;
-    const SEPARATOR_OFFSET = 209;
-
-    // First table column definitions
+const renderSection7LandingAuthTable = (doc, yPos, cellHeight) => {
     const NAME_COL_OFFSET = 15;
     const NAME_COL_WIDTH = 65;
     const AUTHORITY_COL_OFFSET = 80;
@@ -1575,26 +1566,6 @@ const section7 = (doc, data, startY) => {
     const PORT_LANDING_COL_WIDTH = 75;
     const DATE_LANDING_COL_OFFSET = 400;
     const DATE_LANDING_COL_WIDTH = 130;
-
-    // Second table column definitions
-    const IMO_VESSEL_COL_OFFSET = 15;
-    const IMO_VESSEL_COL_WIDTH = 185;
-    const PORT_TRANSHIP_COL_OFFSET = 200;
-    const PORT_TRANSHIP_COL_WIDTH = 125;
-    const DATE_TRANSHIP_COL_OFFSET = 325;
-    const DATE_TRANSHIP_COL_WIDTH = 75;
-    const RECEIVING_VESSEL_COL_OFFSET = 400;
-    const RECEIVING_VESSEL_COL_WIDTH = 50;
-    const SEAL1_COL_OFFSET = 450;
-    const SEAL1_COL_WIDTH = 40;
-    const SEAL2_COL_OFFSET = 490;
-    const SEAL2_COL_WIDTH = 40;
-
-    doc.addStructure(doc.struct('P', () => {
-        PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '7    Transhipment and/or landing authorisation within a port area:');
-    }));
-    let yPos = startY + YPOS_OFFSET;
-    let cellHeight = PdfStyle.ROW.HEIGHT * CELL_HEIGHT_MULTIPLIER - CELL_HEIGHT_ADJUSTMENT;
 
     doc.addStructure(doc.struct('Table', [
         doc.struct('THead', [
@@ -1620,8 +1591,22 @@ const section7 = (doc, data, startY) => {
             ])
         ])
     ]));
-    yPos += cellHeight + YPOS_INCREMENT_BETWEEN_TABLES;
-    cellHeight = PdfStyle.ROW.HEIGHT * SECOND_TABLE_HEIGHT_MULTIPLIER - CELL_HEIGHT_ADJUSTMENT;
+};
+
+const renderSection7TranshipmentTable = (doc, yPos, cellHeight) => {
+    const IMO_VESSEL_COL_OFFSET = 15;
+    const IMO_VESSEL_COL_WIDTH = 185;
+    const PORT_TRANSHIP_COL_OFFSET = 200;
+    const PORT_TRANSHIP_COL_WIDTH = 125;
+    const DATE_TRANSHIP_COL_OFFSET = 325;
+    const DATE_TRANSHIP_COL_WIDTH = 75;
+    const RECEIVING_VESSEL_COL_OFFSET = 400;
+    const RECEIVING_VESSEL_COL_WIDTH = 50;
+    const SEAL1_COL_OFFSET = 450;
+    const SEAL1_COL_WIDTH = 40;
+    const SEAL2_COL_OFFSET = 490;
+    const SEAL2_COL_WIDTH = 40;
+
     doc.addStructure(doc.struct('Table', [
         doc.struct('THead', [
             doc.struct('TR', [
@@ -1644,7 +1629,31 @@ const section7 = (doc, data, startY) => {
             ])
         ])
     ]));
-     PdfUtils.separator(doc, startY + SEPARATOR_OFFSET);
+};
+
+const section7 = (doc, data, startY) => {
+    const YPOS_OFFSET = 12;
+    const CELL_HEIGHT_MULTIPLIER = 2.5;
+    const CELL_HEIGHT_ADJUSTMENT = 6;
+    const YPOS_INCREMENT_BETWEEN_TABLES = 32;
+    const SECOND_TABLE_HEIGHT_MULTIPLIER = 4.5;
+    const SEPARATOR_OFFSET = 209;
+
+    doc.addStructure(doc.struct('P', () => {
+        PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '7    Transhipment and/or landing authorisation within a port area:');
+    }));
+    
+    let yPos = startY + YPOS_OFFSET;
+    let cellHeight = PdfStyle.ROW.HEIGHT * CELL_HEIGHT_MULTIPLIER - CELL_HEIGHT_ADJUSTMENT;
+
+    renderSection7LandingAuthTable(doc, yPos, cellHeight);
+    
+    yPos += cellHeight + YPOS_INCREMENT_BETWEEN_TABLES;
+    cellHeight = PdfStyle.ROW.HEIGHT * SECOND_TABLE_HEIGHT_MULTIPLIER - CELL_HEIGHT_ADJUSTMENT;
+    
+    renderSection7TranshipmentTable(doc, yPos, cellHeight);
+    
+    PdfUtils.separator(doc, startY + SEPARATOR_OFFSET);
 };
 
 const section6 = (doc, data, startY) => {
