@@ -2116,7 +2116,8 @@ function getDescOfProductRows(exportPayload) {
 const MAX_EXPORT_WEIGHT = 9999999.99;
 
 function getExportWeight(weight) {
-    return `${Number(weight).toFixed(2) > MAX_EXPORT_WEIGHT ? Number.parseInt(weight) : Number(weight).toFixed(2)}`;
+    const numericWeight = Number(weight);
+    return `${numericWeight > MAX_EXPORT_WEIGHT ? Number.parseInt(numericWeight) : numericWeight.toFixed(2)}`;
 }
 
 function getExportWeightText(rowIdx, arrLength, rowData) {
