@@ -77,7 +77,7 @@ describe('test the pdfService itself', () => {
     const  documentNumber = "GBR-2024-SD-8E7FECD6A";
     
     const result = await pdfService.getJourneyName(documentNumber);
-    expect(result).toEqual('StorageDocument');
+    expect(result).toEqual('NonManipulationDocument');
   });
   test('should check the journey from document', async () => {
     
