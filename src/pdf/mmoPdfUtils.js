@@ -104,7 +104,7 @@ module.exports = {
         if (!text || Array.isArray(text)) {
             this.cell({doc, x, y, width, height, textArr: text, trimWidth: true, isBold: false, lineColor: '#767676', textColor: '#6B6B6B', bgColour:'', numberOfLines});
         } else {
-            let textArr = [text];
+            const textArr = [text];
             this.cell({doc, x, y, width, height, textArr, trimWidth: true, isBold: false, lineColor: '#767676', textColor: '#6B6B6B', bgColour:'', numberOfLines});
         }
     },
@@ -121,7 +121,7 @@ module.exports = {
         if (!text || Array.isArray(text)) {
             this.cellNoEllipsis({doc, x, y, width, height, textArr: text, trimWidth: false, isBold: false, lineColor: '#767676', textColor: '#6B6B6B', bgColour:'#f1f4ff', numberOfLines: 1 });
         } else {
-            let textArr = [text];
+            const textArr = [text];
             this.cellNoEllipsis({doc, x, y, width, height, textArr, trimWidth: false, isBold: false, lineColor: '#767676', textColor: '#6B6B6B', bgColour:'#f1f4ff', numberOfLines: 1 });
         }
     },
