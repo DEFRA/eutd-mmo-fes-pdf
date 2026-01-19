@@ -48,9 +48,9 @@ const SECTION_4_SUBROW_COL3_X = SECTION_4_COL4_X + 100; // 480
 const SECTION_7_COL1_WIDTH = 150;    // Company name
 const SECTION_7_COL1_X = MARGIN_OFFSET;
 const SECTION_7_COL2_X = SECTION_7_COL1_X + SECTION_7_COL1_WIDTH;  // 165
-const SECTION_7_COL2_WIDTH = 290;    // Address
-const SECTION_7_COL3_X = SECTION_7_COL2_X + SECTION_7_COL2_WIDTH;  // 455
-const SECTION_7_COL3_WIDTH = 85;     // Date of submission
+const SECTION_7_COL2_WIDTH = 280;    // Address
+const SECTION_7_COL3_X = SECTION_7_COL2_X + SECTION_7_COL2_WIDTH;  // 425
+const SECTION_7_COL3_WIDTH = 110;    // Date of submission
 
 // Row height multipliers
 const CONSIGNMENT_HEADER_MULTIPLIER = 2.8;
@@ -333,7 +333,7 @@ const estimateSection6 = () => {
 };
 
 const estimateSection7 = () => {
-    const headerHeight = PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_2 - SPACING_SMALL;
+    const headerHeight = PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_3_5;
     const contentHeight = PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_4 - SPACING_MEDIUM;
     const footerHeight = PdfStyle.ROW.HEIGHT;
     return TITLE_OFFSET + headerHeight + contentHeight + SPACING_SMALL + footerHeight;
@@ -560,7 +560,7 @@ const section7 = (doc, data, startY, dateOfSubmission) => {
         PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '7.    Exporter details');
     }));
     let yPos = startY + TITLE_OFFSET;
-    const cellHeight = PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_2 - SPACING_SMALL;
+    const cellHeight = PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_3_5;
 
     const myTable = doc.struct('Table');
     doc.addStructure(myTable);
@@ -589,7 +589,7 @@ const section7 = (doc, data, startY, dateOfSubmission) => {
     myTableHeadRow.add(myTableHeadThree);
     const myTableHeadThreeContent = doc.markStructureContent('TH');
     myTableHeadThree.add(myTableHeadThreeContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + SECTION_7_COL3_X, yPos, SECTION_7_COL3_WIDTH, cellHeight, ['Date of submission of this document by', 'exporter to the competent authority']);
+    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + SECTION_7_COL3_X, yPos, SECTION_7_COL3_WIDTH, cellHeight, 'Date of submission of this\ndocument by exporter to the\ncompetent authority');
     myTableHeadThree.end();
 
     myTableHeadRow.end();
