@@ -442,15 +442,15 @@ const renderProductSchedulePage = (doc, data, isSample, productIndex, startingPa
         ctch && ctch.productIndex === productIndex
     );
     
-    let page = startingPage + 1;
+    const page = startingPage + 1;
     let schedY = PdfStyle.MARGIN.TOP;
     
     const startOfPageData = startSpeciesSchedulePage(doc, schedY);
     schedY = startOfPageData.startY;
-    let speciesScheduleTableStruct = startOfPageData.tableStruct;
-    let cellHeight = PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_2 - ROW_HEIGHT_ADJUSTMENT_5;
+    const speciesScheduleTableStruct = startOfPageData.tableStruct;
+    const cellHeight = PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_2 - ROW_HEIGHT_ADJUSTMENT_5;
     
-    let tableBody = doc.struct('TBody');
+    const tableBody = doc.struct('TBody');
     speciesScheduleTableStruct.add(tableBody);
 
     const renderConfig = {
@@ -570,7 +570,7 @@ const startSpeciesSchedulePage = (doc, startY) => {
 }
 
 const addSpeciesScheduleTableHeaders = (doc, startY, tableHeadRow) => {
-    let cellHeight = PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_3 - ROW_HEIGHT_ADJUSTMENT_7;
+    const cellHeight = PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_3 - ROW_HEIGHT_ADJUSTMENT_7;
 
     const headers = getCatchTableHeaders();
     
@@ -587,7 +587,7 @@ const section5 = (doc, isSample, buff, startY) => {
         PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, 'Endorsement by the competent authority');
     }));
     let yPos = startY + SECTION_HEADER_Y_OFFSET;
-    let cellHeight = PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_5;
+    const cellHeight = PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_5;
 
     const tableStruct = doc.struct('Table');
     doc.addStructure(tableStruct);
@@ -674,9 +674,9 @@ const section4 = (doc, data, startY) => {
     doc.addStructure(doc.struct('H3', () => {
         PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '4    Exporter details');
     }));
-    let yPos = startY + SECTION_HEADER_Y_OFFSET;
-    let cellHeight = PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_2;
-    let exporterAddress = PdfUtils.constructAddress([data.exporter.addressOne, data.exporter.addressTwo, data.exporter.townCity, data.exporter.postcode]);
+    const yPos = startY + SECTION_HEADER_Y_OFFSET;
+    const cellHeight = PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_2;
+    const exporterAddress = PdfUtils.constructAddress([data.exporter.addressOne, data.exporter.addressTwo, data.exporter.townCity, data.exporter.postcode]);
 
     const myTable = doc.struct('Table');
     doc.addStructure(myTable);
@@ -706,7 +706,7 @@ const section3 = (doc, data, startY) => {
     doc.addStructure(doc.struct('H3', () => {
         PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '3    Health certificate details');
     }));
-    let yPos = startY + SECTION_HEADER_Y_OFFSET;
+    const yPos = startY + SECTION_HEADER_Y_OFFSET;
 
     const myTable = doc.struct('Table');
     doc.addStructure(myTable);
@@ -758,7 +758,7 @@ const section2 = (doc, data, startY) => {
         PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '2    Processing plant details');
     }));
     let yPos = startY + SECTION_HEADER_Y_OFFSET;
-    let cellHeight = PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_2 - ROW_HEIGHT_ADJUSTMENT_5;
+    const cellHeight = PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_2 - ROW_HEIGHT_ADJUSTMENT_5;
     const ppAddress = PdfUtils.constructAddress([data.plantAddressOne, data.plantAddressTwo, data.plantTownCity, data.plantPostcode]);
 
     const myTable = doc.struct('Table');

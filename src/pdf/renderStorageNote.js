@@ -7,6 +7,10 @@ const getSectionContinuedTitle = (sectionNumber, type) => {
     return `${sectionNumber}.    Consignment details (upon ${typeLabel} the place of storage) continued`;
 };
 
+// Transport key constants to avoid duplication
+const TRANSPORT_VEHICLE_KEY = 'transport.vehicle';
+const ARRIVAL_TRANSPORT_VEHICLE_KEY = 'arrivalTransport.vehicle';
+
 const PAGE_HEIGHT = 780;
 const GAP = 15;
 const SECTION_4_SEPARATOR_GAP = 30;
@@ -194,11 +198,13 @@ const renderStorageNote = async (data, isSample, uri, stream) => {
     doc.pipe(stream);
  
     PdfUtils.heading(doc, 'NON-MANIPULATION DOCUMENT');
-    let startY = PdfStyle.MARGIN.TOP + MAIN_HEADER_Y_OFFSET;
+    const startY = PdfStyle.MARGIN.TOP + MAIN_HEADER_Y_OFFSET;
  
     renderAllSections(doc, data, isSample, buff, startY, dateOfSubmission);
  
-    if (isSample) CommonUtils.addSampleWatermark(doc);
+    if (isSample) {
+        CommonUtils.addSampleWatermark(doc);
+    }
     PdfUtils.endOfPage(doc, currentPage);
  
     doc.end();
@@ -209,11 +215,15 @@ const renderAllSections = (doc, data, isSample, buff, initialStartY, dateOfSubmi
  
     const ensureSpaceAndMaybeNewPage = (estHeight) => {
         if (startY + estHeight > PAGE_HEIGHT) {
-            if (isSample) CommonUtils.addSampleWatermark(doc);
+            if (isSample){
+                CommonUtils.addSampleWatermark(doc);
+            }
             PdfUtils.endOfPage(doc, currentPage);
             doc.addPage();
             currentPage += 1;
-            if (isSample) CommonUtils.addSampleWatermark(doc);
+            if (isSample) {
+                CommonUtils.addSampleWatermark(doc);
+            }
             startY = PdfStyle.MARGIN.TOP + NEW_PAGE_START_Y_OFFSET;
         }
     };
@@ -281,7 +291,7 @@ const estimateSection2 = () => {
         'arrivalTransport.departureCountry',
         'arrivalTransport.departureDate',
         'arrivalTransport.departurePort',
-        'arrivalTransport.vehicle',
+        ARRIVAL_TRANSPORT_VEHICLE_KEY,
         ARRIVAL_TRANSPORT_CONTAINER_NUMBERS,
         'facilityArrivalDate',
         'arrivalTransport.placeOfUnloading'
@@ -310,7 +320,7 @@ const estimateSection6 = () => {
     const rows = [
         'transport.exportDate',
         'transport.departurePlace',
-        'transport.vehicle',
+        TRANSPORT_VEHICLE_KEY,
         TRANSPORT_CONTAINER_NUMBERS,
         'transport.exportedTo.officialCountryName'
     ];
@@ -354,11 +364,15 @@ const sectionContinued = (doc, data, isSample, sectionNumber, type) => {
     const sectionTitle = getSectionContinuedTitle(sectionNumber, type);
     
     for (let pageNum = 0; pageNum < 2; pageNum++) {
-        if (isSample) CommonUtils.addSampleWatermark(doc);
+        if (isSample){
+            CommonUtils.addSampleWatermark(doc);
+        }
         PdfUtils.endOfPage(doc, currentPage);
         doc.addPage();
         currentPage += 1;
-        if (isSample) CommonUtils.addSampleWatermark(doc);
+        if (isSample) {
+            CommonUtils.addSampleWatermark(doc);
+        }
         
         const startY = PdfStyle.MARGIN.TOP + CONTINUED_SECTION_START_Y;
         
@@ -745,7 +759,7 @@ const section6 = (doc, data, startY) => {
     const rows = [
         { label: 'Date of departure from the place of storage (reloading)', key: 'transport.exportDate' },
         { label: 'Last port, airport or point of departure from the country of storage', key: 'transport.departurePlace' },
-        { label: 'Details of transport (Vessel name and flag / flight number - airway bill / railway bill / freight bill - truck registration number)', key: 'transport.vehicle' },
+        { label: 'Details of transport (Vessel name and flag / flight number - airway bill / railway bill / freight bill - truck registration number)', key: TRANSPORT_VEHICLE_KEY },
         { label: 'Container number(s) (where applicable)', key: TRANSPORT_CONTAINER_NUMBERS },
         { label: 'Point of destination: Port, airport or other point of destination', key: 'transport.pointOfDestination' }
     ];
@@ -900,7 +914,7 @@ const getNestedValue = (obj, path) => {
 };
  
 const isVehicleTransportKey = (key) => 
-    key === 'arrivalTransport.vehicle' || key === 'transport.vehicle';
+    key === ARRIVAL_TRANSPORT_VEHICLE_KEY || key === TRANSPORT_VEHICLE_KEY;
 
 const isContainerNumberKey = (key) =>
     key === ARRIVAL_TRANSPORT_CONTAINER_NUMBERS || key === TRANSPORT_CONTAINER_NUMBERS;
@@ -911,26 +925,27 @@ const shouldUseExpandedHeight = (key) =>
 const getTransportType = (transport) => 
     (transport.vehicle || '').toLowerCase();
 
+const formatVesselTransport = (transport) => `Vessel: ${transport.vesselName || ''} - ${transport.flagState || ''}`;
+const formatTruckTransport = (transport) => `Truck: ${transport.registrationNumber || ''} - ${transport.freightBillNumber || ''}`;
+const formatTrainTransport = (transport) => `Train: ${transport.railwayBillNumber || ''} - ${transport.freightBillNumber || ''}`;
+const formatPlaneTransport = (transport) => `Plane: ${transport.flightNumber || ''} - ${transport.airwayBillNumber || ''} - ${transport.freightBillNumber || ''}`;
+
+const TRANSPORT_TYPE_FORMATTERS = {
+    'containervessel': formatVesselTransport,
+    'truck': formatTruckTransport,
+    'train': formatTrainTransport,
+    'plane': formatPlaneTransport
+};
+
 const formatTransportValue = (rowKey, data, isArrival = true) => {
     if (!isVehicleTransportKey(rowKey)) {
         return getNestedValue(data, rowKey);
     }
-    
+
     const transport = isArrival ? (data.arrivalTransport || {}) : (data.transport || {});
     const type = getTransportType(transport);
- 
-    switch (type) {
-        case 'containervessel':
-            return `Vessel: ${transport.vesselName || ''} - ${transport.flagState || ''}`;
-        case 'truck':
-            return `Truck: ${transport.registrationNumber || ''} - ${transport.freightBillNumber || ''}`;
-        case 'train':
-            return `Train: ${transport.railwayBillNumber || ''} - ${transport.freightBillNumber || ''}`;
-        case 'plane':
-            return `Plane: ${transport.flightNumber || ''} - ${transport.airwayBillNumber || ''} - ${transport.freightBillNumber || ''}`;
-        default:
-            return '';
-    }
+    const formatter = TRANSPORT_TYPE_FORMATTERS[type];
+    return formatter ? formatter(transport) : '';
 };
 
 const renderTransportDetailsTable = (doc, startY, rows, data, isArrival) => {
@@ -994,7 +1009,7 @@ const section2 = (doc, data, startY) => {
         { label: 'Place of departure of the product', key: 'arrivalTransport.departureCountry' },
         { label: 'Date of departure:', key: 'arrivalTransport.departureDate' },
         { label: 'Last port, airport or other point of departure before arrival to the country of storage', key: 'arrivalTransport.departurePort' },
-        { label: 'Details of transport (Vessel name and flag / flight number - airway bill / railway bill / freight bill - truck registration number)', key: 'arrivalTransport.vehicle' },
+        { label: 'Details of transport (Vessel name and flag / flight number - airway bill / railway bill / freight bill - truck registration number)', key: ARRIVAL_TRANSPORT_VEHICLE_KEY },
         { label: 'Container number(s) (where applicable)', key: ARRIVAL_TRANSPORT_CONTAINER_NUMBERS },
         { label: 'Date of arrival to the place of storage (unloading)', key: 'facilityArrivalDate' },
         { label: 'Place of storage', key: 'arrivalTransport.placeOfUnloading' }
