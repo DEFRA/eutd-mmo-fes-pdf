@@ -37,7 +37,7 @@ const renderBlankStorageDoc = async (data, isSample, uri, stream, pathToTemplate
         const PdfImgStream = new muhammara.PDFRStreamForBuffer(qrCodeBuffer);
         imageXObject = pdfWriter.createFormXObjectFromPNG(PdfImgStream);
     }
-    let pageModifier = new muhammara.PDFPageModifier(pdfWriter,0);
+    let pageModifier = new muhammara.PDFPageModifier(pdfWriter, 0);
     let ctx = pageModifier.startContext().getContext();
     let docNumber = data.documentNumber;
 
@@ -51,35 +51,20 @@ const renderBlankStorageDoc = async (data, isSample, uri, stream, pathToTemplate
         {font:pdfWriter.getFontForFile(pathToTemplate + QR_TEXT_FONT_PATH),size:DOC_NUMBER_FONT_SIZE,colorspace:'gray',color:QR_TEXT_COLOR}
     );
 
-    if (isSample) {
-        renderSampleWatermark(pdfWriter, ctx, watermarkStreamImageXObject, 30, 100);
-    }
     pageModifier.endContext().writePage();
 
     pageModifier = new muhammara.PDFPageModifier(pdfWriter, 1);
     ctx = pageModifier.startContext().getContext();
 
-    if(isSample) renderSampleWatermark(pdfWriter, ctx, watermarkStreamImageXObject, WATERMARK_X_POSITION, WATERMARK_Y_POSITION);
-    else renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, QR_CODE_X_POSITION, QR_CODE_Y_POSITION);
+    if (isSample) {
+        renderSampleWatermark(pdfWriter, ctx, watermarkStreamImageXObject, WATERMARK_X_POSITION, WATERMARK_Y_POSITION);
+    } else {
+        renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, QR_CODE_X_POSITION, QR_CODE_Y_POSITION);
+    }
 
     pageModifier.endContext().writePage();
     
-    if (isSample) {
-        pageModifier = new muhammara.PDFPageModifier(pdfWriter, 2);
-        ctx = pageModifier.startContext().getContext();
-        renderSampleWatermark(pdfWriter, ctx, watermarkStreamImageXObject, WATERMARK_X_POSITION, WATERMARK_Y_POSITION);
-        pageModifier.endContext().writePage();
-
-        pageModifier = new muhammara.PDFPageModifier(pdfWriter, 3);
-        ctx = pageModifier.startContext().getContext();
-        renderSampleWatermark(pdfWriter, ctx, watermarkStreamImageXObject, WATERMARK_X_POSITION, WATERMARK_Y_POSITION);
-        pageModifier.endContext().writePage();
-
-        pageModifier = new muhammara.PDFPageModifier(pdfWriter, 4);
-        ctx = pageModifier.startContext().getContext();
-        renderSampleWatermark(pdfWriter, ctx, watermarkStreamImageXObject, WATERMARK_X_POSITION, WATERMARK_Y_POSITION);
-        pageModifier.endContext().writePage();
-    }
+    renderAdditionalPages(pdfWriter, watermarkStreamImageXObject, isSample);
 
     pdfWriter.end();
     stream.end();
@@ -116,4 +101,20 @@ const renderSampleWatermark = (pdfWriter, ctx, imageXObject, x, y) => {
         .doXObject(imageXObject)
         .Q();
 }
+
+const renderAdditionalPages = (pdfWriter, watermarkStreamImageXObject, isSample) => {
+    if (isSample) {
+        renderWatermarkPage(pdfWriter, watermarkStreamImageXObject, 2);
+        renderWatermarkPage(pdfWriter, watermarkStreamImageXObject, 3);
+        renderWatermarkPage(pdfWriter, watermarkStreamImageXObject, 4);
+    }
+};
+
+const renderWatermarkPage = (pdfWriter, watermarkStreamImageXObject, pageIndex) => {
+    const pageModifier = new muhammara.PDFPageModifier(pdfWriter, pageIndex);
+    const ctx = pageModifier.startContext().getContext();
+    renderSampleWatermark(pdfWriter, ctx, watermarkStreamImageXObject, WATERMARK_X_POSITION, WATERMARK_Y_POSITION);
+    pageModifier.endContext().writePage();
+};
+
 module.exports = renderBlankStorageDoc;
