@@ -403,6 +403,7 @@ const section5 = (doc, data, startY) => {
  
 const getWeightLabel = (type) => type === 'arrival' ? 'entering' : 'departing';
 const getWeighField = (type) => type === 'arrival' ? 'netWeightProductArrival' : 'netWeightProductDeparture';
+const getNetWeightField = (type) => type === 'arrival' ? 'netWeightFisheryProductArrival' : 'netWeightFisheryProductDeparture';
 
 const createConsignmentTableHeaders = (doc, myTable, yPos, colWidths, headerCellHeight, weightLabel) => {
     const myTableHead = doc.struct('THead');
@@ -457,7 +458,7 @@ const createConsignmentTableHeaders = (doc, myTable, yPos, colWidths, headerCell
     myTableHead.end();
 };
 
-const createConsignmentTableRow = (doc, tableBody, rowY, colWidths, cellHeight, catchData, weightField) => {
+const createConsignmentTableRow = (doc, tableBody, rowY, colWidths, cellHeight, catchData, weightField, netWeightField) => {
     const tableBodyRow = doc.struct('TR');
     tableBody.add(tableBodyRow);
 
@@ -500,7 +501,7 @@ const createConsignmentTableRow = (doc, tableBody, rowY, colWidths, cellHeight, 
     tableBodyRow.add(TdSix);
     const TdSixContent = doc.markStructureContent('TD');
     TdSix.add(TdSixContent);
-    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + CONSIGNMENT_PADDING_X + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[COL3] + colWidths[4], rowY, colWidths[COL5], cellHeight, catchData?.netWeightFisheryProductDeparture ? Number(catchData.netWeightFisheryProductDeparture).toFixed(2) : ' ');
+    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + CONSIGNMENT_PADDING_X + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[COL3] + colWidths[4], rowY, colWidths[COL5], cellHeight, catchData?.[netWeightField] ? Number(catchData[netWeightField]).toFixed(2) : ' ');
     TdSix.end();
 
     tableBodyRow.end();
@@ -514,6 +515,8 @@ const createConsignmentTable = (doc, data, startY, type, maxRows = null, showSep
  
     const weightLabel = getWeightLabel(type);
     const weightField = getWeighField(type);
+    const netWeightField = getNetWeightField(type);
+
  
     const myTable = doc.struct('Table');
     doc.addStructure(myTable);
@@ -529,7 +532,7 @@ const createConsignmentTable = (doc, data, startY, type, maxRows = null, showSep
     for (let idx = 0; idx < totalRowsToRender; idx++) {
         const rowY = yPos + headerCellHeight + (idx * cellHeight);
         const c = idx < allCatches.length ? allCatches[idx] : null;
-        createConsignmentTableRow(doc, tableBody, rowY, colWidths, cellHeight, c, weightField);
+        createConsignmentTableRow(doc, tableBody, rowY, colWidths, cellHeight, c, weightField, netWeightField);
     }
 
     doc.endMarkedContent();
