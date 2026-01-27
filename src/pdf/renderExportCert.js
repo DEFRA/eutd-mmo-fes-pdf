@@ -10,6 +10,7 @@ const CommonUtils = require('../utils/common-utils');
 const MIN_ROW_HEIGHT_MULTIPLIER = 3;
 const MIN_HEIGHT_ADJUSTMENT = 5;
 const LICENCE_HOLDER_COLUMN_WIDTH = 45;
+const HEIGHT_BUFFER_MULTIPLIER = 1.15;
 const LICENCE_DETAIL_COLUMN_WIDTH = 75;
 const UK_HEADER_X_OFFSET = 430;
 const LICENCE_HOLDER_X_OFFSET = 540;
@@ -230,7 +231,7 @@ const calculateMaxRowHeightForLicenceHolder = (rows) => {
         const licenceHolderHeight = calculateRequiredCellHeightStatic(licenceHolderText, LICENCE_HOLDER_COLUMN_WIDTH, PdfStyle.FONT_SIZE.SMALLER);
         maxHeight = Math.max(maxHeight, licenceHolderHeight);
     }
-    return maxHeight * 1.15;
+    return maxHeight * HEIGHT_BUFFER_MULTIPLIER;
 };
 
 const calculatePageDimensions = () => {

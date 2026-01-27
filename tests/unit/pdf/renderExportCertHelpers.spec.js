@@ -146,8 +146,9 @@ describe('renderExportCert helper functions', () => {
       
       const result = calculateMaxRowHeightForLicenceHolder(rows);
       const minHeight = (PdfStyle.ROW.HEIGHT * 3) - 5;
+      const HEIGHT_BUFFER_MULTIPLIER = 1.15;
       
-      expect(result).toBe(minHeight * 1.15); // minHeight * 1.15 for 15% increase
+      expect(result).toBe(minHeight * HEIGHT_BUFFER_MULTIPLIER); 
     });
 
     test('should return max height * 1.15 for varying licence holder lengths', () => {
@@ -159,9 +160,10 @@ describe('renderExportCert helper functions', () => {
       
       const result = calculateMaxRowHeightForLicenceHolder(rows);
       const longTextHeight = calculateRequiredCellHeightStatic('RUSSELL A HENRY & SON WELDING AND FABRICATION', 45, 8);
+      const HEIGHT_BUFFER_MULTIPLIER = 1.15;
       
       // Should be height of longest name * 1.15
-      expect(result).toBe(longTextHeight * 1.15);
+      expect(result).toBe(longTextHeight * HEIGHT_BUFFER_MULTIPLIER);
       expect(result).toBeGreaterThan(40);
     });
 
@@ -174,8 +176,9 @@ describe('renderExportCert helper functions', () => {
       
       const result = calculateMaxRowHeightForLicenceHolder(rows);
       const minHeight = (PdfStyle.ROW.HEIGHT * 3) - 5;
+      const HEIGHT_BUFFER_MULTIPLIER = 1.15;
       
-      expect(result).toBe(minHeight * 1.15);
+      expect(result).toBe(minHeight * HEIGHT_BUFFER_MULTIPLIER);
     });
 
     test('should handle single row with very long licence holder', () => {
@@ -185,8 +188,9 @@ describe('renderExportCert helper functions', () => {
       
       const result = calculateMaxRowHeightForLicenceHolder(rows);
       const longTextHeight = calculateRequiredCellHeightStatic('RUSSELL A HENRY & SON WELDING AND FABRICATION', 45, 8);
+      const HEIGHT_BUFFER_MULTIPLIER = 1.15;
       
-      expect(result).toBe(longTextHeight * 1.15);
+      expect(result).toBe(longTextHeight * HEIGHT_BUFFER_MULTIPLIER);
       expect(result).toBeGreaterThan(40);
     });
 
@@ -195,8 +199,9 @@ describe('renderExportCert helper functions', () => {
       
       const result = calculateMaxRowHeightForLicenceHolder(rows);
       const minHeight = (PdfStyle.ROW.HEIGHT * 3) - 5;
+      const HEIGHT_BUFFER_MULTIPLIER = 1.15;
       
-      expect(result).toBe(minHeight * 1.15);
+      expect(result).toBe(minHeight * HEIGHT_BUFFER_MULTIPLIER);
     });
 
     test('should handle rows with null licence holder', () => {
@@ -207,9 +212,10 @@ describe('renderExportCert helper functions', () => {
       
       const result = calculateMaxRowHeightForLicenceHolder(rows);
       const minHeight = (PdfStyle.ROW.HEIGHT * 3) - 5;
+      const HEIGHT_BUFFER_MULTIPLIER = 1.15;
       
       // Should use minimum height when longest is empty/null
-      expect(result).toBe(minHeight * 1.15);
+      expect(result).toBe(minHeight * HEIGHT_BUFFER_MULTIPLIER);
     });
 
     test('should ensure all rows use same height - uniform row height scenario', () => {
@@ -221,11 +227,12 @@ describe('renderExportCert helper functions', () => {
       
       const maxHeight = calculateMaxRowHeightForLicenceHolder(rows);
       const longTextHeight = calculateRequiredCellHeightStatic('VERY LONG COMPANY NAME THAT WRAPS', 45, 8);
+      const HEIGHT_BUFFER_MULTIPLIER = 1.15;
       
       // All rows should use this same height in pagination
       expect(maxHeight).toBeGreaterThan(40);
       // Verify it's based on the longest text * 1.15
-      expect(maxHeight).toBe(longTextHeight * 1.15);
+      expect(maxHeight).toBe(longTextHeight * HEIGHT_BUFFER_MULTIPLIER);
     });
   });
 
