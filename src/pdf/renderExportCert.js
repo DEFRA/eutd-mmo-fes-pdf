@@ -221,6 +221,18 @@ const calculateRowHeight = (row) => {
     return Math.max(minHeight, licenceHolderHeight, licenceDetailHeight);
 };
 
+const calculateMaxRowHeightForLicenceHolder = (rows) => {
+    const minHeight = (PdfStyle.ROW.HEIGHT * MIN_ROW_HEIGHT_MULTIPLIER) - MIN_HEIGHT_ADJUSTMENT;
+    let maxHeight = minHeight;
+    
+    for (const row of rows) {
+        const licenceHolderText = row.licenceHolder || '';
+        const licenceHolderHeight = calculateRequiredCellHeightStatic(licenceHolderText, LICENCE_HOLDER_COLUMN_WIDTH, PdfStyle.FONT_SIZE.SMALLER);
+        maxHeight = Math.max(maxHeight, licenceHolderHeight);
+    }
+    return maxHeight * 1.15;
+};
+
 const calculatePageDimensions = () => {
     const pageHeight = 595;
     const bottomMargin = 30;
@@ -236,9 +248,12 @@ const paginateRows = (rows, availableHeight) => {
     let currentPageRows = [];
     let currentPageHeight = 0;
     
+    // Calculate the maximum height required for the Master/Licence Holder column across all rows
+    const maxLicenceHolderHeight = calculateMaxRowHeightForLicenceHolder(rows);
+    
     for (let i = 0; i < rows.length; i++) {
-        const row = rows[i];
-        const tempHeight = calculateRowHeight(row);
+        // Use the maximum height for all rows to ensure uniform row height
+        const tempHeight = maxLicenceHolderHeight;
         
         if (currentPageHeight + tempHeight > availableHeight && currentPageRows.length > 0) {
             pages.push({ 
@@ -2773,6 +2788,7 @@ module.exports.getOtherTransportDocuments = getOtherTransportDocuments;
 module.exports.getVehicleType = getVehicleType;
 // Export multi-vessel schedule helper functions for testing
 module.exports.calculateRowHeight = calculateRowHeight;
+module.exports.calculateMaxRowHeightForLicenceHolder = calculateMaxRowHeightForLicenceHolder;
 module.exports.calculatePageDimensions = calculatePageDimensions;
 module.exports.paginateRows = paginateRows;
 module.exports.calculateRequiredCellHeightStatic = calculateRequiredCellHeightStatic;
