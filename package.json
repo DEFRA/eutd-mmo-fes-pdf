@@ -1,6 +1,6 @@
 {
   "name": "mmo-ecc-pdf-svc",
-  "version": "2.3.54",
+  "version": "2.3.55",
   "description": "",
   "main": "src/index.js",
   "dependencies": {
