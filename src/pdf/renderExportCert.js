@@ -1140,7 +1140,7 @@ const getContainerIdentificationNumber = (data) => {
         }
     });
     
-    return containerNumbers.filter(c => c && c.trim()).join(', ');
+    return containerNumbers.filter(c => c?.trim()).join(', ');
 };
 
 const getFreightBillNumber = (data) => {
