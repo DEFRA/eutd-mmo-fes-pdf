@@ -403,28 +403,34 @@ function getProductScheduleRows(exportPayload) {
 }
 
 const renderHeaderLogo = (doc, startY) => {
+    const LOGO_HEIGHT = 60;
+    const UK_BOX_HEIGHT_MULTIPLIER = 2;
+    const UK_BOX_WIDTH = 350;
     const imageFile = path.join(__dirname, '../resources/hmgovlogo.png');
     doc.addStructure(doc.struct('Figure', {
         alt: 'HM Government logo'
     }, () => {
-        doc.image(imageFile, {
-            width: 220
+        doc.image(imageFile, PdfStyle.MARGIN.LEFT, startY, {
+            height: LOGO_HEIGHT
         });
     }));
-    const cellHeight = PdfStyle.ROW.HEIGHT * 2;
+    
+    const cellHeight = PdfStyle.ROW.HEIGHT * UK_BOX_HEIGHT_MULTIPLIER;
+    const ukBoxYPos = startY + LOGO_HEIGHT - cellHeight;
     doc.addStructure(doc.struct('P', () => {
-        mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + UK_HEADER_X_OFFSET, y: startY, width: 350, height: cellHeight, text: 'UNITED KINGDOM'}, true, PdfStyle.FONT_SIZE.LARGEST, 'center', MVS_STYLES.YELLOW_HEADER);
+        mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + UK_HEADER_X_OFFSET, y: ukBoxYPos, width: UK_BOX_WIDTH, height: cellHeight, text: 'UNITED KINGDOM'}, true, PdfStyle.FONT_SIZE.LARGEST, 'center', MVS_STYLES.YELLOW_HEADER);
     }));
-    return startY + cellHeight;
+    return startY + LOGO_HEIGHT;
 };
 
 
 const renderHeaderTitles = (doc, yPos) => {
+    const SCHEDULE_HEADER_WIDTH = 550;
     doc.addStructure(doc.struct('P', () => {
         mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT, y: yPos, width: MVS_HEADER_SECOND_COL_X, height: PdfStyle.ROW.HEIGHT, text: 'AUTHORITY USE ONLY'}, true, PdfStyle.FONT_SIZE.SMALL, 'left', MVS_STYLES.YELLOW_HEADER);
     }));
     doc.addStructure(doc.struct('P', () => {
-        mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + MVS_HEADER_SECOND_COL_X, y: yPos, width: 550, height: PdfStyle.ROW.HEIGHT,
+        mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + MVS_HEADER_SECOND_COL_X, y: yPos, width: SCHEDULE_HEADER_WIDTH, height: PdfStyle.ROW.HEIGHT,
             text: 'Schedule for multiple vessel landings as permitted by Article 12 (3) of Council Regulation (EC) No 1005/2008'},
             true, PdfStyle.FONT_SIZE.SMALL, 'center', MVS_STYLES.DEFAULT);
     }));
@@ -765,7 +771,7 @@ const renderTransportDetailsTable = (doc, yPos, transportData, fieldHeights, wid
     } = transportData;
     
     const { 
-        singleLineHeight, vesselFieldHeight, flightFieldHeight, truckFieldHeight, 
+        singleLineHeight, destinationFieldHeight, vesselFieldHeight, flightFieldHeight, truckFieldHeight, 
         railwayFieldHeight, freightFieldHeight, containerFieldHeight, otherDocsFieldHeight 
     } = fieldHeights;
     
@@ -782,8 +788,8 @@ const renderTransportDetailsTable = (doc, yPos, transportData, fieldHeights, wid
                 doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + labelWidth, yPos + singleLineHeight, valueWidth, singleLineHeight, departurePlace)),
             ]),
             doc.struct('TR', [
-                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT, yPos + (singleLineHeight * multiplier2), labelWidth, singleLineHeight, 'Point of destination')),
-                doc.struct('TD', ()=> PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + labelWidth, yPos + (singleLineHeight * multiplier2), valueWidth, singleLineHeight, pointOfDestination)),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT, yPos + (singleLineHeight * multiplier2), labelWidth, destinationFieldHeight, 'Point of destination')),
+                doc.struct('TD', ()=> PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + labelWidth, yPos + (singleLineHeight * multiplier2), valueWidth, destinationFieldHeight, pointOfDestination)),
             ]),
             doc.struct('TR', [
                 doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT, yPos + (singleLineHeight * multiplier3), labelWidth, vesselFieldHeight, 'Vessel name and flag')),
@@ -818,6 +824,7 @@ const renderTransportDetailsTable = (doc, yPos, transportData, fieldHeights, wid
 };
 
 const appendixTransportDetails = (doc, data, startY) => {
+    const DESTINATION_FIELD_HEIGHT_MULTIPLIER = 3;
     const VESSEL_FIELD_HEIGHT_MULTIPLIER = 5;
     const FLIGHT_FIELD_HEIGHT_MULTIPLIER = 4;
     const TRUCK_FIELD_HEIGHT_MULTIPLIER = 4;
@@ -828,7 +835,7 @@ const appendixTransportDetails = (doc, data, startY) => {
     const TRANSPORT_LABEL_WIDTH = 156;
     const TRANSPORT_VALUE_WIDTH = 383;
     const SINGLE_LINE_YPOS_MULTIPLIER_2 = 2;
-    const SINGLE_LINE_YPOS_MULTIPLIER_3 = 3;
+    const SINGLE_LINE_YPOS_MULTIPLIER_3 = 5;
 
     doc.font(PdfStyle.FONT.REGULAR);
     const yPos = startY;
@@ -857,6 +864,7 @@ const appendixTransportDetails = (doc, data, startY) => {
 
     const fieldHeights = {
         singleLineHeight: PdfStyle.ROW.HEIGHT,
+        destinationFieldHeight: PdfStyle.ROW.HEIGHT * DESTINATION_FIELD_HEIGHT_MULTIPLIER,
         vesselFieldHeight: PdfStyle.ROW.HEIGHT * VESSEL_FIELD_HEIGHT_MULTIPLIER,
         flightFieldHeight: PdfStyle.ROW.HEIGHT * FLIGHT_FIELD_HEIGHT_MULTIPLIER,
         truckFieldHeight: PdfStyle.ROW.HEIGHT * TRUCK_FIELD_HEIGHT_MULTIPLIER,
@@ -1132,7 +1140,7 @@ const getContainerIdentificationNumber = (data) => {
         }
     });
     
-    return containerNumbers.join(', ');
+    return containerNumbers.filter(c => c && c.trim()).join(', ');
 };
 
 const getFreightBillNumber = (data) => {

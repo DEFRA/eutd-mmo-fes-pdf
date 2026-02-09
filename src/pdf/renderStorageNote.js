@@ -926,8 +926,11 @@ const isVehicleTransportKey = (key) =>
 const isContainerNumberKey = (key) =>
     key === ARRIVAL_TRANSPORT_CONTAINER_NUMBERS || key === TRANSPORT_CONTAINER_NUMBERS;
 
+const isPointOfDestinationKey = (key) =>
+    key === 'transport.pointOfDestination' || key === 'arrivalTransport.pointOfDestination';
+
 const shouldUseExpandedHeight = (key) =>
-    isVehicleTransportKey(key) || isContainerNumberKey(key);
+    isVehicleTransportKey(key) || isContainerNumberKey(key) || isPointOfDestinationKey(key);
 
 const getTransportType = (transport) => 
     (transport.vehicle || '').toLowerCase();
