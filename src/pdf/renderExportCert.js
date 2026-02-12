@@ -2252,7 +2252,7 @@ const renderSection3TableBody = (doc, tableBody, startY, cellHeight, rowData, ar
         const hasData = rowIdx < arrLength;
         const rowCellData = getSection3RowData(rowIdx, arrLength, rowData, hasData);
 
-        createSection3DataCell(doc, tableBodyRow, { x: PdfStyle.MARGIN.LEFT + SPECIES_COL_OFFSET, y, width: SPECIES_COL_WIDTH, height: PdfStyle.ROW.HEIGHT + ROW_HEIGHT_ADDITION, content: rowCellData.speciesText });
+        createSection3DataCell(doc, tableBodyRow, { x: PdfStyle.MARGIN.LEFT + SPECIES_COL_OFFSET, y, width: SPECIES_COL_WIDTH, height: PdfStyle.ROW.HEIGHT + ROW_HEIGHT_ADDITION, content: rowCellData.speciesText, lineSpacing: 2 });
         createSection3DataCell(doc, tableBodyRow, { x: PdfStyle.MARGIN.LEFT + PRODUCT_CODE_COL_OFFSET, y, width: PRODUCT_CODE_COL_WIDTH, height: PdfStyle.ROW.HEIGHT + ROW_HEIGHT_ADDITION, content: rowCellData.commodityCodeText });
         createSection3DataCell(doc, tableBodyRow, { x: PdfStyle.MARGIN.LEFT + CATCH_AREA_COL_OFFSET, y, width: CATCH_AREA_COL_WIDTH, height: PdfStyle.ROW.HEIGHT + ROW_HEIGHT_ADDITION, content: rowCellData.catchAreasText, lineSpacing: CATCH_AREA_LINE_SPACING });
         createSection3DataCell(doc, tableBodyRow, { x: PdfStyle.MARGIN.LEFT + CATCH_DATE_COL_OFFSET, y, width: CATCH_DATE_COL_WIDTH, height: PdfStyle.ROW.HEIGHT + ROW_HEIGHT_ADDITION, content: rowCellData.datesText, lineSpacing: CATCH_DATE_LINE_SPACING });
