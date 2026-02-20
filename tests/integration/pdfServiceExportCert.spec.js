@@ -71,9 +71,9 @@ describe("pdfServiceExportCert", () => {
       transport: {
         vehicle: "plane",
         departurePlace: "hull",
-        user_id: "a9602f38-f220-475a-991f-a19626bc51ae",
+        user_id: "a9602f38-f041-49b4-9245-0eae5462805e",
         flightNumber: "123",
-        containerNumber: "456",
+        containerNumbers: ["456"],
         exportedTo: {
           officialCountryName: "France",
         },

@@ -139,15 +139,15 @@ describe('pdfService', () => {
                 "exportDate": "31/01/2018"
             },
             arrivalTransport: {
-                vehicle: 'containerVessel',
-                flagState: 'UK',
-                departurePlace: 'hull',
-                user_id: 'a9602f38-f220-475a-991f-a19626bc51ae',
-                vesselName: '123',
+                vehicle: "containerVessel",
+                flagState: "UK",
+                departurePlace: "hull",
+                user_id: "a9602f38-f220-475a-991f-a19626bc51ae",
+                vesselName: "123",
                 containerNumbers: [
-                    'ABCD1', 'ABCD2', 'ABCD3', 'ABCD4', 'ABCD5'
+                    "ABCD1", "ABCD2", "ABCD3", "ABCD4", "ABCD5"
                 ],
-                exportedFrom: 'France'
+                exportedFrom: "France"
             },
             facilityName: 'Test Processor 1',
             facilityAddressOne: '20',
@@ -214,7 +214,7 @@ describe('pdfService', () => {
                 vehicle: "plane",
                 departurePlace: "hull",
                 flightNumber: "123",
-                containerNumber: "456",
+                containerNumbers: ["456"],
                 exportDate: "31/01/2018",
             },
             facilityName: 'Test Processor 1',

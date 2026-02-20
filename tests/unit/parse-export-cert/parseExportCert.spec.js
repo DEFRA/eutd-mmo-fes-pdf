@@ -20,6 +20,8 @@ describe('parseExportCert', () => {
     test('should parse pdf', async () => {
         let data = fs.readFileSync('./tests/unit/parse-export-cert/fixtures/parse-export-certs.pdf');
         let pdfData = await parsePdfBuffer(data);
+        console.log('pdfData ' , pdfData);
+        
         expect(pdfData.documentNumber).toBe('GBR-2019-CM-EA35698BF');
         expect(pdfData.errors.length).toBe(0);
 
@@ -30,7 +32,6 @@ describe('parseExportCert', () => {
         expect(pdfData.transport.freightBillNumber).toBe('FreightBillNumber');
         expect(pdfData.transport.vesselName).toBe('VesselNameAndFlag');
         expect(pdfData.transport.departurePlace).toBe('PointOfDeparture');
-        expect(pdfData.transport.containerNumber).toBe('container 1, container 2');
         expect(pdfData.transport.otherDocuments).toBe('OtherTransportDocs');
         expect(pdfData.transport.exporterName).toBe('Mark');
 

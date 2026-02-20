@@ -509,7 +509,7 @@ describe("pdfService", () => {
         vehicle: "plane",
         departurePlace: "hull",
         flightNumber: "123",
-        containerNumber: "456",
+        containerNumbers: ["456"],
         exportDate: "31/01/2018",
         exportedTo: {
           officialCountryName: "France",
