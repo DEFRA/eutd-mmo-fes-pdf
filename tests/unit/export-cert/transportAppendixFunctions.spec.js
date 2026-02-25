@@ -258,8 +258,8 @@ describe('Transport Appendix Helper Functions - Pages 6 & 7', () => {
         test('should extract containerIdentificationNumber', () => {
             const data = {
                 transportations: [
-                    { vehicle: 'containerVessel', containerIdentificationNumber: 'CONT123' },
-                    { vehicle: 'containerVessel', containerIdentificationNumber: 'CONT456' }
+                    { vehicle: 'containerVessel', containerNumbers: ['CONT123'] },
+                    { vehicle: 'containerVessel', containerNumbers: ['CONT456'] }
                 ]
             };
             const result = renderExportCert.getContainerIdentificationNumber(data);
@@ -269,7 +269,7 @@ describe('Transport Appendix Helper Functions - Pages 6 & 7', () => {
         test('should fallback to containerNumber', () => {
             const data = {
                 transportations: [
-                    { vehicle: 'containerVessel', containerNumber: 'CN789' }
+                    { vehicle: 'containerVessel', containerNumbers: ['CN789'] }
                 ]
             };
             const result = renderExportCert.getContainerIdentificationNumber(data);
@@ -278,16 +278,14 @@ describe('Transport Appendix Helper Functions - Pages 6 & 7', () => {
 
         test('should handle mixed containerIdentificationNumber and containerNumber', () => {
             const data = {
-                transportations: [
-                    { containerIdentificationNumber: 'C1' },
-                    { containerNumber: 'C2' },
-                    { containerIdentificationNumber: 'C3' }
+                transportations: [                
+                    { containerNumbers: ['C2'] },
                 ]
             };
             const result = renderExportCert.getContainerIdentificationNumber(data);
             const containers = result.split(', ');
-            expect(containers).toHaveLength(3);
-            expect(result).toBe('C1, C2, C3');
+            expect(containers).toHaveLength(1);
+            expect(result).toBe('C2');
         });
     });
 

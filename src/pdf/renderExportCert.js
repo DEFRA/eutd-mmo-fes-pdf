@@ -1133,8 +1133,7 @@ const getContainerIdentificationNumber = (data) => {
     const containerNumbers = [];
     
     transportModes.forEach(transport => {
-        // Support both 'containerIdentificationNumber' and 'containerNumber'
-        const containerNum = transport.containerIdentificationNumber || transport.containerNumber;
+        const containerNum = transport.containerNumbers;
         if (containerNum) {
             containerNumbers.push(containerNum.toString());
         }

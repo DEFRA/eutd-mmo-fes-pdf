@@ -79,7 +79,7 @@ describe('PDF Service Container Identification Number Tests', () => {
                 "departurePlace": "Grimsby",
                 "nationalityOfVehicle": "United Kingdom",
                 "registrationNumber": "TR123ABC",
-                "containerIdentificationNumber": "TRUCK-001, TRUCK-002, TRUCK-003"
+                "containerNumbers": ["TRUCK-001", "TRUCK-002", "TRUCK-003"]
             }
         };
 
@@ -129,7 +129,7 @@ describe('PDF Service Container Identification Number Tests', () => {
                 "vehicle": "train",
                 "departurePlace": "Manchester",
                 "railwayBillNumber": "RB987654321",
-                "containerIdentificationNumber": "TRAIN-001, TRAIN-002"
+                "containerNumbers": ["TRAIN-001", "TRAIN-002"]
             }
         };
 
@@ -179,8 +179,8 @@ describe('PDF Service Container Identification Number Tests', () => {
                 "vehicle": "containerVessel",
                 "departurePlace": "Hull",
                 "vesselName": "Test Container Vessel",
-                "flagState": "United Kingdom",
-                "containerIdentificationNumber": "VESSEL-001" // This should not be displayed
+                "flagState": "United Kingdom"
+                // No containerNumbers for vessel
             }
         };
 
@@ -231,7 +231,7 @@ describe('PDF Service Container Identification Number Tests', () => {
                 "departurePlace": "Grimsby",
                 "nationalityOfVehicle": "United Kingdom",
                 "registrationNumber": "TR123ABC"
-                // No containerIdentificationNumber provided
+                // No containerNumbers for empty case
             }
         };
 

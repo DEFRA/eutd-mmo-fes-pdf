@@ -72,7 +72,7 @@ describe('pdfService - Multiple Transport Modes', () => {
                         { name: "Container Manifest", reference: "CM-ATL-001" },
                         { name: "Cargo Declaration", reference: "CD-ATL-001" }
                     ],
-                    containerIdentificationNumber: "MSCU1234567",
+                    containerNumbers: ["MSCU1234567"],
                     departurePlace: "Southampton",
                     exportedFrom: "United Kingdom",
                     exportedTo: { officialCountryName: "France" },
@@ -86,7 +86,7 @@ describe('pdfService - Multiple Transport Modes', () => {
                     transportDocuments: [
                         { name: "Bill of Lading", reference: "BOL-2024-002" }
                     ],
-                    containerNumber: "HLCU9876543",
+                    containerNumbers: ["HLCU9876543"],
                     departurePlace: "Felixstowe",
                     exportedFrom: "United Kingdom",
                     exportedTo: { officialCountryName: "Belgium" },
@@ -101,7 +101,7 @@ describe('pdfService - Multiple Transport Modes', () => {
                         { name: "CMR", reference: "CMR-2024-001" },
                         { name: "Customs Transit", reference: "CT-TRK-001" }
                     ],
-                    containerIdentificationNumber: "TRKU1111111",
+                    containerNumbers: ["TRKU1111111"],
                     departurePlace: "Dover",
                     exportedFrom: "United Kingdom",
                     exportedTo: { officialCountryName: "France" },
@@ -115,7 +115,7 @@ describe('pdfService - Multiple Transport Modes', () => {
                     transportDocuments: [
                         { name: "CMR", reference: "CMR-2024-002" }
                     ],
-                    containerIdentificationNumber: "TRKU2222222",
+                    containerNumbers: ["TRKU2222222"],
                     departurePlace: "Folkestone",
                     exportedFrom: "United Kingdom",
                     exportedTo: { officialCountryName: "Belgium" },

@@ -118,7 +118,7 @@ describe('pdfService', () => {
                 "user_id": "a9602f38-f220-475a-991f-a19626bc51ae",
                 "nationalityOfVehicle": "United Kingdom",
                 "registrationNumber": "b234342b",
-                "containerIdentificationNumber": "TRUCK-001, TRUCK-002",
+                "containerNumbers": ["TRUCK-001", "TRUCK-002"],
                 "exportedTo": {
                     "officialCountryName": 'France',
                 }
