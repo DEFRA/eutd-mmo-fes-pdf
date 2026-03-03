@@ -582,10 +582,13 @@ const addSpeciesScheduleTableHeaders = (doc, startY, tableHeadRow) => {
     });
 }
 
-const section5 = (doc, isSample, buff, startY) => {
+const renderEndorsementHeader = (doc, startY) => {
     doc.addStructure(doc.struct('H3', () => {
         PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, 'Endorsement by the competent authority');
     }));
+}
+
+const renderEndorsementTable = (doc, isSample, buff, startY) => {
     let yPos = startY + SECTION_HEADER_Y_OFFSET;
     const cellHeight = PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_5;
 
@@ -662,15 +665,25 @@ const section5 = (doc, isSample, buff, startY) => {
     doc.endMarkedContent();
     tableBody.end();
     tableStruct.end();
-    yPos += cellHeight + ENDORSEMENT_FOOTER_SPACING;
+
+    return yPos + cellHeight + ENDORSEMENT_FOOTER_SPACING;
+}
+
+const renderEndorsementFooterText = (doc, startY) => {
     doc.addStructure(doc.struct('P', () => {
         doc.font(PdfStyle.FONT.REGULAR);
         doc.fontSize(PdfStyle.FONT_SIZE.SMALL);
-        doc.text('Validated by the appropriate competent authority (MMO, Scottish Ministers, Welsh Ministers, Department of Agriculture, Environment and Rural Affairs for Northern Ireland, Marine Resources, Growth and Housing and Environment for Jersey, Sea Fisheries, Committee for Economic Development for Guernsey and Department Environment, Food and Agriculture for the Isle of Man) in accordance with article 15 of Council Regulation (EU) 1005/2008 (as retained under s.3(1) European Union (Withdrawal) Act 2018)', PdfStyle.MARGIN.LEFT + ENDORSEMENT_TEXT_X_OFFSET, yPos, {
+        doc.text('Validated by the appropriate competent authority (MMO, Scottish Ministers, Welsh Ministers, Department of Agriculture, Environment and Rural Affairs for Northern Ireland, Marine Resources, Growth and Housing and Environment for Jersey, Sea Fisheries, Committee for Economic Development for Guernsey and Department Environment, Food and Agriculture for the Isle of Man) in accordance with article 15 of Council Regulation (EU) 1005/2008 (as retained under s.3(1) European Union (Withdrawal) Act 2018)', PdfStyle.MARGIN.LEFT + ENDORSEMENT_TEXT_X_OFFSET, startY, {
             width: TABLE_COL_WIDTH_515,
             lineBreak: true
         });
     }));
+}
+
+const section5 = (doc, isSample, buff, startY) => {
+    renderEndorsementHeader(doc, startY);
+    const footerStartY = renderEndorsementTable(doc, isSample, buff, startY);
+    renderEndorsementFooterText(doc, footerStartY);
 }
 
 const section4 = (doc, data, startY) => {
