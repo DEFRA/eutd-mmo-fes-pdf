@@ -1925,7 +1925,7 @@ const renderSection7TranshipmentTable = (doc, yPos, cellHeight) => {
                 doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + IMO_VESSEL_COL_OFFSET, yPos, IMO_VESSEL_COL_WIDTH, cellHeight, IMO_VESSEL_IDENTIFIER_TEXT)),
                 doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + PORT_TRANSHIP_COL_OFFSET, yPos, PORT_TRANSHIP_COL_WIDTH, cellHeight, 'Port of transhipment (as appropriate)')),
                 doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + DATE_TRANSHIP_COL_OFFSET, yPos, DATE_TRANSHIP_COL_WIDTH, cellHeight, 'Date of transhipment (as appropriate)')),
-                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + RECEIVING_VESSEL_COL_OFFSET, yPos, RECEIVING_VESSEL_COL_WIDTH, cellHeight, 'Name and registration number of receiving vessel')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + RECEIVING_VESSEL_COL_OFFSET, yPos, RECEIVING_VESSEL_COL_WIDTH, cellHeight, 'Name and\nregistration\nnumber of\nreceiving\nvessel')),
                 doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + SEAL1_COL_OFFSET, yPos, SEAL1_COL_WIDTH, cellHeight, 'Seal (Stamp)')),
                 doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + SEAL2_COL_OFFSET, yPos, SEAL2_COL_WIDTH, cellHeight, 'Seal (Stamp)'))
             ])
@@ -2065,7 +2065,11 @@ const section5 = (doc, data, startY) => {
     yPos += PdfStyle.ROW.HEIGHT + YPOS_INCREMENT;
 
     doc.addStructure(doc.struct('P', () => {
+        doc.font(PdfStyle.FONT.BOLD);
+        doc.fillColor('#000000');
         doc.text('* I am a representative of the vessel (s) shown on this document', PdfStyle.MARGIN.LEFT + TEXT_OFFSET_X, yPos);
+        doc.font(PdfStyle.FONT.REGULAR);
+        doc.fillColor('#353535');
     }));
     PdfUtils.separator(doc, startY + SEPARATOR_OFFSET_Y);
 };
@@ -2078,7 +2082,7 @@ const section4 = (doc, data, startY) => {
     const SEPARATOR_OFFSET_Y = 52;
 
     doc.addStructure(doc.struct('P', () => {
-        PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '4    References to applicable conservation and management measures');
+        PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '4    References to applicable conservation and management measures:');
     }));
     let policy = '';
     if (data.conservation) {
@@ -2181,7 +2185,7 @@ const renderSection3HeaderAndField = (doc, startY) => {
     const FIELD_WIDTH = 515;
 
     doc.addStructure(doc.struct('P', () => {
-        PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '3    Description of Product');
+        PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '3    Description of Product:');
         PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + LABEL_OFFSET_X, startY + LABEL_OFFSET_Y, 'Type of processing authorised on board:');
     }));
     doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
@@ -2352,7 +2356,7 @@ const renderSection2VesselNameAndPort = (doc, vesselCounts, items, vesselDetails
     const FLAG_PORT_FIELD_WIDTH = 130;
 
     doc.addStructure(doc.struct('P', () => {
-        PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY + VESSEL_NAME_LABEL_OFFSET_Y, '2    Fishing Vessel Name');
+        PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY + VESSEL_NAME_LABEL_OFFSET_Y, '2    Fishing Vessel Name:');
     }));
     doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
         PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + VESSEL_NAME_FIELD_OFFSET_X, startY + VESSEL_NAME_FIELD_OFFSET_Y, VESSEL_NAME_FIELD_WIDTH, PdfStyle.ROW.HEIGHT, getVesselNameField(vesselCounts, items));
@@ -2627,7 +2631,7 @@ const renderSection1ContactDetails = (doc, startY) => {
     const EMAIL_FIELD_WIDTH = 200;
 
     doc.addStructure(doc.struct('P', () => {
-        PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY + NAME_LABEL_OFFSET_Y, '1    Name');
+        PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY + NAME_LABEL_OFFSET_Y, '1    Name:');
     }));
     doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
         PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + NAME_FIELD_OFFSET_X, startY + NAME_FIELD_OFFSET_Y, NAME_FIELD_WIDTH, PdfStyle.ROW.HEIGHT, 'Illegal Unreported and Unregulated (IUU) Fishing Team');
