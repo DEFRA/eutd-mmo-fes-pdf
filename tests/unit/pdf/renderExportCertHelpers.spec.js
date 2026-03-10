@@ -294,6 +294,49 @@ describe('renderExportCert helper functions', () => {
       const expectedHeight = calculateMaxRowHeightForLicenceHolder(rows);
       expect(result[0].rows[0].height).toBe(expectedHeight);
     });
+
+    test('should limit to 5 rows per page even when height allows more', () => {
+      // Create 7 rows with small licence holder names (small height)
+      // These would fit 6+ rows by height alone, but should be limited to 5
+      const rows = [];
+      for (let i = 0; i < 7; i++) {
+        rows.push({
+          licenceHolder: 'SHORT',
+          licenceDetail: 'LIC',
+          homePort: 'PORT'
+        });
+      }
+      const availableHeight = 301; // Enough height for 7 small rows (40px each = 280px)
+      
+      const result = paginateRows(rows, availableHeight);
+      
+      // Should be split into 2 pages: 5 rows on first, 2 rows on second
+      expect(result).toHaveLength(2);
+      expect(result[0].rows).toHaveLength(5);
+      expect(result[1].rows).toHaveLength(2);
+    });
+
+    test('should allow custom maxRowsPerPage parameter', () => {
+      const rows = [];
+      for (let i = 0; i < 10; i++) {
+        rows.push({
+          licenceHolder: 'SHORT',
+          licenceDetail: 'LIC',
+          homePort: 'PORT'
+        });
+      }
+      const availableHeight = 500;
+      const customMaxRows = 3;
+      
+      const result = paginateRows(rows, availableHeight, customMaxRows);
+      
+      // 10 rows with max 3 per page = 4 pages (3, 3, 3, 1)
+      expect(result).toHaveLength(4);
+      expect(result[0].rows).toHaveLength(3);
+      expect(result[1].rows).toHaveLength(3);
+      expect(result[2].rows).toHaveLength(3);
+      expect(result[3].rows).toHaveLength(1);
+    });
   });
 
   describe('renderMultiVesselScheduleHeader', () => {
