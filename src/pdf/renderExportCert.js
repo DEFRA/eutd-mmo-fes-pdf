@@ -67,6 +67,9 @@ const MVS_COL_FISHING_GEAR_WIDTH = 45;
 // Constant for maximum number of lines before multi-vessel schedule is triggered
 const MAX_SINGLE_VESSEL_LINES = 6;
 
+// Maximum number of rows per page in multi-vessel schedule to prevent page overflow
+const MAX_ROWS_PER_PAGE = 5;
+
 const renderPage1 = (doc, data, isSample) => {
     const SECTION1_Y_OFFSET = 70;
     const SECTION2_Y_OFFSET = 203;
@@ -244,7 +247,14 @@ const calculatePageDimensions = () => {
     return pageHeight - rowsStartY - bottomMargin - pageCountHeight - safetyMargin;
 };
 
-const paginateRows = (rows, availableHeight) => {
+const shouldStartNewPage = (currentPageHeight, tempHeight, availableHeight, currentRowCount, maxRowsPerPage) => {
+    const exceedsHeight = currentPageHeight + tempHeight > availableHeight;
+    const exceedsRowLimit = currentRowCount >= maxRowsPerPage;
+    const hasExistingRows = currentRowCount > 0;
+    return (exceedsHeight || exceedsRowLimit) && hasExistingRows;
+};
+
+const paginateRows = (rows, availableHeight, maxRowsPerPage = MAX_ROWS_PER_PAGE) => {
     const pages = [];
     let currentPageRows = [];
     let currentPageHeight = 0;
@@ -256,7 +266,7 @@ const paginateRows = (rows, availableHeight) => {
         // Use the maximum height for all rows to ensure uniform row height
         const tempHeight = maxLicenceHolderHeight;
         
-        if (currentPageHeight + tempHeight > availableHeight && currentPageRows.length > 0) {
+        if (shouldStartNewPage(currentPageHeight, tempHeight, availableHeight, currentPageRows.length, maxRowsPerPage)) {
             pages.push({ 
                 rows: currentPageRows, 
                 startIdx: pages.length === 0 ? 0 : pages.at(-1).startIdx + pages.at(-1).rows.length 
