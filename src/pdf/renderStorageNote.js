@@ -362,8 +362,14 @@ const sectionContinued = (doc, data, isSample, sectionNumber, type) => {
     const remainingCatches = allCatches.slice(CONSIGNMENT_ROWS_COUNT);
     
     const sectionTitle = getSectionContinuedTitle(sectionNumber, type);
-    
-    for (let pageNum = 0; pageNum < 2; pageNum++) {
+
+    // Only render continuation pages that have content — avoid trailing blank pages
+    const numPagesNeeded = remainingCatches.length > 0
+        ? Math.ceil(remainingCatches.length / rowsPerPage)
+        : 0;
+    const numPagesToRender = Math.min(numPagesNeeded, 2);
+
+    for (let pageNum = 0; pageNum < numPagesToRender; pageNum++) {
         if (isSample){
             CommonUtils.addSampleWatermark(doc);
         }
