@@ -365,8 +365,14 @@ const sectionContinued = (doc, data, isSample, sectionNumber, type) => {
     const remainingCatches = allCatches.slice(CONSIGNMENT_ROWS_COUNT);
     
     const sectionTitle = getSectionContinuedTitle(sectionNumber, type);
-    
-    for (let pageNum = 0; pageNum < 2; pageNum++) {
+
+    // Only render continuation pages that have content — avoid trailing blank pages
+    const numPagesNeeded = remainingCatches.length > 0
+        ? Math.ceil(remainingCatches.length / rowsPerPage)
+        : 0;
+    const numPagesToRender = Math.min(numPagesNeeded, 2);
+
+    for (let pageNum = 0; pageNum < numPagesToRender; pageNum++) {
         if (isSample){
             CommonUtils.addSampleWatermark(doc);
         }
@@ -929,16 +935,28 @@ const isVehicleTransportKey = (key) =>
 const isContainerNumberKey = (key) =>
     key === ARRIVAL_TRANSPORT_CONTAINER_NUMBERS || key === TRANSPORT_CONTAINER_NUMBERS;
 
+const isPointOfDestinationKey = (key) =>
+    key === 'transport.pointOfDestination' || key === 'arrivalTransport.pointOfDestination';
+
 const shouldUseExpandedHeight = (key) =>
-    isVehicleTransportKey(key) || isContainerNumberKey(key);
+    isVehicleTransportKey(key) || isContainerNumberKey(key) || isPointOfDestinationKey(key);
 
 const getTransportType = (transport) => 
     (transport.vehicle || '').toLowerCase();
 
 const formatVesselTransport = (transport) => `Vessel: ${transport.vesselName || ''} - ${transport.flagState || ''}`;
-const formatTruckTransport = (transport) => `Truck: ${transport.registrationNumber || ''} - ${transport.freightBillNumber || ''}`;
-const formatTrainTransport = (transport) => `Train: ${transport.railwayBillNumber || ''} - ${transport.freightBillNumber || ''}`;
-const formatPlaneTransport = (transport) => `Plane: ${transport.flightNumber || ''} - ${transport.airwayBillNumber || ''} - ${transport.freightBillNumber || ''}`;
+const formatTruckTransport = (transport) => {
+    const parts = [transport.registrationNumber, transport.freightBillNumber].filter(v => v?.trim());
+    return `Truck: ${parts.join(' - ')}`;
+};
+const formatTrainTransport = (transport) => {
+    const parts = [transport.railwayBillNumber, transport.freightBillNumber].filter(v => v?.trim());
+    return `Train: ${parts.join(' - ')}`;
+};
+const formatPlaneTransport = (transport) => {
+    const parts = [transport.flightNumber, transport.airwayBillNumber, transport.freightBillNumber].filter(v => v?.trim());
+    return `Plane: ${parts.join(' - ')}`;
+};
 
 const TRANSPORT_TYPE_FORMATTERS = {
     'containervessel': formatVesselTransport,

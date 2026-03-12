@@ -9,6 +9,10 @@ const PDFStreamForImageBuffer = require('./PDFStreamForImageBuffer');
 const QR_CODE_X_POSITION_PAGE_6 = 50;
 const QR_CODE_Y_POSITION_PAGE_6 = 328;
 const PAGE_MODIFIER_INDEX_SCHEDULE_3 = 9;
+const SCHEDULE_DOC_NUMBER_X = 128;
+const SCHEDULE_DOC_NUMBER_Y = 454;
+const SCHEDULE_QR_CODE_X = 617;
+const SCHEDULE_QR_CODE_Y = 405;
 
 const renderBlankExportCert = async (data, isSample, uri, stream, pathToTemplate) => {
     const inStream = new muhammara.PDFRStreamForFile(pathToTemplate + 'export-cert-blank.pdf'); // './src/resources/export-cert-blank.pdf'
@@ -71,13 +75,13 @@ const renderBlankExportCert = async (data, isSample, uri, stream, pathToTemplate
     ctx = pageModifier.startContext().getContext();
     ctx.writeText(
         docNumber,
-        128, 494,
+        SCHEDULE_DOC_NUMBER_X, SCHEDULE_DOC_NUMBER_Y,
         {font:pdfWriter.getFontForFile(pathToTemplate + 'fonts/arial.ttf'),size:10,colorspace:'gray',color:0x00}
     );
     if (isSample) {
         renderSampleWatermark(pdfWriter, ctx, watermarkStreamImageXObject, 130, 0);
     } else {
-        renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, 617, 445);
+        renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, SCHEDULE_QR_CODE_X, SCHEDULE_QR_CODE_Y);
     }
     pageModifier.endContext().writePage();
 
@@ -86,13 +90,13 @@ const renderBlankExportCert = async (data, isSample, uri, stream, pathToTemplate
     ctx = pageModifier.startContext().getContext();
     ctx.writeText(
         docNumber,
-        128, 494,
+        SCHEDULE_DOC_NUMBER_X, SCHEDULE_DOC_NUMBER_Y,
         {font:pdfWriter.getFontForFile(pathToTemplate + 'fonts/arial.ttf'),size:10,colorspace:'gray',color:0x00}
     );
     if (isSample) {
         renderSampleWatermark(pdfWriter, ctx, watermarkStreamImageXObject, 130, 0);
     } else {
-        renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, 617, 445);
+        renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, SCHEDULE_QR_CODE_X, SCHEDULE_QR_CODE_Y);
     }
     pageModifier.endContext().writePage();
 
@@ -101,13 +105,13 @@ const renderBlankExportCert = async (data, isSample, uri, stream, pathToTemplate
     ctx = pageModifier.startContext().getContext();
     ctx.writeText(
         docNumber,
-        128, 494,
+        SCHEDULE_DOC_NUMBER_X, SCHEDULE_DOC_NUMBER_Y,
         {font:pdfWriter.getFontForFile(pathToTemplate + 'fonts/arial.ttf'),size:10,colorspace:'gray',color:0x00}
     );
     if (isSample) {
         renderSampleWatermark(pdfWriter, ctx, watermarkStreamImageXObject, 130, 0);
     } else {
-        renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, 617, 445);
+        renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, SCHEDULE_QR_CODE_X, SCHEDULE_QR_CODE_Y);
     }
     pageModifier.endContext().writePage();
 
