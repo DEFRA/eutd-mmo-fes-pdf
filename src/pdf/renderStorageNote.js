@@ -194,7 +194,10 @@ const renderStorageNote = async (data, isSample, uri, stream) => {
 
     const dateOfSubmission = formatCurrentDate();
 
-    const doc = CommonUtils.createBaseDocument(uri);
+    const documentTitle = data?.documentNumber
+        ? `Non-Manipulation Document - ${data.documentNumber}`
+        : 'Non-Manipulation Document';
+    const doc = CommonUtils.createBaseDocument(uri, documentTitle);
     doc.pipe(stream);
  
     PdfUtils.heading(doc, 'NON-MANIPULATION DOCUMENT');
