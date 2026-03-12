@@ -943,15 +943,15 @@ const getTransportType = (transport) =>
 
 const formatVesselTransport = (transport) => `Vessel: ${transport.vesselName || ''} - ${transport.flagState || ''}`;
 const formatTruckTransport = (transport) => {
-    const parts = [transport.registrationNumber, transport.freightBillNumber].filter(v => v && v.trim());
+    const parts = [transport.registrationNumber, transport.freightBillNumber].filter(v => v?.trim());
     return `Truck: ${parts.join(' - ')}`;
 };
 const formatTrainTransport = (transport) => {
-    const parts = [transport.railwayBillNumber, transport.freightBillNumber].filter(v => v && v.trim());
+    const parts = [transport.railwayBillNumber, transport.freightBillNumber].filter(v => v?.trim());
     return `Train: ${parts.join(' - ')}`;
 };
 const formatPlaneTransport = (transport) => {
-    const parts = [transport.flightNumber, transport.airwayBillNumber, transport.freightBillNumber].filter(v => v && v.trim());
+    const parts = [transport.flightNumber, transport.airwayBillNumber, transport.freightBillNumber].filter(v => v?.trim());
     return `Plane: ${parts.join(' - ')}`;
 };
 
