@@ -1143,8 +1143,9 @@ const getContainerIdentificationNumber = (data) => {
     const containerNumbers = [];
     
     transportModes.forEach(transport => {
-        // Support both 'containerIdentificationNumber' and 'containerNumber'
-        const containerNum = transport.containerIdentificationNumber || transport.containerNumber;
+        // Prefer new 'containerNumber' field, fall back to legacy 'containerIdentificationNumber'
+        // This ensures migration from containerIdentificationNumber to containerNumber works correctly
+        const containerNum = transport.containerNumber || transport.containerIdentificationNumber;
         if (containerNum) {
             containerNumbers.push(containerNum.toString());
         }

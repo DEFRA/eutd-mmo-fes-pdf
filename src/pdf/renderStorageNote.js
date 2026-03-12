@@ -953,8 +953,24 @@ const TRANSPORT_TYPE_FORMATTERS = {
     'plane': formatPlaneTransport
 };
 
+const getContainerNumbers = (transport) => {
+    // Prefer new 'containerNumber' field, fall back to legacy 'containerNumbers'
+    // This ensures migration from containerNumbers to containerNumber works correctly
+    const containerNum = transport.containerNumber || transport.containerNumbers;
+    
+    if (!containerNum) return '';
+    
+    // If it's an array, join with ', '; if it's a string, return as-is
+    return Array.isArray(containerNum) ? containerNum.join(', ') : containerNum;
+};
+
 const formatTransportValue = (rowKey, data, isArrival = true) => {
     if (!isVehicleTransportKey(rowKey)) {
+        // Special handling for container numbers with backward compatibility
+        if (isContainerNumberKey(rowKey)) {
+            const transport = isArrival ? (data.arrivalTransport || {}) : (data.transport || {});
+            return getContainerNumbers(transport);
+        }
         return getNestedValue(data, rowKey);
     }
 
