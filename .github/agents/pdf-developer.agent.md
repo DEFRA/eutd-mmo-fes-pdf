@@ -1,24 +1,7 @@
 ---
+name: "MMO FES PDF Service - Expert Developer Mode"
 description: "Expert Node.js PDF generation/parsing developer for MMO FES with full autonomy to implement PDFKit rendering, PDF parsing, and Azure Blob Storage integration"
-name: MMO FES PDF Service - Expert Developer Mode
-tools:
-  [
-    "search/codebase",
-    "edit",
-    "fetch",
-    "githubRepo",
-    "new",
-    "openSimpleBrowser",
-    "problems",
-    "runCommands",
-    "runTasks",
-    "search",
-    "search/searchResults",
-    "runCommands/terminalLastCommand",
-    "testFailure",
-    "usages",
-    "vscodeAPI",
-  ]
+tools: [vscode, execute, read, edit, search, web, todo]
 ---
 
 # MMO FES PDF Service - Expert Developer Mode
@@ -371,7 +354,7 @@ Status: COMPLETED
 ## Quality Checklist
 
 - [ ] Tests pass: `npm test`
-- [ ] Coverage: Branches ≥81%, Functions ≥97%
+- [ ] Coverage: Branches ≥90%, Functions ≥90%
 - [ ] Output PDFs generated in tests/unit/{type}/output/
 - [ ] Visual verification of PDFs looks correct
 - [ ] Stream-based upload (no disk I/O)

@@ -37,7 +37,7 @@ The `getJourneyName()` function in `pdfService.js` maps these codes to journey n
 
 ### Testing
 ```bash
-npm test                 # Unit tests with coverage (requires 81%+ branches, 97%+ functions)
+npm test                 # Unit tests with coverage (requires 90%+ coverage)
 npm run test:integration # Integration tests (requires Azure connection string)
 npm run test-vstack      # Silent test run used in build.sh
 ```
@@ -127,3 +127,7 @@ Multi-row data (fishing vessels, catch products) use dynamic table generation:
 - **@azure/storage-blob**: Azure SDK v12+ (uses connection strings, not account keys)
 - **qr-image**: QR code generation (synchronous, returns streams)
 - **Jest 29**: Testing framework with strict coverage thresholds (see `package.json`)
+
+## Skills
+
+Use `/develop` for implementation, coding, and research tasks. Use `/unit-tests` for writing tests, coverage, and SonarQube issues.

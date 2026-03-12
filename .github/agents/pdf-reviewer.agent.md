@@ -1,19 +1,7 @@
 ---
-description: "QA code reviewer for MMO FES PDF Service - read-only PDF generation/parsing analysis with findings table output"
 name: "MMO FES PDF Service - QA Code Reviewer Mode"
-tools:
-  [
-    "search/codebase",
-    "fetch",
-    "githubRepo",
-    "openSimpleBrowser",
-    "problems",
-    "search",
-    "search/searchResults",
-    "runCommands/terminalLastCommand",
-    "usages",
-    "vscodeAPI",
-  ]
+description: "QA code reviewer for MMO FES PDF Service - read-only PDF generation/parsing analysis with findings table output"
+tools: [vscode, read, search, web, todo]
 ---
 
 # MMO FES PDF Service - QA Code Reviewer Mode
