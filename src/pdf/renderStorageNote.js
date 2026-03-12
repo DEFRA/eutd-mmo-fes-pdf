@@ -194,7 +194,7 @@ const renderStorageNote = async (data, isSample, uri, stream) => {
 
     const dateOfSubmission = formatCurrentDate();
 
-    const documentTitle = data?.documentNumber
+    const documentTitle = data.documentNumber
         ? `Non-Manipulation Document - ${data.documentNumber}`
         : 'Non-Manipulation Document';
     const doc = CommonUtils.createBaseDocument(uri, documentTitle);
