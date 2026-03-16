@@ -395,10 +395,6 @@ const sectionContinued = (doc, data, isSample, sectionNumber, type) => {
             catches: remainingCatches.slice(startIdx, endIdx)
         };
         
-        if (pageData.catches.length === 0 && remainingCatches.length === 0) {
-            pageData.catches = [];
-        }
-        
         createConsignmentTable(doc, pageData, startY + titleHeight, type, rowsPerPage, false);
     }
 };
