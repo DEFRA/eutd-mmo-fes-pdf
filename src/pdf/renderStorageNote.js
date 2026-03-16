@@ -194,7 +194,10 @@ const renderStorageNote = async (data, isSample, uri, stream) => {
 
     const dateOfSubmission = formatCurrentDate();
 
-    const doc = CommonUtils.createBaseDocument(uri);
+    const documentTitle = data.documentNumber
+        ? `Non-Manipulation Document - ${data.documentNumber}`
+        : 'Non-Manipulation Document';
+    const doc = CommonUtils.createBaseDocument(uri, documentTitle);
     doc.pipe(stream);
  
     PdfUtils.heading(doc, 'NON-MANIPULATION DOCUMENT');
@@ -391,10 +394,6 @@ const sectionContinued = (doc, data, isSample, sectionNumber, type) => {
         const pageData = {
             catches: remainingCatches.slice(startIdx, endIdx)
         };
-        
-        if (pageData.catches.length === 0 && remainingCatches.length === 0) {
-            pageData.catches = [];
-        }
         
         createConsignmentTable(doc, pageData, startY + titleHeight, type, rowsPerPage, false);
     }
