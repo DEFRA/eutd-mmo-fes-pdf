@@ -117,8 +117,56 @@ const countAddPageCalls = async (data) => {
 };
 
 // ---------------------------------------------------------------------------
+// Helper – capture the documentTitle passed to createBaseDocument
+// ---------------------------------------------------------------------------
+
+const captureDocumentTitle = async (data) => {
+    let capturedTitle;
+
+    const realCreate = commonUtils.createBaseDocument;
+    commonUtils.createBaseDocument = (uri, documentTitle) => {
+        capturedTitle = documentTitle;
+        return realCreate(uri, documentTitle);
+    };
+
+    const pass = new PassThrough();
+    pass.resume();
+
+    const streamFinished = new Promise((resolve, reject) => {
+        pass.on('finish', resolve);
+        pass.on('error', reject);
+    });
+
+    try {
+        await renderStorageNote(data, true, 'http://example.com/test', pass);
+        await streamFinished;
+    } finally {
+        commonUtils.createBaseDocument = realCreate;
+    }
+
+    return capturedTitle;
+};
+
+// ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
+
+describe('NMD document title (renderStorageNote)', () => {
+    jest.setTimeout(60_000);
+
+    test('sets title to "Non-Manipulation Document - <documentNumber>" when documentNumber is present', async () => {
+        const data = { ...baseData, catches: [makeCatch(1)] };
+        const title = await captureDocumentTitle(data);
+        expect(title).toBe(`Non-Manipulation Document - ${baseData.documentNumber}`);
+    });
+
+    test('falls back to "Non-Manipulation Document" when documentNumber is absent', async () => {
+        const { documentNumber: _omit, ...dataWithoutNumber } = baseData;
+        const data = { ...dataWithoutNumber, catches: [makeCatch(1)] };
+        const title = await captureDocumentTitle(data);
+        expect(title).toBe('Non-Manipulation Document');
+    });
+});
 
 describe('NMD trailing blank page removal (renderStorageNote)', () => {
     jest.setTimeout(60_000);

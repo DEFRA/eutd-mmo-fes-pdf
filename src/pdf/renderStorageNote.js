@@ -48,8 +48,8 @@ const SECTION_4_SUBROW_COL3_X = SECTION_4_COL4_X + 100; // 480
 const SECTION_7_COL1_WIDTH = 150;    // Company name
 const SECTION_7_COL1_X = MARGIN_OFFSET;
 const SECTION_7_COL2_X = SECTION_7_COL1_X + SECTION_7_COL1_WIDTH;  // 165
-const SECTION_7_COL2_WIDTH = 280;    // Address
-const SECTION_7_COL3_X = SECTION_7_COL2_X + SECTION_7_COL2_WIDTH;  // 425
+const SECTION_7_COL2_WIDTH = 255;    // Address
+const SECTION_7_COL3_X = SECTION_7_COL2_X + SECTION_7_COL2_WIDTH;  // 420
 const SECTION_7_COL3_WIDTH = 110;    // Date of submission
 
 // Row height multipliers
@@ -144,6 +144,7 @@ const TRANSPORT_DETAILS_TABLE_START_Y_OFFSET = 12;
 // Section height adjustments
 const SECTION_2_FIELD_SPACING = 10;
 const SECTION_ADDITIONAL_SPACING = 5;
+const SECTION_6_TO_7_SPACING = 30;
 const SECTION_7_ADDITIONAL_SPACING = 4;
 
 // Section 4 specific
@@ -194,7 +195,10 @@ const renderStorageNote = async (data, isSample, uri, stream) => {
 
     const dateOfSubmission = formatCurrentDate();
 
-    const doc = CommonUtils.createBaseDocument(uri);
+    const documentTitle = data.documentNumber
+        ? `Non-Manipulation Document - ${data.documentNumber}`
+        : 'Non-Manipulation Document';
+    const doc = CommonUtils.createBaseDocument(uri, documentTitle);
     doc.pipe(stream);
  
     PdfUtils.heading(doc, 'NON-MANIPULATION DOCUMENT');
@@ -263,7 +267,7 @@ const renderAllSections = (doc, data, isSample, buff, initialStartY, dateOfSubmi
     const section6Height = estimateSection6();
     ensureSpaceAndMaybeNewPage(section6Height);
     section6(doc, data, startY);
-    startY = startY + section6Height + GAP + SECTION_ADDITIONAL_SPACING;
+    startY = startY + section6Height + GAP + SECTION_6_TO_7_SPACING;
 
     // Section 7
     const section7Height = estimateSection7();
@@ -391,10 +395,6 @@ const sectionContinued = (doc, data, isSample, sectionNumber, type) => {
         const pageData = {
             catches: remainingCatches.slice(startIdx, endIdx)
         };
-        
-        if (pageData.catches.length === 0 && remainingCatches.length === 0) {
-            pageData.catches = [];
-        }
         
         createConsignmentTable(doc, pageData, startY + titleHeight, type, rowsPerPage, false);
     }
@@ -849,7 +849,7 @@ const createSection8TableRow = (doc, tableBody, yPos, cellHeight, isSample, buff
 
 const section8 = (doc, isSample, buff, startY) => {
     doc.addStructure(doc.struct('H3', () => {
-        PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '8    Declaration by the competent authority');
+        PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '8.    Declaration by the competent authority');
     }));
     let yPos = startY + SECTION_8_Y_OFFSET;
     const cellHeight = PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_5 + SECTION_8_CELL_HEIGHT_PADDING;

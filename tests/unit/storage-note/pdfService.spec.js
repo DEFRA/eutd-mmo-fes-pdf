@@ -223,6 +223,55 @@ describe('pdfService', () => {
     
     });
 
+    test('Should create the expected PDF when documentNumber is absent', async () => {
+
+        const principalId = '527fb0dd-b1d7-46c8-bfed-e06b373d041c';
+
+        const data = {
+            exporter: {
+                exporterFullName: 'Jim Jessop',
+                exporterCompanyName: 'FishByMail Ltd',
+                addressOne: '77 Coast Road',
+                townCity: 'Jarrow',
+                postcode: 'NE31 1YW'
+            },
+            catches: [
+                {
+                    product: 'cod',
+                    commodityCode: '0123456',
+                    certificateNumber: 'GBR-2018-SD-123',
+                    productWeight: 200,
+                }
+            ],
+            transport: {
+                vehicle: 'train',
+                departurePlace: 'HULL',
+                exportDate: '31/01/2018'
+            },
+            arrivalTransport: {
+                vehicle: 'plane',
+                departurePlace: 'hull',
+                flightNumber: '123',
+                exportDate: '31/01/2018'
+            },
+            facilityName: 'Test Processor 1',
+            facilityAddressOne: '20',
+            facilityTownCity: 'Town',
+            facilityPostcode: 'test',
+            storedAs: 'chilled',
+            facilityArrivalDate: '20/10/2025',
+            exportedTo: {
+                officialCountryName: 'France',
+            }
+        };
+
+        const responseJson = await pdfService.generatePdfAndUpload(principalId, pdfType.STORAGE_NOTE,
+            data, false, { getStream: getTestStream });
+
+        expect(responseJson).toBeTruthy();
+
+    });
+
     test('Should create the expected PDF with truck transport type', async () => {
 
         const principalId = '527fb0dd-b1d7-46c8-bfed-e06b373d041c';
