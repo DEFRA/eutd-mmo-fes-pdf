@@ -1174,6 +1174,11 @@ const getOtherTransportDocuments = (data) => {
     let documentLines = [];
     
     transportModes.forEach(transport => {
+        const transportVehicleType = (transport.vehicle || '').toUpperCase();
+        if (transportVehicleType === 'PLANE' && transport.airwayBillNumber) {
+            documentLines.push(`Air waybill: ${transport.airwayBillNumber}`);
+        }
+
         // Support both 'transportDocuments' (from UI) and 'documents' (alternative naming)
         const docs = transport.transportDocuments || transport.documents;
         
