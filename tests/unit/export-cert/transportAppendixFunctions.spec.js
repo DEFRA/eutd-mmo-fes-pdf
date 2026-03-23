@@ -425,6 +425,63 @@ describe('Transport Appendix Helper Functions - Pages 6 & 7', () => {
             const result = renderExportCert.getOtherTransportDocuments(data);
             expect(result.includes('\n')).toBe(true);
         });
+
+        test('should include air waybill number when plane transport has airwayBillNumber', () => {
+            const data = {
+                transportations: [
+                    {
+                        vehicle: 'plane',
+                        airwayBillNumber: '123-45678901'
+                    }
+                ]
+            };
+            const result = renderExportCert.getOtherTransportDocuments(data);
+            expect(result).toBe('Air waybill: 123-45678901');
+        });
+
+        test('should not include air waybill line when plane transport has no airwayBillNumber', () => {
+            const data = {
+                transportations: [
+                    {
+                        vehicle: 'plane',
+                        flightNumber: 'BA101'
+                    }
+                ]
+            };
+            const result = renderExportCert.getOtherTransportDocuments(data);
+            expect(result).toBe('');
+        });
+
+        test('should not include air waybill line for non-plane transport', () => {
+            const data = {
+                transportations: [
+                    {
+                        vehicle: 'truck',
+                        airwayBillNumber: '123-45678901'
+                    }
+                ]
+            };
+            const result = renderExportCert.getOtherTransportDocuments(data);
+            expect(result).toBe('');
+        });
+
+        test('should include air waybill before other transport documents', () => {
+            const data = {
+                transportations: [
+                    {
+                        vehicle: 'plane',
+                        airwayBillNumber: '456-78901234',
+                        transportDocuments: [
+                            { name: 'CMR', reference: 'CMR001' }
+                        ]
+                    }
+                ]
+            };
+            const result = renderExportCert.getOtherTransportDocuments(data);
+            const lines = result.split('\n');
+            expect(lines[0]).toBe('Air waybill: 456-78901234');
+            expect(lines[1]).toBe('CMR - CMR001');
+        });
     });
 
     describe('getVehicleType - Legacy single transport', () => {
