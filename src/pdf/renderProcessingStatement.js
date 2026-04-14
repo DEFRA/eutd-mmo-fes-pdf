@@ -620,7 +620,7 @@ const section4 = (doc, data, startY) => {
 
 const section3 = (doc, data, startY) => {
     PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '3    Health certificate details');
-    let yPos = startY + 12;
+    const yPos = startY + 12;
 
     doc.addStructure(doc.struct('Table', [
         doc.struct('TR', [
@@ -638,7 +638,7 @@ const section3 = (doc, data, startY) => {
 
 const section2 = (doc, data, startY) => {
     PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '2    Processing plant details');
-    const yPos = startY + 12;
+    let yPos = startY + 12;
     const cellHeight = PdfStyle.ROW.HEIGHT * 2 - 5;
     const ppAddress = PdfUtils.constructAddress([data.plantAddressOne, data.plantAddressTwo, data.plantTownCity, data.plantPostcode]);
 
