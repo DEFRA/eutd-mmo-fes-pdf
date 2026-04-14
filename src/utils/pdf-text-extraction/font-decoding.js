@@ -78,25 +78,24 @@ function parseToUnicode(pdfReader,toUnicodeObjectId) {
                 map[beToNum(byteCode)] = besToUnicodes(unicodes);
             }
         } else if(operatorName === 'endbfrange') {
-            
             // Operators are 3. two codesBytes and then either a unicode start range or array of unicodes
             for(let i=0;i<operands.length;i+=3) {
                 const startCode = beToNum(operands[i].toBytesArray());
                 const endCode = beToNum(operands[i+1].toBytesArray());
-                
                 if(operands[i+2].getType() === muhammara.ePDFObjectArray) {
                     const unicodeArray = operands[i+2].toPDFArray();
                     // specific codes
                     map = getEndBFRange(startCode, endCode, map, unicodeArray, true);
-                }
-                else {
-                    let unicodesNew =  besToUnicodes(operands[i+2].toBytesArray());
+                } else {
+                    let unicodesNew = besToUnicodes(operands[i+2].toBytesArray());
                     const {mapUpdated, unicodesUp} = getEndBFRange(startCode, endCode, map, unicodesNew, false);
                     map = mapUpdated;
                     unicodesNew = unicodesUp;
                 }
+            }
         } else {
             // unrecognised operator - ignore
+        }
     });
 
     return map;

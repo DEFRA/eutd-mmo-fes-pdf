@@ -1,3 +1,4 @@
+/* eslint-disable id-match */
 const _ = require('lodash');
 
 function initTextState() {
