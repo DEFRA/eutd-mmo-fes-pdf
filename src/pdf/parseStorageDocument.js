@@ -105,18 +105,13 @@ const extractScheduleFacilityDetails = (raw, result) => {
 };
 
 const extractScheduleFacilityDetailItem = (_pageIdx, rowIdx, raw) => {
-    let item = {};
-    let nameKey = SCHED_FAC_NAME_KEY_PREFIX;
-    let addressKey = SCHED_FAC_ADDRESS_KEY_PREFIX;
+    const nameKey = rowIdx === 1 ? SCHED_FAC_NAME_KEY_PREFIX : `${SCHED_FAC_NAME_KEY_PREFIX} ${rowIdx}`;
+    const addressKey = `${SCHED_FAC_ADDRESS_KEY_PREFIX}${rowIdx}`;
 
-    if (1!== rowIdx) {
-        nameKey = nameKey + ' ' + rowIdx;
-    }
-
-    addressKey = addressKey + rowIdx;
-
-    item.facilityName = raw[nameKey];
-    item.facilityAddress = raw[addressKey];
+    const item = {
+        facilityName: raw[nameKey],
+        facilityAddress: raw[addressKey]
+    };
 
     if ((!item.facilityName || item.facilityName.trim().length === 0)
         && (!item.facilityAddress || item.facilityAddress.trim().length === 0))
@@ -128,12 +123,12 @@ const extractScheduleFacilityDetailItem = (_pageIdx, rowIdx, raw) => {
 };
 
 const extractScheduleConsDetails = (raw, result) => {
-    let catches = [];
+    const catches = [];
     let pageIdx;
     let rowIdx;
     for (pageIdx = 2; pageIdx <= 4; pageIdx++) {
         for (rowIdx = 1; rowIdx <= 24; rowIdx++) {
-            let item = extractScheduleConsDetailItem(pageIdx, rowIdx, raw);
+            const item = extractScheduleConsDetailItem(pageIdx, rowIdx, raw);
             if (item) {
                 catches.push(item);
                 result.errors = result.errors.concat(validateScheduleConsDetailItem(pageIdx, rowIdx, item));
@@ -144,43 +139,37 @@ const extractScheduleConsDetails = (raw, result) => {
 };
 
 const extractScheduleConsDetailItem = (pageIdx, rIdx, raw) => {
-
-    let rowIdx = rIdx;
-    let item = {};
-
     // the editable pdf fieldnames are whack...
+    const ROW_BUMP_1 = 3;
+    const ROW_BUMP_2 = 6;
+    const ROW_BUMP_3 = 9;
+    const ROW_BUMP_4 = 12;
+    let rowIdx = rIdx;
+    const item = {};
+
     if (pageIdx === 2) {
-        if (rowIdx > 3) {
+        if (rowIdx > ROW_BUMP_1) {
             rowIdx++;
         }
-        if (rowIdx > 6) {
+        if (rowIdx > ROW_BUMP_2) {
             rowIdx++;
         }
-        if (rowIdx > 9) {
+        if (rowIdx > ROW_BUMP_3) {
             rowIdx++;
         }
-        if (rowIdx > 12) {
+        if (rowIdx > ROW_BUMP_4) {
             rowIdx++;
         }
     }
 
-    let productKey = SCHED_CONS_PROD_KEY_PREFIX + rowIdx;
-    let codeKey = SCHED_CONS_CODE_KEY_PREFIX + rowIdx;
-    let catchCertKey = SCHED_CONS_CC_KEY_PREFIX + rowIdx;
-    let weightKey = SCHED_CONS_WEIGHT_KEY_PREFIX + rowIdx;
-    let dateKey = SCHED_CONS_DATE_KEY_PREFIX + rowIdx;
-    let placeKey = SCHED_CONS_PLACE_KEY_PREFIX + rowIdx;
-    let transportKey = SCHED_CONS_TRANSPORT_KEY_PREFIX + rowIdx;
-
-    if (pageIdx > 2) {
-        productKey = productKey + '0' + (pageIdx - 2);
-        codeKey = codeKey + '0' + (pageIdx - 2);
-        catchCertKey = catchCertKey + '0' + (pageIdx - 2);
-        weightKey = weightKey + '0' + (pageIdx - 2);
-        dateKey = dateKey + '0' + (pageIdx - 2);
-        placeKey = placeKey + '0' + (pageIdx - 2);
-        transportKey = transportKey + '0' + (pageIdx - 2);
-    }
+    const pageSuffix = pageIdx > 2 ? `0${pageIdx - 2}` : '';
+    const productKey = `${SCHED_CONS_PROD_KEY_PREFIX}${rowIdx}${pageSuffix}`;
+    const codeKey = `${SCHED_CONS_CODE_KEY_PREFIX}${rowIdx}${pageSuffix}`;
+    const catchCertKey = `${SCHED_CONS_CC_KEY_PREFIX}${rowIdx}${pageSuffix}`;
+    const weightKey = `${SCHED_CONS_WEIGHT_KEY_PREFIX}${rowIdx}${pageSuffix}`;
+    const dateKey = `${SCHED_CONS_DATE_KEY_PREFIX}${rowIdx}${pageSuffix}`;
+    const placeKey = `${SCHED_CONS_PLACE_KEY_PREFIX}${rowIdx}${pageSuffix}`;
+    const transportKey = `${SCHED_CONS_TRANSPORT_KEY_PREFIX}${rowIdx}${pageSuffix}`;
 
     item.product = raw[productKey];
     item.commodityCode = raw[codeKey];
