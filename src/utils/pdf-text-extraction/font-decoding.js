@@ -11,7 +11,7 @@ const StandardFontsDimensions = require('./standard-fonts-dimensions');
 
 function besToUnicodes(inArray) {
     let i=0;
-    let unicodes = [];
+    const unicodes = [];
 
     while(i<inArray.length) {
         let newOne = beToNum(inArray,i,i+2);

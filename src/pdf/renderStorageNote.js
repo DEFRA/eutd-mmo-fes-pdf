@@ -478,7 +478,7 @@ const section8 = (doc, _data, isSample, buff, startY) => {
         PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '8    Declaration by the competent authority');
     }));
     let yPos = startY + 50;
-    let cellHeight = PdfStyle.ROW.HEIGHT * 5 + 10;
+    const cellHeight = PdfStyle.ROW.HEIGHT * 5 + 10;
 
     const infoText = 'I hereby declare that the information provided in this document is correct and that the products concerned did not undergo operations other than unloading, reloading or any operation designed to preserve them in good and genuine condition, and remained under the surveillance of the declaring authority.';
     doc.addStructure(doc.struct('P', () => {
@@ -573,8 +573,8 @@ const section4 = (doc, data, startY) => {
         PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '4.    Storage facility details');
     }));
     let yPos = startY + 12;
-    let cellHeight = PdfStyle.ROW.HEIGHT * 3;
-    let subCellHeight = PdfStyle.ROW.HEIGHT;
+    const cellHeight = PdfStyle.ROW.HEIGHT * 3;
+    const subCellHeight = PdfStyle.ROW.HEIGHT;
  
     const myTable = doc.struct('Table');
     doc.addStructure(myTable);
@@ -709,7 +709,7 @@ const section4 = (doc, data, startY) => {
 const getNestedValue = (obj, path) => {  
     const result = path
         .split('.')
-        .reduce((acc, part) => (acc && acc[part] !== undefined ? acc[part] : ''), obj);
+        .reduce((acc, part) => (acc?.[part] !== undefined ? acc[part] : ''), obj);
     
     return Array.isArray(result) ? result.join(', ') : result;
 };
