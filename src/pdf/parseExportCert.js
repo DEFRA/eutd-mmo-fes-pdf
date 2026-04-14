@@ -52,10 +52,11 @@ const MAX_SCHEDULE_PAGES = 3;
 const MAX_SCHEDULE_ROWS_PER_PAGE = 14;
 
 const hasFrontPageExportItems = (raw) => {
-    return (raw[FP_SPECIES_KEY_PREFIX + '1'] && raw[FP_SPECIES_KEY_PREFIX + '1'].trim().length > 0)
-        || (raw[FP_PROD_CODE_KEY_PREFIX + '1'] && raw[FP_PROD_CODE_KEY_PREFIX + '1'].trim().length > 0)
-        || (raw[FP_SPECIES_KEY_PREFIX + '2'] && raw[FP_SPECIES_KEY_PREFIX + '2'].trim().length > 0)
-        || (raw[FP_PROD_CODE_KEY_PREFIX + '2'] && raw[FP_PROD_CODE_KEY_PREFIX + '2'].trim().length > 0);
+    const hasSpecies1 = raw[FP_SPECIES_KEY_PREFIX + '1'] && raw[FP_SPECIES_KEY_PREFIX + '1'].trim().length > 0;
+    const hasProdCode1 = raw[FP_PROD_CODE_KEY_PREFIX + '1'] && raw[FP_PROD_CODE_KEY_PREFIX + '1'].trim().length > 0;
+    const hasSpecies2 = raw[FP_SPECIES_KEY_PREFIX + '2'] && raw[FP_SPECIES_KEY_PREFIX + '2'].trim().length > 0;
+    const hasProdCode2 = raw[FP_PROD_CODE_KEY_PREFIX + '2'] && raw[FP_PROD_CODE_KEY_PREFIX + '2'].trim().length > 0;
+    return hasSpecies1 || hasProdCode1 || hasSpecies2 || hasProdCode2;
 };
 
 const parseExportCert = async (pdfJson, buffer) => {

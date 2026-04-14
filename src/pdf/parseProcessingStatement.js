@@ -31,19 +31,21 @@ const SCHED_CATCHES_CATCH_PROCESSED_WEIGHT_KEY_PREFIX = 'Catch processed kgRow';
 const SCHED_CATCHES_PROCESSED_WEIGHT_KEY_PREFIX = 'Processed fishery productkgRow';
 
 const hasFrontPageCatchDetails = (raw) => {
-    return (raw[FP_CATCHES_CATCH_DESC_KEY_PREFIX + '0'] && raw[FP_CATCHES_CATCH_DESC_KEY_PREFIX + '0'].trim().length > 0)
-        || (raw[FP_CATCHES_CC_NUM_KEY_PREFIX + '10'] && raw[FP_CATCHES_CC_NUM_KEY_PREFIX + '10'].trim().length > 0)
-        || (raw[FP_CATCHES_TOTAL_LANDED_WEIGHT_KEY_PREFIX + '0'] && raw[FP_CATCHES_TOTAL_LANDED_WEIGHT_KEY_PREFIX + '0'].trim().length > 0)
-        || (raw[FP_CATCHES_CATCH_PROCESSED_WEIGHT_KEY_PREFIX] && raw[FP_CATCHES_CATCH_PROCESSED_WEIGHT_KEY_PREFIX].trim().length > 0)
-        || (raw[FP_CATCHES_PROCESSED_WEIGHT_KEY_PREFIX] && raw[FP_CATCHES_PROCESSED_WEIGHT_KEY_PREFIX].trim().length > 0);
+    const hasDesc = raw[FP_CATCHES_CATCH_DESC_KEY_PREFIX + '0'] && raw[FP_CATCHES_CATCH_DESC_KEY_PREFIX + '0'].trim().length > 0;
+    const hasCertNum = raw[FP_CATCHES_CC_NUM_KEY_PREFIX + '10'] && raw[FP_CATCHES_CC_NUM_KEY_PREFIX + '10'].trim().length > 0;
+    const hasWeight = raw[FP_CATCHES_TOTAL_LANDED_WEIGHT_KEY_PREFIX + '0'] && raw[FP_CATCHES_TOTAL_LANDED_WEIGHT_KEY_PREFIX + '0'].trim().length > 0;
+    const hasProcessedBefore = raw[FP_CATCHES_CATCH_PROCESSED_WEIGHT_KEY_PREFIX] && raw[FP_CATCHES_CATCH_PROCESSED_WEIGHT_KEY_PREFIX].trim().length > 0;
+    const hasProcessedAfter = raw[FP_CATCHES_PROCESSED_WEIGHT_KEY_PREFIX] && raw[FP_CATCHES_PROCESSED_WEIGHT_KEY_PREFIX].trim().length > 0;
+    return hasDesc || hasCertNum || hasWeight || hasProcessedBefore || hasProcessedAfter;
 };
 
 const isCatchDetailItemEmpty = (item) => {
-    return (!item.species || item.species.trim().length === 0)
-        && (!item.catchCertificateNumber || item.catchCertificateNumber.trim().length === 0)
-        && (!item.totalWeightLanded || item.totalWeightLanded.trim().length === 0)
-        && (!item.exportWeightBeforeProcessing || item.exportWeightBeforeProcessing.trim().length === 0)
-        && (!item.exportWeightAfterProcessing || item.exportWeightAfterProcessing.trim().length === 0);
+    const emptySpecies = !item.species || item.species.trim().length === 0;
+    const emptyCertNum = !item.catchCertificateNumber || item.catchCertificateNumber.trim().length === 0;
+    const emptyWeight = !item.totalWeightLanded || item.totalWeightLanded.trim().length === 0;
+    const emptyBefore = !item.exportWeightBeforeProcessing || item.exportWeightBeforeProcessing.trim().length === 0;
+    const emptyAfter = !item.exportWeightAfterProcessing || item.exportWeightAfterProcessing.trim().length === 0;
+    return emptySpecies && emptyCertNum && emptyWeight && emptyBefore && emptyAfter;
 };
 
 const parseProcessingStatement = async (pdfJson, buffer) => {

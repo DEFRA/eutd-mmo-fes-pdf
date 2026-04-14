@@ -36,18 +36,25 @@ const SCHED_FAC_NAME_KEY_PREFIX = 'Name';
 const SCHED_FAC_ADDRESS_KEY_PREFIX = 'AddressRow';
 
 const hasFrontPageConsDetails = (raw) => {
-    return (raw?.[FP_CONS_PROD_KEY]?.trim()?.length > 0)
-        || (raw?.[FP_CONS_CODE_KEY]?.trim()?.length > 0)
-        || (raw[FP_CONS_CC_KEY]?.trim()?.length > 0)
-        || (raw?.[FP_CONS_WEIGHT_KEY]?.trim()?.length > 0)
-        || (raw?.[FP_CONS_DATE_KEY]?.trim()?.length > 0)
-        || (raw?.[FP_CONS_PLACE_KEY]?.trim()?.length > 0)
-        || (raw?.[FP_CONS_TRANSPORT_KEY]?.trim()?.length > 0);
+    const hasProd = raw?.[FP_CONS_PROD_KEY]?.trim()?.length > 0;
+    const hasCode = raw?.[FP_CONS_CODE_KEY]?.trim()?.length > 0;
+    const hasCert = raw[FP_CONS_CC_KEY]?.trim()?.length > 0;
+    const hasWeight = raw?.[FP_CONS_WEIGHT_KEY]?.trim()?.length > 0;
+    const hasDate = raw?.[FP_CONS_DATE_KEY]?.trim()?.length > 0;
+    const hasPlace = raw?.[FP_CONS_PLACE_KEY]?.trim()?.length > 0;
+    const hasTransport = raw?.[FP_CONS_TRANSPORT_KEY]?.trim()?.length > 0;
+    return hasProd || hasCode || hasCert || hasWeight || hasDate || hasPlace || hasTransport;
 };
 
 const isConsDetailItemEmpty = (item) => {
-    return !item?.product?.trim() && !item?.commodityCode?.trim() && !item?.certificateNumber?.trim() && !item?.productWeight?.trim()
-        && !item?.dateOfUnloading?.trim() && !item?.placeOfUnloading?.trim() && !item?.transportUnloadedFrom?.trim();
+    const emptyProd = !item?.product?.trim();
+    const emptyCode = !item?.commodityCode?.trim();
+    const emptyCert = !item?.certificateNumber?.trim();
+    const emptyWeight = !item?.productWeight?.trim();
+    const emptyDate = !item?.dateOfUnloading?.trim();
+    const emptyPlace = !item?.placeOfUnloading?.trim();
+    const emptyTransport = !item?.transportUnloadedFrom?.trim();
+    return emptyProd && emptyCode && emptyCert && emptyWeight && emptyDate && emptyPlace && emptyTransport;
 };
 
 const parseStorageDocument = async (pdfJson, buffer) => {
