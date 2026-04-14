@@ -218,8 +218,9 @@ function parseSimpleFontDimensions(self,pdfReader,font) {
     }
     
 
-    if(!font.exists('FontDescriptor'))
+    if(!font.exists('FontDescriptor')) {
         return;
+    }
 
     // complete info with font descriptor
     const fontDescriptor = pdfReader.queryDictionaryObject(font,'FontDescriptor');
@@ -250,8 +251,9 @@ function parseCIDFontDimensions(self, pdfReader,font) {
                 const anArray = widths[i].toPDFArray().toJSArray();
                 ++i;
                 // specified widths
-                for(let j=0;j<anArray.length;++j)
+                for(let j=0;j<anArray.length;++j) {
                     self.widths[cFirst+j] = anArray[j];
+                }
             }
             else {
                 // same width for range

@@ -334,7 +334,7 @@ const validateScheduleExportItem = (pageIdx, rowIdx, item) => {
         errors.push(`PLN / Call Sign is required on schedule page ${pageIdx} row ${rowIdx}`);
     }
     if (!item.landings[0].model.vessel || verifyExportItemLabel(item.landings[0].model.vessel.imoNumber)) {
-        errors.push(`IMO / Lloyd's number is required on schedule page ${pageIdx} row ${rowIdx}`);
+        errors.push(`IMO / Lloyd’s number is required on schedule page ${pageIdx} row ${rowIdx}`);
     }
     if (!item.landings[0].model.vessel || verifyExportItemLabel(item.landings[0].model.vessel.licenceNumber)) {
         errors.push(`Fishing licence number is required on schedule page ${pageIdx} row ${rowIdx}`);

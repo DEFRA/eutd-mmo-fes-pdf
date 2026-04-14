@@ -400,7 +400,7 @@ function resolveFormPlacements(objectPlacements,formsPlacements,resolvedForms) {
             // make sure form is resolved in itself
             const resolvedFormPlacements = resolveForm(placement.objectId,formsPlacements,resolvedForms);
             // grab its placements and make them our own
-            const newPlacements = [i,1];
+            const newPlacements = [];
             resolvedFormPlacements.forEach((formTextPlacement)=> {
                 // all of them have to be text placements now, cause it's resolved
                 const clonedPlacemet = structuredClone(formTextPlacement);
@@ -412,7 +412,7 @@ function resolveFormPlacements(objectPlacements,formsPlacements,resolvedForms) {
                 newPlacements.push(clonedPlacemet);
             });
             // replace xobject placement with new text placements
-            objectPlacements.splice(0, 0, ...newPlacements);
+            objectPlacements.splice(i,1,...newPlacements);
         }
     }
     return objectPlacements;
