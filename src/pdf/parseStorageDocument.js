@@ -36,10 +36,10 @@ const SCHED_FAC_NAME_KEY_PREFIX = 'Name';
 const SCHED_FAC_ADDRESS_KEY_PREFIX = 'AddressRow';
 
 const parseStorageDocument = async (pdfJson, buffer) => {
-    let result = {...pdfJson};
-    let pdfReader = muhammara.createReader(new muhammara.PDFRStreamForBuffer(buffer));
-    let form = new PDFDigitalForm(pdfReader);
-    let raw = form.createSimpleKeyValue();
+    const result = {...pdfJson};
+    const pdfReader = muhammara.createReader(new muhammara.PDFRStreamForBuffer(buffer));
+    const form = new PDFDigitalForm(pdfReader);
+    const raw = form.createSimpleKeyValue();
     result.errors = [];
 
     if ((raw[SCHED_CONS_PROD_KEY_PREFIX + '1'] === null || raw[SCHED_CONS_PROD_KEY_PREFIX + '1'].trim().length === 0)
@@ -88,12 +88,13 @@ const parseStorageDocument = async (pdfJson, buffer) => {
 };
 
 const extractScheduleFacilityDetails = (raw, result) => {
-    let facilities = [];
+    const facilities = [];
     let pageIdx;
     let rowIdx;
-    for (pageIdx = 5; pageIdx <= 5; pageIdx++) {
+    const SCHEDULE_PAGE = 5;
+    for (pageIdx = SCHEDULE_PAGE; pageIdx <= SCHEDULE_PAGE; pageIdx++) {
         for (rowIdx = 1; rowIdx <= 24; rowIdx++) {
-            let item = extractScheduleFacilityDetailItem(pageIdx, rowIdx, raw);
+            const item = extractScheduleFacilityDetailItem(pageIdx, rowIdx, raw);
             if (item) {
                 facilities.push(item);
                 result.errors = result.errors.concat(validateScheduleFacilityDetailItem(pageIdx, rowIdx, item));
@@ -103,7 +104,7 @@ const extractScheduleFacilityDetails = (raw, result) => {
     result.storageFacilities = facilities;
 };
 
-const extractScheduleFacilityDetailItem = (pageIdx, rowIdx, raw) => {
+const extractScheduleFacilityDetailItem = (_pageIdx, rowIdx, raw) => {
     let item = {};
     let nameKey = SCHED_FAC_NAME_KEY_PREFIX;
     let addressKey = SCHED_FAC_ADDRESS_KEY_PREFIX;
