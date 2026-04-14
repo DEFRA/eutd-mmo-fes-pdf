@@ -170,16 +170,18 @@ function setupDifferencesEncodingMap(pdfReader,font, encodingDict) {
                 ++firstIndex;
             }
         }
-                }
-            } else if(font.exists('BaseFont')) {
-                const name = pdfReader.queryDictionaryObject(font,'BaseFont').value;
-                const standardDimensions = StandardFontsDimensions[name] || StandardFontsDimensions[name.replace(/-/g,'−')]; // seriously...WTF
-                if(standardDimensions) {
-                    self.descent = standardDimensions.descent;
-                    self.ascent = standardDimensions.ascent;
-                    self.widths = _.extend({},standardDimensions.widths);
-                }
-            }
+    }
+
+    return newEncoding;
+}
+
+function parseSimpleFontEncoding(self,pdfReader,font, encoding) {
+    if(encoding.getType() === muhammara.ePDFObjectName) {
+        self.fromSimpleEncodingMap = getStandardEncodingMap(encoding.value);
+        self.hasSimpleEncoding = true;
+    }
+    else if(encoding.getType() === muhammara.ePDFObjectIndirectObjectReference || encoding.getType() === muhammara.ePDFObjectDictionary) {
+        // make sure we have a dict here
         encoding = (encoding.getType() === muhammara.ePDFObjectIndirectObjectReference) ? pdfReader.parseNewObject(encoding.toPDFIndirectObjectReference().getObjectID()):encoding;
         // now figure it out
         self.fromSimpleEncodingMap = setupDifferencesEncodingMap(pdfReader,font, encoding);
@@ -202,15 +204,14 @@ function parseSimpleFontDimensions(self,pdfReader,font) {
             self.widths[i] = pdfReader.queryArrayObject(widths,i-firstChar).value;
         }
     }
-    } else if(font.exists('BaseFont')) {
-        {
-            let name = pdfReader.queryDictionaryObject(font,'BaseFont').value;
-            let standardDimensions = StandardFontsDimensions[name] || StandardFontsDimensions[name.replace(/-/g,'−')]; // seriously...WTF
-            if(standardDimensions) {
-                self.descent = standardDimensions.descent;
-                self.ascent = standardDimensions.ascent;
-                self.widths = _.extend({},standardDimensions.widths);
-            }
+    else if(font.exists('BaseFont')) {
+        // wtf. probably one of the standard fonts. aha! [will also take care of ascent descent]
+        const name = pdfReader.queryDictionaryObject(font,'BaseFont').value;
+        const standardDimensions = StandardFontsDimensions[name] || StandardFontsDimensions[name.replace(/-/g,'−')]; // seriously...WTF
+        if(standardDimensions) {
+            self.descent = standardDimensions.descent;
+            self.ascent = standardDimensions.ascent;
+            self.widths = _.extend({},standardDimensions.widths);
         }
     }
     
@@ -219,7 +220,7 @@ function parseSimpleFontDimensions(self,pdfReader,font) {
         return;
 
     // complete info with font descriptor
-    let fontDescriptor = pdfReader.queryDictionaryObject(font,'FontDescriptor');
+    const fontDescriptor = pdfReader.queryDictionaryObject(font,'FontDescriptor');
     self.descent = pdfReader.queryDictionaryObject(fontDescriptor,'Descent').value;
     self.ascent = pdfReader.queryDictionaryObject(fontDescriptor,'Ascent').value;
     self.defaultWidth = fontDescriptor.exists('MissingWidth') ? pdfReader.queryDictionaryObject(fontDescriptor,'MissingWidth').value:0;
@@ -231,20 +232,20 @@ function getDefaultWidthForParseCIDFontDimensions(descendentFont, pdfReader) {
 
 function parseCIDFontDimensions(self, pdfReader,font) {
     // get the descendents font
-    let descendentFonts = pdfReader.queryDictionaryObject(font,'DescendantFonts').toPDFArray();
-    let descendentFont = pdfReader.queryArrayObject(descendentFonts,0).toPDFDictionary();
+    const descendentFonts = pdfReader.queryDictionaryObject(font,'DescendantFonts').toPDFArray();
+    const descendentFont = pdfReader.queryArrayObject(descendentFonts,0).toPDFDictionary();
     // default width is easily accessible directly via DW
     self.defaultWidth = getDefaultWidthForParseCIDFontDimensions(descendentFont, pdfReader);
     self.widths = {};
     if(descendentFont.exists('W')) {
-        let widths = pdfReader.queryDictionaryObject(descendentFont,'W').toPDFArray().toJSArray();
+        const widths = pdfReader.queryDictionaryObject(descendentFont,'W').toPDFArray().toJSArray();
 
         let i=0;
         while(i<widths.length) {
-            let cFirst = widths[i].value;
+            const cFirst = widths[i].value;
             ++i;
             if(widths[i].getType() === muhammara.ePDFObjectArray) {
-                let anArray = widths[i].toPDFArray().toJSArray();
+                const anArray = widths[i].toPDFArray().toJSArray();
                 ++i;
                 // specified widths
                 for(let j=0;j<anArray.length;++j)
@@ -252,9 +253,9 @@ function parseCIDFontDimensions(self, pdfReader,font) {
             }
             else {
                 // same width for range
-                let cLast = widths[i].value;
+                const cLast = widths[i].value;
                 ++i;
-                let width = widths[i].value;
+                const width = widths[i].value;
                 ++i;
                 for(let w=cFirst;w<=cLast;++w)
                     self.widths[w] = width;
@@ -263,7 +264,7 @@ function parseCIDFontDimensions(self, pdfReader,font) {
     }
 
     // complete info with font descriptor
-    let fontDescriptor = pdfReader.queryDictionaryObject(descendentFont,'FontDescriptor');
+    const fontDescriptor = pdfReader.queryDictionaryObject(descendentFont,'FontDescriptor');
     self.descent = pdfReader.queryDictionaryObject(fontDescriptor,'Descent').value;
     self.ascent = pdfReader.queryDictionaryObject(fontDescriptor,'Ascent').value;
 }
@@ -271,7 +272,7 @@ function parseCIDFontDimensions(self, pdfReader,font) {
 
 
 function parseFontData(self,pdfReader,fontObject) {
-    let font = fontObject;
+    const font = fontObject;
     if(!font)
         return;
 
@@ -319,7 +320,7 @@ function toSimpleEncoding(encodingMap,encodedBytes) {
     let result = '';
 
     encodedBytes.forEach((encodedByte)=> {
-        let glyphName = encodingMap[encodedByte];
+        const glyphName = encodingMap[encodedByte];
         if(!!glyphName) {
             let mapping = AdobeGlyphList[glyphName];
             if(!_.isArray(mapping)) {
