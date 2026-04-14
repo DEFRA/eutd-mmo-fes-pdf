@@ -28,6 +28,7 @@ const WATERMARK_Y_OFFSET = 70;
 const MULTI_VESSEL_THRESHOLD = 6;
 const PAGE_NUMBER_ONE = 1;
 const PAGE_NUMBER_TWO = 2;
+const IMO_IDENTIFIER_LABEL = 'IMO number or other unique vessel identifier (if applicable)';
 const PAGE_NUMBER_THREE = 3;
 const PAGE_NUMBER_FOUR = 4;
 const PAGE_NUMBER_FIVE = 5;
@@ -372,7 +373,7 @@ const multiVesselScheduleHeading = (doc, data, isSample, buff, page, pageSize, s
     tableHeadRow.add(tableHeadSeven);
     const tableHeadSevenContent = doc.markStructureContent('TH');
     tableHeadSeven.add(tableHeadSevenContent);
-    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 480, y: yPos, width: 70, height: cellHeight, text: ['IMO number or other unique vessel identifier (if applicable)']}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
+    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 480, y: yPos, width: 70, height: cellHeight, text: [IMO_IDENTIFIER_LABEL]}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
     tableHeadSeven.end();
 
     const tableHeadEight = doc.struct('TH');
@@ -414,7 +415,7 @@ const multiVesselScheduleHeading = (doc, data, isSample, buff, page, pageSize, s
     }
 
     const fromIdx = (page - 1) * pageSize;
-    const numDataRows = pageSize;
+    let numDataRows = pageSize;
     if (fromIdx + numDataRows > rows.length) {
         numDataRows = rows.length - fromIdx;
     }
@@ -617,7 +618,7 @@ const appendixTransportDetails = (doc, data, startY) => {
     PdfUtils.label(doc, PdfStyle.MARGIN.LEFT, yPos, 'Container number(s) list attached');
     PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 270, yPos, 'Exporter details');
     yPos = yPos + PdfStyle.ROW.HEIGHT - 2;
-    const cellHeight = PdfStyle.ROW.HEIGHT * 8;
+    let cellHeight = PdfStyle.ROW.HEIGHT * 8;
 
     const containerNumber = data?.transport?.containerNumber ?? '';
     PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT, yPos, 250, cellHeight, containerNumber.toString());
@@ -1241,7 +1242,7 @@ const section7 = (doc, _data, startY) => {
     doc.addStructure(doc.struct('Table', [
         doc.struct('THead', [
             doc.struct('TR', [
-                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 185, cellHeight, 'IMO number or other unique vessel identifier (if applicable)')),
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 185, cellHeight, IMO_IDENTIFIER_LABEL)),
                 doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 200, yPos, 125, cellHeight, 'Port of transhipment (as appropriate)')),
                 doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 325, yPos, 75, cellHeight, 'Date of transhipment (as appropriate)')),
                 doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 400, yPos, 50, cellHeight, 'Name and registration number of receiving vessel')),
@@ -1265,7 +1266,7 @@ const section7 = (doc, _data, startY) => {
 
 const section6 = (doc, _data, startY) => {
 
-    const yPos = startY;
+    let yPos = startY;
     PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, yPos, '6');
 
     const cellHeight = PdfStyle.ROW.HEIGHT * 2;
@@ -1298,7 +1299,7 @@ const section6 = (doc, _data, startY) => {
                 doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 115, yPos, 100, cellHeight, 'Signature')),
                 doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 215, yPos, 90, cellHeight, 'Vessel Name')),
                 doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 305, yPos, 90, cellHeight, 'Call Sign')),
-                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 395, yPos, 135, cellHeight, ['IMO number or other unique vessel identifier (if applicable)']))
+                doc.struct('TH', ()=> PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 395, yPos, 135, cellHeight, [IMO_IDENTIFIER_LABEL]))
             ])
         ]),
         doc.struct('TBody', [
@@ -1383,7 +1384,7 @@ function getDescOfProductRows(exportPayload) {
 
 
 function getExportWeight(weight) {
-    return `${Number(weight).toFixed(2) > 9999999.99 ? Number.parseInt(weight, 10) : Number(weight).toFixed(2)}`;
+    return `${Number(Number(weight).toFixed(2)) > 9999999.99 ? Number.parseInt(weight, 10) : Number(weight).toFixed(2)}`;
 }
 
 function getExportWeightText(rowIdx, arrLength, rowData) {
@@ -1398,8 +1399,9 @@ function getImoOrCfrForMultiVesselSchedule(row) {
         return row.imo;
     } else if (row.cfr) {
         return row.cfr;
+    } else {
+        return '';
     }
-    return '';
 }
 
 function getImoOrCfr(vesselCounts, data) {
@@ -1408,9 +1410,16 @@ function getImoOrCfr(vesselCounts, data) {
             return data.exportPayload.items[0].landings[0].model.vessel.imoNumber;
         } else if (data.exportPayload.items[0].landings[0].model.vessel.cfr) {
             return data.exportPayload.items[0].landings[0].model.vessel.cfr;
+        } else {
+            return '';
         }
     }
     return '';
+}
+
+function getFishingGear(exportPayload) {
+    const firstLanding = exportPayload?.items?.[0]?.landings?.[0];
+    return firstLanding?.model?.gearType ?? '';
 }
 
 const section3 = (doc, data, startY) => {
@@ -1642,10 +1651,6 @@ const section2 = (doc, data, startY) => {
     PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 400, startY + 52, 130, PdfStyle.ROW.HEIGHT, lvt ?? '');
 
 
-    function getFishingGear(exportPayload) {
-        const firstLanding = exportPayload?.items?.[0]?.landings?.[0];
-        return firstLanding?.model?.gearType ?? '';
-    }
     const fishingGearText = isMultiVessel(data.exportPayload) ? 'Multiple vessels - SEE SCHEDULE' : getFishingGear(data.exportPayload);
 
     PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 15, startY + 77, 'Fishing Gear');
