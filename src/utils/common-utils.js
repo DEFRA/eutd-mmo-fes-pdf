@@ -1,7 +1,10 @@
 const PDFDocument = require('pdfkit');
 const PdfStyle = require('../pdf/mmoPdfStyles');
 const PdfUtils = require('../pdf/mmoPdfUtils');
-const path = require('path');
+const path = require('node:path');
+
+const SCHEDULE_SEPARATOR_Y_OFFSET = 70;
+const SCHEDULE_SEPARATOR_X = 560;
 
 module.exports = {
   createBaseDocument:(uri) => {
@@ -45,6 +48,8 @@ module.exports = {
     PdfUtils.heading(doc, headingText);
   
     doc.lineWidth(2);
-    doc.moveTo(PdfStyle.MARGIN.LEFT, startY + 70).lineTo(560, startY + 70).stroke();
+    doc.moveTo(PdfStyle.MARGIN.LEFT, startY + SCHEDULE_SEPARATOR_Y_OFFSET)
+      .lineTo(SCHEDULE_SEPARATOR_X, startY + SCHEDULE_SEPARATOR_Y_OFFSET)
+      .stroke();
   }
 }

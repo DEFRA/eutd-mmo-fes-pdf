@@ -1,8 +1,89 @@
-const path = require('path');
+const path = require('node:path');
 const PdfStyle = require('./mmoPdfStyles');
 const PdfUtils = require('./mmoPdfUtils');
 const moment = require('moment');
 const CommonUtils = require('../utils/common-utils');
+
+const DATE_FORMAT = 'DD/MM/YYYY';
+const MAIN_PAGE_ONE_SECTION_1_OFFSET = 70;
+const MAIN_PAGE_ONE_SECTION_2_OFFSET = 203;
+const MAIN_PAGE_ONE_SECTION_3_OFFSET = 350;
+const MAIN_PAGE_TWO_SECTION_5_OFFSET = 62;
+const MAIN_PAGE_TWO_SECTION_6_OFFSET = 117;
+const MAIN_PAGE_TWO_SECTION_7_OFFSET = 257;
+const MAIN_PAGE_TWO_SECTION_8_OFFSET = 476;
+const MAIN_PAGE_TWO_SECTION_9_OFFSET = 625;
+const MAIN_PAGE_TWO_SECTION_10_OFFSET = 691;
+const MAIN_PAGE_THREE_SECTION_11_OFFSET = 12;
+const MAIN_PAGE_FIVE_SECTION_14_OFFSET = 50;
+const MAIN_PAGE_FIVE_SECTION_15_OFFSET = 260;
+const MAIN_PAGE_FIVE_SECTION_16_OFFSET = 380;
+const MAIN_PAGE_FIVE_SECTION_17_OFFSET = 510;
+const APPENDIX_TRANSPORT_OFFSET = 22;
+const APPENDIX_END_OFFSET = 310;
+const APPENDIX_QR_X_OFFSET = 20;
+const APPENDIX_QR_Y_OFFSET = 680;
+const WATERMARK_X_OFFSET = 70;
+const WATERMARK_Y_OFFSET = 70;
+const MULTI_VESSEL_THRESHOLD = 6;
+const PAGE_NUMBER_ONE = 1;
+const PAGE_NUMBER_TWO = 2;
+const PAGE_NUMBER_THREE = 3;
+const PAGE_NUMBER_FOUR = 4;
+const PAGE_NUMBER_FIVE = 5;
+const PAGE_NUMBER_SIX = 6;
+
+function addMainCertificatePages(doc, data, isSample, buff) {
+    // Page 1: Sections 1-3
+    section1(doc, data, isSample, PdfStyle.MARGIN.TOP + MAIN_PAGE_ONE_SECTION_1_OFFSET);
+    section2(doc, data, PdfStyle.MARGIN.TOP + MAIN_PAGE_ONE_SECTION_2_OFFSET);
+    section3(doc, data, PdfStyle.MARGIN.TOP + MAIN_PAGE_ONE_SECTION_3_OFFSET);
+    PdfUtils.endOfPage(doc, PAGE_NUMBER_ONE);
+
+    // Page 2: Sections 4-10
+    doc.addPage();
+    section4(doc, data, PdfStyle.MARGIN.TOP);
+    section5(doc, data, PdfStyle.MARGIN.TOP + MAIN_PAGE_TWO_SECTION_5_OFFSET);
+    section6(doc, data, PdfStyle.MARGIN.TOP + MAIN_PAGE_TWO_SECTION_6_OFFSET);
+    isSample ?? CommonUtils.addSampleWatermark(doc);
+
+    section7(doc, data, PdfStyle.MARGIN.TOP + MAIN_PAGE_TWO_SECTION_7_OFFSET);
+    section8(doc, data, isSample, buff, PdfStyle.MARGIN.TOP + MAIN_PAGE_TWO_SECTION_8_OFFSET);
+    section9(doc, data, isSample, buff, PdfStyle.MARGIN.TOP + MAIN_PAGE_TWO_SECTION_9_OFFSET);
+    section10(doc, data, PdfStyle.MARGIN.TOP + MAIN_PAGE_TWO_SECTION_10_OFFSET);
+    isSample ?? CommonUtils.addSampleWatermark(doc);
+    PdfUtils.endOfPage(doc, PAGE_NUMBER_TWO);
+
+    doc.addPage();
+    section11(doc, data, PdfStyle.MARGIN.TOP - MAIN_PAGE_THREE_SECTION_11_OFFSET);
+    isSample ?? CommonUtils.addSampleWatermark(doc);
+    PdfUtils.endOfPage(doc, PAGE_NUMBER_THREE);
+
+    doc.addPage();
+    section12(doc, data, PdfStyle.MARGIN.TOP);
+    isSample ?? CommonUtils.addSampleWatermark(doc);
+    PdfUtils.endOfPage(doc, PAGE_NUMBER_FOUR);
+
+    doc.addPage();
+    section13(doc, data, PdfStyle.MARGIN.TOP);
+    section14(doc, data, PdfStyle.MARGIN.TOP + MAIN_PAGE_FIVE_SECTION_14_OFFSET);
+    section15(doc, data, PdfStyle.MARGIN.TOP + MAIN_PAGE_FIVE_SECTION_15_OFFSET);
+    section16(doc, data, PdfStyle.MARGIN.TOP + MAIN_PAGE_FIVE_SECTION_16_OFFSET);
+    section17(doc, data, PdfStyle.MARGIN.TOP + MAIN_PAGE_FIVE_SECTION_17_OFFSET);
+    isSample ?? CommonUtils.addSampleWatermark(doc);
+    PdfUtils.endOfPage(doc, PAGE_NUMBER_FIVE);
+
+    doc.addPage();
+    appendixHeading(doc, PdfStyle.MARGIN.TOP);
+    appendixTransportDetails(doc, data, PdfStyle.MARGIN.TOP + APPENDIX_TRANSPORT_OFFSET);
+    end(doc, PdfStyle.MARGIN.TOP + APPENDIX_END_OFFSET);
+    const shouldGenerateQRCode = !data.isBlankTemplate && !isSample;
+    if (shouldGenerateQRCode) {
+        PdfUtils.qrCode(doc, buff, PdfStyle.MARGIN.LEFT + APPENDIX_QR_X_OFFSET, PdfStyle.MARGIN.TOP + APPENDIX_QR_Y_OFFSET);
+    }
+    isSample ?? CommonUtils.addSampleWatermark(doc);
+    PdfUtils.endOfPage(doc, PAGE_NUMBER_SIX);
+}
 
 const renderExportCert = async (data, isSample, uri, stream) => {
     let buff = null;
@@ -17,55 +98,7 @@ const renderExportCert = async (data, isSample, uri, stream) => {
     }));
 
     PdfUtils.heading(doc, 'Catch and Re-Export Certificate');
-    // Page 1: Sections 1-3
-    section1(doc, data, isSample, PdfStyle.MARGIN.TOP + 70);
-    section2(doc, data, PdfStyle.MARGIN.TOP + 203);
-    section3(doc, data, PdfStyle.MARGIN.TOP + 350);
-    PdfUtils.endOfPage(doc, 1);
-    
-    // Page 2: Sections 4-10
-    doc.addPage();
-    section4(doc, data, PdfStyle.MARGIN.TOP);
-    section5(doc, data, PdfStyle.MARGIN.TOP + 62);
-    section6(doc, data, PdfStyle.MARGIN.TOP + 117);
-    isSample ?? CommonUtils.addSampleWatermark(doc);
-
-    section7(doc, data, PdfStyle.MARGIN.TOP + 257);
-    section8(doc, data, isSample, buff, PdfStyle.MARGIN.TOP + 476);
-    section9(doc, data, isSample, buff, PdfStyle.MARGIN.TOP + 625);
-    section10(doc, data, PdfStyle.MARGIN.TOP + 691);
-    isSample ?? CommonUtils.addSampleWatermark(doc);
-    PdfUtils.endOfPage(doc, 2);
-
-    doc.addPage();
-    section11(doc, data, PdfStyle.MARGIN.TOP - 12);
-    isSample ?? CommonUtils.addSampleWatermark(doc);
-    PdfUtils.endOfPage(doc, 3);
-
-    doc.addPage();
-    section12(doc, data, PdfStyle.MARGIN.TOP);
-    isSample ?? CommonUtils.addSampleWatermark(doc);
-    PdfUtils.endOfPage(doc, 4);
-
-    doc.addPage();
-    section13(doc, data, PdfStyle.MARGIN.TOP);
-    section14(doc, data, PdfStyle.MARGIN.TOP + 50);
-    section15(doc, data, PdfStyle.MARGIN.TOP + 260);
-    section16(doc, data, PdfStyle.MARGIN.TOP + 380);
-    section17(doc, data, PdfStyle.MARGIN.TOP + 510);
-    isSample ?? CommonUtils.addSampleWatermark(doc);
-    PdfUtils.endOfPage(doc, 5);
-
-    doc.addPage();
-    appendixHeading(doc, PdfStyle.MARGIN.TOP);
-    appendixTransportDetails(doc, data, PdfStyle.MARGIN.TOP + 22);
-    end(doc, PdfStyle.MARGIN.TOP + 310);
-    const shouldGenerateQRCode =!data.isBlankTemplate && !isSample;
-    if (shouldGenerateQRCode) {
-        PdfUtils.qrCode(doc, buff, PdfStyle.MARGIN.LEFT + 20, PdfStyle.MARGIN.TOP + 680);
-    }
-    isSample ?? CommonUtils.addSampleWatermark(doc);
-    PdfUtils.endOfPage(doc, 6);
+    addMainCertificatePages(doc, data, isSample, buff);
 
     const isDictionaryTabs = !doc.page.dictionary.Tabs;
 
@@ -81,8 +114,8 @@ const renderExportCert = async (data, isSample, uri, stream) => {
 };
 
 function processBlankTemplate(data, doc, isDictionaryTabs, isSample, buff) {
-        let pageSize = 14;
-        let numPages = 3;
+    const pageSize = 14;
+    const numPages = 3;
         for(let page = 1; page <= numPages; page++) {
             // Add a schedule
             doc.addPage({
@@ -107,7 +140,7 @@ function processBlankTemplate(data, doc, isDictionaryTabs, isSample, buff) {
 function processMultiData(data, doc, isDictionaryTabs, isSample, buff) {
         const { catchLength } = getVesselCount(data.exportPayload);
         if (isMultiVessel(data.exportPayload)) {
-            let pageSize = 8;
+            const pageSize = 8;
             let page = 1;
             const maxPages = Math.ceil(catchLength / pageSize);
             for (let i = 0; i < maxPages; i++) {
@@ -123,7 +156,7 @@ function processMultiData(data, doc, isDictionaryTabs, isSample, buff) {
                     layout: 'landscape'
                 });
                 multiVesselScheduleHeading(doc, data, isSample, buff, page, pageSize, PdfStyle.MARGIN.TOP);
-            isSample ?? CommonUtils.addSampleWatermark(doc, 70, 70);
+            isSample ?? CommonUtils.addSampleWatermark(doc, WATERMARK_X_OFFSET, WATERMARK_Y_OFFSET);
                 page += 1;
 
             if (isDictionaryTabs) {
@@ -134,13 +167,9 @@ function processMultiData(data, doc, isDictionaryTabs, isSample, buff) {
     }
 
 function getVesselCount(exportPayload){
-    let items = [];
+    const items = exportPayload?.items ?? [];
 
-    if (exportPayload?.items) {
-        items =  exportPayload.items;
-    }
-
-    let vesselCounts = {};
+    const vesselCounts = {};
     let catchLength = 0;    // calculate number of lines. so we can calculate number of maxPages
 
     items.forEach((item) => {
@@ -155,19 +184,19 @@ function getVesselCount(exportPayload){
 
 function isMultiVessel(exportPayload){
     const { vesselCounts, catchLength } = getVesselCount(exportPayload);
-    return Object.keys(vesselCounts).length > 1 || catchLength > 6;
+    return Object.keys(vesselCounts).length > 1 || catchLength > MULTI_VESSEL_THRESHOLD;
 }
 
 function getCatchDates(startDate, dateLanded){
-    const formattedStartDate = startDate ? moment(startDate).format('DD/MM/YYYY') : null;
-    const formattedDateLanded = moment(dateLanded).format('DD/MM/YYYY');
+    const formattedStartDate = startDate ? moment(startDate).format(DATE_FORMAT) : null;
+    const formattedDateLanded = moment(dateLanded).format(DATE_FORMAT);
     return formattedStartDate ? `${formattedStartDate} - ${formattedDateLanded}` : formattedDateLanded;
 }
 
 function getProductScheduleRows(exportPayload) {
 
-    let items = exportPayload?.items ?? [];
-    let rows = [];
+    const items = exportPayload?.items ?? [];
+    const rows = [];
         items.forEach((item) => {
             item.landings.forEach((landing) => {
                 const faoArea = landing.model?.faoArea?.length > 0 ? landing.model.faoArea : 'FAO27';
@@ -175,7 +204,7 @@ function getProductScheduleRows(exportPayload) {
                 let landingDetail = landing.model.vessel.licenceNumber ?? '';
 
                 if (landingDetail && landing.model.vessel.licenceValidTo) {
-                    const dte = moment(landing.model.vessel.licenceValidTo).format('DD/MM/YYYY');
+                    const dte = moment(landing.model.vessel.licenceValidTo).format(DATE_FORMAT);
                     landingDetail = `${landingDetail} - ${dte}`;
                 }
 
@@ -219,7 +248,7 @@ function getProductScheduleRows(exportPayload) {
 }
 
 const multiVesselScheduleHeading = (doc, data, isSample, buff, page, pageSize, startY) => {
-    let imageFile = path.join(__dirname, '../resources/hmgovlogo.png');
+    const imageFile = path.join(__dirname, '../resources/hmgovlogo.png');
     doc.addStructure(doc.struct('Figure', {
         alt: 'HM Government logo'
     }, () => {
@@ -249,12 +278,12 @@ const multiVesselScheduleHeading = (doc, data, isSample, buff, page, pageSize, s
     }
 
     mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 90, y: yPos, width: 140, height: cellHeight, text: documentNumber}, true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffffff');
-    mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 230, y: yPos, width: 270, height: cellHeight, text: undefined}, true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffffff');
+    mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 230, y: yPos, width: 270, height: cellHeight, text: null}, true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffffff');
 
     cellHeight = PdfStyle.ROW.HEIGHT * 4 + 25;
 
     mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 500, y: yPos, width: 80, height: cellHeight, text: ['UK Authority', 'QR Code']}, true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffcc00');
-    mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 580, y: yPos, width: 200, height: cellHeight, text: undefined}, true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffffff');
+    mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 580, y: yPos, width: 200, height: cellHeight, text: null}, true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffffff');
 
     yPos = yPos + PdfStyle.ROW.HEIGHT * 2 + 20;
     cellHeight = PdfStyle.ROW.HEIGHT * 2 + 5;
@@ -265,7 +294,7 @@ const multiVesselScheduleHeading = (doc, data, isSample, buff, page, pageSize, s
         todaysDate = PdfUtils.todaysDate();
     }
     mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 90, y: yPos, width: 140, height: cellHeight, text: todaysDate}, true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffffff');
-    mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 230, y: yPos, width: 270, height: cellHeight, text: undefined}, true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffffff');
+    mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 230, y: yPos, width: 270, height: cellHeight, text: null}, true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffffff');
 
     if (!data.isBlankTemplate && !isSample) {
         PdfUtils.qrCode(doc, buff, PdfStyle.MARGIN.LEFT + 590, yPos - 45);
@@ -631,14 +660,14 @@ const getVcDetails = (data) => {
     if (vehicleType === 'CONTAINERVESSEL') {
         const vesselName = data.transport.vesselName ? `${data.transport.vesselName} ` : '';
         const flagState = data.transport.flagState ?? '';
-        return (vesselName + flagState).toString();
+        return `${vesselName}${flagState}`;
     }
     
     if (vehicleType === 'DIRECTLANDING') {
         const vessel = data.exportPayload?.items?.[0]?.landings?.[0]?.model?.vessel;
         const vesselName = vessel?.vesselName ? `${vessel.vesselName} ` : '';
         const pln = vessel?.pln ? `(${vessel.pln})` : '';
-        return (vesselName + pln).toString();
+        return `${vesselName}${pln}`;
     }
     
     return '';
@@ -648,11 +677,11 @@ const getDeparturePlace = (data) => {
     const departurePlace = data?.transport?.cmr === 'true' 
         ? 'See attached transport documents' 
         : (data?.transport?.departurePlace ?? '');
-    return departurePlace.toString();
+    return departurePlace;
 };
 
 const getFlightDetails = (data) => {
-    return (data?.transport?.flightNumber ?? '').toString();
+    return data?.transport?.flightNumber ?? '';
 };
 
 const getTruckDetails = (data) => {
@@ -665,11 +694,11 @@ const getTruckDetails = (data) => {
         : '';
     const registration = data.transport.registrationNumber ?? '';
     
-    return (nationality + registration).toString();
+    return `${nationality}${registration}`;
 };
 
 const getRailwayBillNumber = (data) => {
-    return (data?.transport?.railwayBillNumber ?? '').toString();
+    return data?.transport?.railwayBillNumber ?? '';
 };
 
 const getContainerIdentificationNumber = (data) => {
@@ -677,7 +706,7 @@ const getContainerIdentificationNumber = (data) => {
     
     // Only show container identification number for truck and train transport
     if (vehicleType === 'TRUCK' || vehicleType === 'TRAIN') {
-        return (data.transport.containerIdentificationNumber ?? '').toString();
+        return data.transport.containerIdentificationNumber ?? '';
     }
     
     return '';
@@ -1320,16 +1349,12 @@ function getLicenceHolder(exportPayload) {
 }
 
 function getDescOfProductRows(exportPayload) {
-
-    let items = [];
-    if (exportPayload?.items) {
-        items =  exportPayload.items;
-    }
-    let accum = {};
+    const items = exportPayload?.items ?? [];
+    const accum = {};
     if (items.length > 0) {
         items.forEach((item) => {
             item.landings.forEach((landing) => {
-                let dte = moment(landing.model.dateLanded).format('DD/MM/YYYY');
+                let dte = moment(landing.model.dateLanded).format(DATE_FORMAT);
                 let faoArea = 'FAO27';
                 if (landing.model.faoArea && landing.model.faoArea.length > 0) {
                     faoArea = landing.model.faoArea;
@@ -1549,7 +1574,7 @@ const section3 = (doc, data, startY) => {
     if (arrLength > 6) {
         cellHeight = PdfStyle.ROW.HEIGHT * 6;
         const seeScheduleRow = doc.struct('TR', () => {
-            PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, y, 515, cellHeight, 'SEE SCHEDULE (' + allRowsLength + ' rows)');
+            PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, y, 515, cellHeight, `SEE SCHEDULE (${allRowsLength} rows)`);
         });
         tableBody.add(seeScheduleRow);
         seeScheduleRow.end();
@@ -1562,11 +1587,8 @@ const section3 = (doc, data, startY) => {
 
 const section2 = (doc, data, startY) => {
     // How many fishing vessels?
-    let vesselCounts = {};
-    let items = [];
-    if (data.exportPayload?.items) {
-        items =  data.exportPayload.items;
-    }
+    const vesselCounts = {};
+    const items = data.exportPayload?.items ?? [];
 
     if (items.length > 0) {
         items.forEach((item) => {
@@ -1598,7 +1620,7 @@ const section2 = (doc, data, startY) => {
     PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 15, startY + 29, 'Call Sign / PLN');
     PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 120, startY + 27, 155, PdfStyle.ROW.HEIGHT, pln);
 
-    let imoNumberOrCfr = getImoOrCfr(vesselCounts, data);
+    const imoNumberOrCfr = getImoOrCfr(vesselCounts, data);
     PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 285, startY + 18, 'IMO number or other');
     PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 285, startY + 30, 'unique vessel identifier');
     PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 285, startY + 42, '(if applicable)');
@@ -1611,7 +1633,7 @@ const section2 = (doc, data, startY) => {
     if (Object.keys(vesselCounts).length === 1) {
         ln = items[0].landings[0].model.vessel.licenceNumber;
         if (items[0].landings[0].model.vessel.licenceValidTo) {
-            lvt = moment(items[0].landings[0].model.vessel.licenceValidTo, 'YYYY-MM-DD[T]HH:mm:ss').format('DD/MM/YYYY');
+            lvt = moment(items[0].landings[0].model.vessel.licenceValidTo, 'YYYY-MM-DD[T]HH:mm:ss').format(DATE_FORMAT);
         }
     }
     PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 120, startY + 52, 220, PdfStyle.ROW.HEIGHT, ln ?? '');
@@ -1624,7 +1646,7 @@ const section2 = (doc, data, startY) => {
         const firstLanding = exportPayload?.items?.[0]?.landings?.[0];
         return firstLanding?.model?.gearType ?? '';
     }
-    let fishingGearText = isMultiVessel(data.exportPayload) ? 'Multiple vessels - SEE SCHEDULE' : getFishingGear(data.exportPayload);
+    const fishingGearText = isMultiVessel(data.exportPayload) ? 'Multiple vessels - SEE SCHEDULE' : getFishingGear(data.exportPayload);
 
     PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 15, startY + 77, 'Fishing Gear');
     PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 120, startY + 77, 410, PdfStyle.ROW.HEIGHT, fishingGearText ?? '');

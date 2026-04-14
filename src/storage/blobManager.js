@@ -1,5 +1,6 @@
 const config = require('../config');
 const { BlobServiceClient } = require('@azure/storage-blob');
+const { PassThrough } = require('node:stream');
 
 const getBlobServiceClient = () => {
     return BlobServiceClient.fromConnectionString(config.GET_CONNECTION_STR);
@@ -21,7 +22,6 @@ const deleteBlob = async (containerName, blobName) => {
 };
 
 const writeStreamForBlob = async (containerName, blobName) => {
-    const { PassThrough } = require('stream');
     const blobServiceClient = getBlobServiceClient();
     const containerClient = blobServiceClient.getContainerClient(containerName);
     const blockBlobClient = containerClient.getBlockBlobClient(blobName);
