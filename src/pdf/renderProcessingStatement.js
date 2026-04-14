@@ -319,7 +319,7 @@ const findProductsNeedingSchedule = (data, products) => {
     
     for (let productIndex = 0; productIndex < products.length; productIndex++) {
         const productCatches = data.catches.filter(ctch => 
-            ctch && ctch.productIndex === productIndex
+            ctch?.productIndex === productIndex
         );
         
         if (productCatches.length > 5) {
@@ -335,15 +335,15 @@ const renderProductSchedulePage = (doc, data, isSample, productIndex, startingPa
         ctch && ctch.productIndex === productIndex
     );
     
-    let page = startingPage + 1;
+    const page = startingPage + 1;
     let schedY = PdfStyle.MARGIN.TOP;
     
     const startOfPageData = startSpeciesSchedulePage(doc, schedY);
     schedY = startOfPageData.startY;
-    let speciesScheduleTableStruct = startOfPageData.tableStruct;
-    let cellHeight = PdfStyle.ROW.HEIGHT * 2 - 5;
+    const speciesScheduleTableStruct = startOfPageData.tableStruct;
+    const cellHeight = PdfStyle.ROW.HEIGHT * 2 - 5;
     
-    let tableBody = doc.struct('TBody');
+    const tableBody = doc.struct('TBody');
     speciesScheduleTableStruct.add(tableBody);
 
     const renderConfig = {
@@ -481,7 +481,7 @@ const startSpeciesSchedulePage = (doc, startY) => {
 }
 
 const addSpeciesScheduleTableHeaders = (doc, startY, tableHeadRow) => {
-    let cellHeight = PdfStyle.ROW.HEIGHT * 3 - 7;
+    const cellHeight = PdfStyle.ROW.HEIGHT * 3 - 7;
 
     const tableHeadOne = doc.markStructureContent('TH');
     tableHeadRow.add(tableHeadOne);
@@ -508,10 +508,10 @@ const addSpeciesScheduleTableHeaders = (doc, startY, tableHeadRow) => {
     PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 470, startY, 60, cellHeight, ['Processed', 'fishery', 'product(kg)']);
 }
 
-const section5 = (doc, data, isSample, buff, startY) => {
+const section5 = (doc, _data, isSample, buff, startY) => {
     PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, 'Endorsement by the competent authority');
-    let yPos = startY + 12;
-    let cellHeight = PdfStyle.ROW.HEIGHT * 5;
+    const yPos = startY + 12;
+    const cellHeight = PdfStyle.ROW.HEIGHT * 5;
 
     const tableStruct = doc.struct('Table');
     doc.addStructure(tableStruct);
@@ -595,9 +595,9 @@ const section5 = (doc, data, isSample, buff, startY) => {
 
 const section4 = (doc, data, startY) => {
     PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '4    Exporter details');
-    let yPos = startY + 12;
-    let cellHeight = PdfStyle.ROW.HEIGHT * 2;
-    let exporterAddress = PdfUtils.constructAddress([data.exporter.addressOne, data.exporter.addressTwo, data.exporter.townCity, data.exporter.postcode]);
+    const yPos = startY + 12;
+    const cellHeight = PdfStyle.ROW.HEIGHT * 2;
+    const exporterAddress = PdfUtils.constructAddress([data.exporter.addressOne, data.exporter.addressTwo, data.exporter.townCity, data.exporter.postcode]);
 
     doc.addStructure(doc.struct('Table', [
         doc.struct('THead', [
