@@ -51,6 +51,13 @@ const SCHED_FAO_AREA_PREFIX = 'FAO AREARow';
 const MAX_SCHEDULE_PAGES = 3;
 const MAX_SCHEDULE_ROWS_PER_PAGE = 14;
 
+const hasFrontPageExportItems = (raw) => {
+    return (raw[FP_SPECIES_KEY_PREFIX + '1'] && raw[FP_SPECIES_KEY_PREFIX + '1'].trim().length > 0)
+        || (raw[FP_PROD_CODE_KEY_PREFIX + '1'] && raw[FP_PROD_CODE_KEY_PREFIX + '1'].trim().length > 0)
+        || (raw[FP_SPECIES_KEY_PREFIX + '2'] && raw[FP_SPECIES_KEY_PREFIX + '2'].trim().length > 0)
+        || (raw[FP_PROD_CODE_KEY_PREFIX + '2'] && raw[FP_PROD_CODE_KEY_PREFIX + '2'].trim().length > 0);
+};
+
 const parseExportCert = async (pdfJson, buffer) => {
     const result = {...pdfJson};
     const pdfReader = muhammara.createReader(new muhammara.PDFRStreamForBuffer(buffer));
@@ -68,14 +75,10 @@ const parseExportCert = async (pdfJson, buffer) => {
         result.errors = result.errors.concat(validateSingleVessel(singleVessel));
         // and that catch info from the first page
         extractFrontPageExportPayload(raw, singleVessel, result);
-    } else if ((raw[FP_SPECIES_KEY_PREFIX + '1'] &&  raw[FP_SPECIES_KEY_PREFIX + '1'].trim().length > 0)
-                || (raw[FP_PROD_CODE_KEY_PREFIX + '1'] &&  raw[FP_PROD_CODE_KEY_PREFIX + '1'].trim().length > 0)
-                || (raw[FP_SPECIES_KEY_PREFIX + '2'] &&  raw[FP_SPECIES_KEY_PREFIX + '2'].trim().length > 0)
-                || (raw[FP_PROD_CODE_KEY_PREFIX + '2'] &&  raw[FP_PROD_CODE_KEY_PREFIX + '2'].trim().length > 0)) {
+    } else if (hasFrontPageExportItems(raw)) {
         // cant have items in schedule and front page product details
         result.errors = result.errors.concat('Export payload details have been added to both the front page and the schedule');
-    }
-    else {
+    } else {
         extractScheduleExportPayload(raw, result);
     }
 

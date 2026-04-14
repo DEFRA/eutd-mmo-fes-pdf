@@ -30,6 +30,22 @@ const SCHED_CATCHES_TOTAL_LANDED_WEIGHT_KEY_PREFIX = 'Total landed weightkgRow';
 const SCHED_CATCHES_CATCH_PROCESSED_WEIGHT_KEY_PREFIX = 'Catch processed kgRow';
 const SCHED_CATCHES_PROCESSED_WEIGHT_KEY_PREFIX = 'Processed fishery productkgRow';
 
+const hasFrontPageCatchDetails = (raw) => {
+    return (raw[FP_CATCHES_CATCH_DESC_KEY_PREFIX + '0'] && raw[FP_CATCHES_CATCH_DESC_KEY_PREFIX + '0'].trim().length > 0)
+        || (raw[FP_CATCHES_CC_NUM_KEY_PREFIX + '10'] && raw[FP_CATCHES_CC_NUM_KEY_PREFIX + '10'].trim().length > 0)
+        || (raw[FP_CATCHES_TOTAL_LANDED_WEIGHT_KEY_PREFIX + '0'] && raw[FP_CATCHES_TOTAL_LANDED_WEIGHT_KEY_PREFIX + '0'].trim().length > 0)
+        || (raw[FP_CATCHES_CATCH_PROCESSED_WEIGHT_KEY_PREFIX] && raw[FP_CATCHES_CATCH_PROCESSED_WEIGHT_KEY_PREFIX].trim().length > 0)
+        || (raw[FP_CATCHES_PROCESSED_WEIGHT_KEY_PREFIX] && raw[FP_CATCHES_PROCESSED_WEIGHT_KEY_PREFIX].trim().length > 0);
+};
+
+const isCatchDetailItemEmpty = (item) => {
+    return (!item.species || item.species.trim().length === 0)
+        && (!item.catchCertificateNumber || item.catchCertificateNumber.trim().length === 0)
+        && (!item.totalWeightLanded || item.totalWeightLanded.trim().length === 0)
+        && (!item.exportWeightBeforeProcessing || item.exportWeightBeforeProcessing.trim().length === 0)
+        && (!item.exportWeightAfterProcessing || item.exportWeightAfterProcessing.trim().length === 0);
+};
+
 const parseProcessingStatement = async (pdfJson, buffer) => {
 
     const result = {...pdfJson};
@@ -71,11 +87,7 @@ const parseProcessingStatement = async (pdfJson, buffer) => {
     if (raw[SCHED_CATCHES_CC_NUM_KEY_PREFIX + '1'] === null || raw[SCHED_CATCHES_CATCH_DESC_KEY_PREFIX + '1'].trim().length === 0) {
         // no schedule extract catch details from first page
         extractFrontPageCatchDetails(raw, result);
-    } else if ((raw[FP_CATCHES_CATCH_DESC_KEY_PREFIX + '0'] &&  raw[FP_CATCHES_CATCH_DESC_KEY_PREFIX + '0'].trim().length > 0)
-        || (raw[FP_CATCHES_CC_NUM_KEY_PREFIX + '10'] &&  raw[FP_CATCHES_CC_NUM_KEY_PREFIX + '10'].trim().length > 0)
-        || (raw[FP_CATCHES_TOTAL_LANDED_WEIGHT_KEY_PREFIX + '0'] && raw[FP_CATCHES_TOTAL_LANDED_WEIGHT_KEY_PREFIX + '0'].trim().length > 0)
-        || (raw[FP_CATCHES_CATCH_PROCESSED_WEIGHT_KEY_PREFIX] &&  raw[FP_CATCHES_CATCH_PROCESSED_WEIGHT_KEY_PREFIX].trim().length > 0)
-        || (raw[FP_CATCHES_PROCESSED_WEIGHT_KEY_PREFIX] &&  raw[FP_CATCHES_PROCESSED_WEIGHT_KEY_PREFIX].trim().length > 0)) {
+    } else if (hasFrontPageCatchDetails(raw)) {
         // cant have items in schedule and front page product details
         result.errors = result.errors.concat('Catch details have been added to both the front page and the schedule');
     } else {
@@ -117,11 +129,7 @@ const extractScheduleCatchDetailItem = (pageIdx, rowIdx, raw) => {
         exportWeightAfterProcessing: raw[exportWeightAfterProcessingKey]
     };
 
-    if ((!item.species || item.species.trim().length === 0)
-        && (!item.catchCertificateNumber || item.catchCertificateNumber.trim().length === 0)
-        && (!item.totalWeightLanded || item.totalWeightLanded.trim().length === 0)
-        && (!item.exportWeightBeforeProcessing || item.exportWeightBeforeProcessing.trim().length === 0)
-        && (!item.exportWeightAfterProcessing || item.exportWeightAfterProcessing.trim().length === 0)) {
+    if (isCatchDetailItemEmpty(item)) {
         return null;
     } else {
         return item;

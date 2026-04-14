@@ -35,6 +35,21 @@ const SCHED_CONS_TRANSPORT_KEY_PREFIX = 'Details of transport unloaded fromRow';
 const SCHED_FAC_NAME_KEY_PREFIX = 'Name';
 const SCHED_FAC_ADDRESS_KEY_PREFIX = 'AddressRow';
 
+const hasFrontPageConsDetails = (raw) => {
+    return (raw?.[FP_CONS_PROD_KEY]?.trim()?.length > 0)
+        || (raw?.[FP_CONS_CODE_KEY]?.trim()?.length > 0)
+        || (raw[FP_CONS_CC_KEY]?.trim()?.length > 0)
+        || (raw?.[FP_CONS_WEIGHT_KEY]?.trim()?.length > 0)
+        || (raw?.[FP_CONS_DATE_KEY]?.trim()?.length > 0)
+        || (raw?.[FP_CONS_PLACE_KEY]?.trim()?.length > 0)
+        || (raw?.[FP_CONS_TRANSPORT_KEY]?.trim()?.length > 0);
+};
+
+const isConsDetailItemEmpty = (item) => {
+    return !item?.product?.trim() && !item?.commodityCode?.trim() && !item?.certificateNumber?.trim() && !item?.productWeight?.trim()
+        && !item?.dateOfUnloading?.trim() && !item?.placeOfUnloading?.trim() && !item?.transportUnloadedFrom?.trim();
+};
+
 const parseStorageDocument = async (pdfJson, buffer) => {
     const result = {...pdfJson};
     const pdfReader = muhammara.createReader(new muhammara.PDFRStreamForBuffer(buffer));
@@ -46,15 +61,9 @@ const parseStorageDocument = async (pdfJson, buffer) => {
             && (raw[SCHED_CONS_CODE_KEY_PREFIX + '1'] === null || raw[SCHED_CONS_CODE_KEY_PREFIX + '1'].trim().length === 0)) {
         // no schedule extract catch details from first page
         extractFrontPageConsDetails(raw, result);
-    } else if (raw?.[FP_CONS_PROD_KEY]?.trim()?.length > 0
-            || raw?.[FP_CONS_CODE_KEY]?.trim()?.length > 0
-            || raw[FP_CONS_CC_KEY]?.trim()?.length > 0
-            || raw?.[FP_CONS_WEIGHT_KEY]?.trim()?.length > 0
-            || raw?.[FP_CONS_DATE_KEY]?.trim()?.length > 0
-            || raw?.[FP_CONS_PLACE_KEY]?.trim()?.length > 0
-            || raw?.[FP_CONS_TRANSPORT_KEY]?.trim()?.length > 0) {
-            // cant have items in schedule and front page product details
-            result.errors = result.errors.concat('Consignment details have been added to both the front page and the schedule');
+    } else if (hasFrontPageConsDetails(raw)) {
+        // cant have items in schedule and front page product details
+        result.errors = result.errors.concat('Consignment details have been added to both the front page and the schedule');
     } else {
         extractScheduleConsDetails(raw, result);
     }
@@ -179,8 +188,7 @@ const extractScheduleConsDetailItem = (pageIdx, rIdx, raw) => {
     item.placeOfUnloading = raw[placeKey];
     item.transportUnloadedFrom = raw[transportKey];
 
-    if (!item?.product?.trim() && !item?.commodityCode?.trim() && !item?.certificateNumber?.trim() && !item?.productWeight?.trim()
-        && !item?.dateOfUnloading?.trim() && !item?.placeOfUnloading?.trim() && !item?.transportUnloadedFrom?.trim()) {
+    if (isConsDetailItemEmpty(item)) {
         return null;
     } else {
         return item;
