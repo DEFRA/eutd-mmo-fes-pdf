@@ -268,6 +268,7 @@ function collectPlacements(resources,placements,formsUsed) {
             }
             default:
                 break;
+        }
     };
 }
 

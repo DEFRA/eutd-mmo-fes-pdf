@@ -1,5 +1,6 @@
+/* eslint-disable no-magic-numbers */
 const PdfStyle = require('./mmoPdfStyles');
-const path = require('path');
+const path = require('node:path');
 const qr = require('qr-image');
 
 module.exports = {
@@ -42,8 +43,8 @@ module.exports = {
     },
     generateQRCode: function(uri) {
         return new Promise(((resolve, reject) => {
-            let stream = qr.image(uri, {type: 'PNG'});
-            let data = [];
+            const stream = qr.image(uri, {type: 'PNG'});
+            const data = [];
 
             stream.on('data', (chunk) => {
                 data.push(chunk);
@@ -78,7 +79,7 @@ module.exports = {
         if (!text || Array.isArray(text)) {
             this.cell({doc, x, y, width, height, textArr: text, trimWidth: false, isBold: false, lineColor: '#767676', textColor: '#353535', bgColour: '', numberOfLines: 1 });
         } else {
-            let textArr = [text];
+            const textArr = [text];
             this.cell({doc, x, y, width, height, textArr, trimWidth: false, isBold: false, lineColor: '#767676', textColor: '#353535', bgColour: '', numberOfLines: 1 });
         }
     },
@@ -86,7 +87,7 @@ module.exports = {
         if (!text || Array.isArray(text)) {
             this.cell({doc, x, y, width, height, textArr: text, trimWidth: false, isBold: true, lineColor: '#767676', textColor: '#353535', bgColour: '', numberOfLines: 1 });
         } else {
-            let textArr = [text];
+            const textArr = [text];
             this.cell({doc, x, y, width, height, textArr, trimWidth: false, isBold: true, lineColor: '#767676', textColor: '#353535', bgColour: '', numberOfLines: 1 });
         }
     },
@@ -94,7 +95,7 @@ module.exports = {
         if (!text || Array.isArray(text)) {
             this.cell({doc, x, y, width, height, textArr: text, trimWidth: true, isBold: false, lineColor: '#767676', textColor: '#6B6B6B', bgColour:'#f1f4ff', numberOfLines});
         } else {
-            let textArr = [text];
+            const textArr = [text];
             this.cell({doc, x, y, width, height, textArr, trimWidth: true, isBold: false, lineColor: '#767676', textColor: '#6B6B6B', bgColour:'#f1f4ff', numberOfLines});
         }
     },
@@ -102,7 +103,7 @@ module.exports = {
         if (!text || Array.isArray(text)) {
             this.cell({doc, x, y, width, height, textArr: text, trimWidth: false, isBold: false, lineColor: '#767676', textColor: '#6B6B6B', bgColour:'#f1f4ff', numberOfLines: 1 });
         } else {
-            let textArr = [text];
+            const textArr = [text];
             this.cell({doc, x, y, width, height, textArr, trimWidth: false, isBold: false, lineColor: '#767676', textColor: '#6B6B6B', bgColour:'#f1f4ff', numberOfLines: 1 });
         }
     },
@@ -138,9 +139,9 @@ module.exports = {
             });
 
             doc.font(PdfStyle.FONT.REGULAR);
-            let arrlength = textArr.length;
+            const arrlength = textArr.length;
             for (let idx = 1; idx < arrlength; idx++) {
-                let prevTxt = textArr[idx-1];
+                const prevTxt = textArr[idx-1];
                 const prevTextWidth = doc.widthOfString(prevTxt);
                 const prevTextLines = Math.ceil(prevTextWidth/width);
                 yPos += 10 + ((PdfStyle.ROW.HEIGHT)*(prevTextLines - 1));
