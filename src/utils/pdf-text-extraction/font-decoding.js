@@ -46,10 +46,10 @@ function beToNum(inArray,start,end) {
 
 const getEndBFRange = (startCode, endCode, map, unicode, isPDFObjectArray) => {
     const mapUpdated = map;
-    let unicodesUp = unicode;
+    const unicodesUp = unicode;
     for(let j = startCode;j<=endCode;++j) {
         if (isPDFObjectArray) {
-            mapUpdated[j] = besToUnicodes(unicodeArray.queryObject(j).toBytesArray());
+            mapUpdated[j] = besToUnicodes(unicode.queryObject(j).toBytesArray());
         } else {
             mapUpdated[j] = unicodesUp.slice();
             // increment last unicode value
@@ -65,20 +65,19 @@ function parseToUnicode(pdfReader,toUnicodeObjectId) {
     // with the interpreter class looking only for endbfrange and endbfchar as "operands"
     const interpreter = new PDFInterpreter();
     const stream = pdfReader.parseNewObject(toUnicodeObjectId).toPDFStream();
-    if(!stream)
+    if(!stream) {
         return null;
+    }
 
     interpreter.interpretStream(pdfReader,stream, (operatorName,operands)=> {
         if(operatorName === 'endbfchar') {
-
             // Operators are pairs. always of the form <codeByte> <unicodes>
             for(let i=0;i<operands.length;i+=2) {
                 const byteCode = operands[i].toBytesArray();
                 const unicodes = operands[i+1].toBytesArray();
                 map[beToNum(byteCode)] = besToUnicodes(unicodes);
             }
-        }
-        else if(operatorName === 'endbfrange') {
+        } else if(operatorName === 'endbfrange') {
             
             // Operators are 3. two codesBytes and then either a unicode start range or array of unicodes
             for(let i=0;i<operands.length;i+=3) {
@@ -96,8 +95,8 @@ function parseToUnicode(pdfReader,toUnicodeObjectId) {
                     map = mapUpdated;
                     unicodesNew = unicodesUp;
                 }
-            }            
-        }
+        } else {
+            // unrecognised operator - ignore
     });
 
     return map;
@@ -111,8 +110,9 @@ function getStandardEncodingMap(encodingName) {
         return WinAnsiEncoding;
     }
 
-    if(encodingName === 'MacExpertEncoding')
+    if(encodingName === 'MacExpertEncoding') {
         return MacExpertEncoding;
+    }
 
     if(encodingName === 'MacRomanEncoding')
         return MacRomanEncoding;
