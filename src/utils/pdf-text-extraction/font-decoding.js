@@ -207,12 +207,14 @@ function parseSimpleFontDimensions(self,pdfReader,font) {
     else if(font.exists('BaseFont')) {
         // wtf. probably one of the standard fonts. aha! [will also take care of ascent descent]
         const name = pdfReader.queryDictionaryObject(font,'BaseFont').value;
-        const standardDimensions = StandardFontsDimensions[name] || StandardFontsDimensions[name.replace(/-/g,'−')]; // seriously...WTF
+        const standardDimensions = StandardFontsDimensions[name] || StandardFontsDimensions[name.replaceAll('-','−')]; // seriously...WTF
         if(standardDimensions) {
             self.descent = standardDimensions.descent;
             self.ascent = standardDimensions.ascent;
             self.widths = _.extend({},standardDimensions.widths);
         }
+    } else {
+        // no BaseFont information available
     }
     
 
