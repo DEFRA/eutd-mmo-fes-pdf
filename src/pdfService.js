@@ -7,11 +7,11 @@ const blobManager = require('./storage/blobManager');
 
 
 const deleteBlob = async (containerName, blobName) => {
-    return await blobManager.deleteBlob(containerName, blobName);
+    return blobManager.deleteBlob(containerName, blobName);
 };
 
 const getAzureBlobStream = async (principalId, blobName) => {
-    return await blobManager.writeStreamForBlob(principalId, blobName);
+    return blobManager.writeStreamForBlob(principalId, blobName);
 };
 const getJourneyName = (documentNumber) => {
    
@@ -22,9 +22,9 @@ const getJourneyName = (documentNumber) => {
           return 'ProcessingStatement';
         } else if (journey === 'SD' || journey === 'SM') {
           return 'StorageDocument';
+        } else {
+          return 'CatchCertificate';
         }
-
-        return 'CatchCertificate';
 } 
 
 const generatePdfAndUpload = async (containerName, type, data, isSample, { getStream }, documentNumber, pathToTemplate) => {
@@ -56,7 +56,7 @@ const uploadZip = async (containerName, data, { getStream }) => {
 };
 
 const parsePdf = async (buffer) => {
-    return await parsePdfBuffer(buffer);
+    return parsePdfBuffer(buffer);
 };
 
 const overwritePdf = async (containerName, blobName, buffer, { getStream }) => {

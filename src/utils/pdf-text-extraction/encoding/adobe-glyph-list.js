@@ -37,6 +37,7 @@
 # -----------------------------------------------------------
 */
 
+/* eslint-disable no-magic-numbers */
 module.exports = {
 A:0x0041,
 AE:0x00C6,

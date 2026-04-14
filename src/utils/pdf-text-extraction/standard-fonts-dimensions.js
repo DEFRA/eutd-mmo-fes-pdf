@@ -1,3 +1,4 @@
+/* eslint-disable no-magic-numbers */
 module.exports = {
     'Courier': {
         ascent:629,
