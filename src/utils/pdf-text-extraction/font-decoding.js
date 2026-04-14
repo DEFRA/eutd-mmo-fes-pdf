@@ -278,8 +278,9 @@ function parseCIDFontDimensions(self, pdfReader,font) {
 
 function parseFontData(self,pdfReader,fontObject) {
     const font = fontObject;
-    if(!font)
+    if(!font) {
         return;
+    }
 
     self.isSimpleFont = font.queryObject('Subtype').value !== 'Type0';
 
