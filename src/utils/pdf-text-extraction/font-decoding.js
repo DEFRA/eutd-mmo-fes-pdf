@@ -9,16 +9,17 @@ const SymbolEncoding = require('./encoding/symbol-encoding');
 const AdobeGlyphList = require('./encoding/adobe-glyph-list');
 const StandardFontsDimensions = require('./standard-fonts-dimensions');
 
+/* eslint-disable no-magic-numbers */
 function besToUnicodes(inArray) {
     let i=0;
     const unicodes = [];
 
     while(i<inArray.length) {
-        let newOne = beToNum(inArray,i,i+2);
+        const newOne = beToNum(inArray,i,i+2);
         if(0xD800 <= newOne && newOne <= 0xDBFF) {
             // pfff. high surrogate. need to read another one
             i+=2;
-            let lowSurrogate =  beToNum(inArray,i,i+2);
+            const lowSurrogate =  beToNum(inArray,i,i+2);
             unicodes.push(0x10000 + ((newOne - 0xD800) << 10) + (lowSurrogate - 0xDC00));
         }
         else {

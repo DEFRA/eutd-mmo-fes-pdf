@@ -709,7 +709,7 @@ const section4 = (doc, data, startY) => {
 const getNestedValue = (obj, path) => {  
     const result = path
         .split('.')
-        .reduce((acc, part) => (acc?.[part] !== undefined ? acc[part] : ''), obj);
+        .reduce((acc, part) => acc?.[part] ?? '', obj);
     
     return Array.isArray(result) ? result.join(', ') : result;
 };
