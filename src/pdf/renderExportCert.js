@@ -247,6 +247,7 @@ function getProductScheduleRows(exportPayload) {
     return rows;
 }
 
+/* eslint-disable no-magic-numbers */
 const multiVesselScheduleHeading = (doc, data, isSample, buff, page, pageSize, startY) => {
     const imageFile = path.join(__dirname, '../resources/hmgovlogo.png');
     doc.addStructure(doc.struct('Figure', {
@@ -406,18 +407,18 @@ const multiVesselScheduleHeading = (doc, data, isSample, buff, page, pageSize, s
 
     yPos = yPos + cellHeight;
 
-    let rows = getProductScheduleRows(data.exportPayload);
+    const rows = getProductScheduleRows(data.exportPayload);
     let pageCount = Math.ceil(rows.length / pageSize);
     if (data.isBlankTemplate) {
         pageCount = 3;
     }
 
-    let fromIdx = (page - 1) * pageSize;
+    const fromIdx = (page - 1) * pageSize;
     let numDataRows = pageSize;
     if (fromIdx + numDataRows > rows.length) {
         numDataRows = rows.length - fromIdx;
     }
-    let rowDataLimit = fromIdx + numDataRows;
+    const rowDataLimit = fromIdx + numDataRows;
 
     cellHeight = (PdfStyle.ROW.HEIGHT * 3) - 5;
 
@@ -758,7 +759,7 @@ const generateTable = (doc, yPos, headerHeight, rowHeight, headers, rows) => {
     doc.addStructure(doc.struct('Table', [
         doc.struct('THead', [
             doc.struct('TR', {}, () => {
-                headers.forEach((header, index) => {
+                headers.forEach((header, _index) => {
                     doc.addStructure(
                         doc.struct('TH', () => 
                             PdfUtils.tableHeaderCell(
@@ -776,7 +777,7 @@ const generateTable = (doc, yPos, headerHeight, rowHeight, headers, rows) => {
         ]),
         doc.struct('TBody', [
             doc.struct('TR', {}, () => {
-                rows.forEach((row, index) => {
+                rows.forEach((row, _index) => {
                     doc.addStructure(
                         doc.struct('TD', () => 
                             PdfUtils.field(
@@ -794,7 +795,7 @@ const generateTable = (doc, yPos, headerHeight, rowHeight, headers, rows) => {
     ]));
 };
 
-const generateSection11 = (doc, data, startY) => {
+const generateSection11 = (doc, _data, startY) => {
     PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY + PdfStyle.ROW.HEIGHT * 2, '11    Importer Declaration:');
     let yPos = startY + PdfStyle.ROW.HEIGHT * 3;
     const headerHeight = PdfStyle.ROW.HEIGHT * 3 - 4;
@@ -929,7 +930,7 @@ const generateSection11 = (doc, data, startY) => {
     doc.moveTo(PdfStyle.MARGIN.LEFT + 225, yPos + 0.5).lineTo(PdfStyle.MARGIN.LEFT + 225, yPos + headerHeight - 0.5).stroke('#ffffff');
 }
 
-const section17 = (doc, data, startY) => {
+const section17 = (doc, _data, startY) => {
     PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '4    Re-export control');
     let yPos = startY + 12;
     let cellHeight = PdfStyle.ROW.HEIGHT * 2 - 3;
@@ -959,7 +960,7 @@ const section17 = (doc, data, startY) => {
     PdfUtils.separator(doc, yPos + 15);
 };
 
-const section16 = (doc, data, startY) => {
+const section16 = (doc, _data, startY) => {
     PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '3    Authority');
     let yPos = startY + 12;
     let cellHeight = PdfStyle.ROW.HEIGHT * 6;
@@ -986,7 +987,7 @@ const section16 = (doc, data, startY) => {
     PdfUtils.separator(doc, yPos + PdfStyle.ROW.HEIGHT + cellHeight + 8);
 };
 
-const section15 = (doc, data, startY) => {
+const section15 = (doc, _data, startY) => {
 
     let yPos = startY;
     PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, yPos, '2');
@@ -1015,7 +1016,7 @@ const section15 = (doc, data, startY) => {
     PdfUtils.separator(doc, yPos + PdfStyle.ROW.HEIGHT + cellHeight + 8);
 };
 
-const section14 = (doc, data, startY) => {
+const section14 = (doc, _data, startY) => {
 
     let yPos = startY;
     PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, yPos, '1    Description of re-exported product');
@@ -1042,7 +1043,7 @@ const section14 = (doc, data, startY) => {
     PdfUtils.separator(doc, (yPos + cellHeight) + (PdfStyle.ROW.HEIGHT * 10) + 8);
 };
 
-const section13 = (doc, data, startY) => {
+const section13 = (doc, _data, startY) => {
 
     doc.fontSize(PdfStyle.FONT_SIZE.MEDIUM);
     doc.addStructure(doc.struct('H3', {}, () => {
@@ -1063,7 +1064,7 @@ const section13 = (doc, data, startY) => {
     PdfUtils.separator(doc, startY + 40);
 };
 
-const section12 = (doc, data, startY) => {
+const section12 = (doc, _data, startY) => {
     let yPos = startY + PdfStyle.ROW.HEIGHT * 3;
     PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, yPos, '12');
 
@@ -1121,7 +1122,7 @@ const section11 = (doc, data, startY) => {
     generateSection11(doc, data, startY);
 };
 
-const section10 = (doc, data, startY) => {
+const section10 = (doc, _data, startY) => {
     PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY + 12, '10    Transport details: See Appendix I');
     PdfUtils.separator(doc, startY + 36);
 };
@@ -1159,12 +1160,12 @@ const section9 = (doc, data, isSample, buff, startY) => {
     PdfUtils.separator(doc, startY + 66);
 };
 
-const section8 = (doc, data, isSample, buff, startY) => {
+const section8 = (doc, data, _isSample, _buff, startY) => {
 
     let yPos = startY;
     PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, yPos, '8');
 
-    let cellHeight = PdfStyle.ROW.HEIGHT * 7 + 2;
+    const cellHeight = PdfStyle.ROW.HEIGHT * 7 + 2;
 
     const exporterAddress = PdfUtils.constructAddress([
         data.exporter?.addressOne, 
@@ -1206,7 +1207,7 @@ const section8 = (doc, data, isSample, buff, startY) => {
     PdfUtils.separator(doc, startY + 137);
 };
 
-const section7 = (doc, data, startY) => {
+const section7 = (doc, _data, startY) => {
 
     PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '7    Transhipment and/or landing authorisation within a port area:');
     let yPos = startY + 12;
@@ -1263,7 +1264,7 @@ const section7 = (doc, data, startY) => {
      PdfUtils.separator(doc, startY + 209);
 };
 
-const section6 = (doc, data, startY) => {
+const section6 = (doc, _data, startY) => {
 
     let yPos = startY;
     PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, yPos, '6');
@@ -1354,14 +1355,14 @@ function getDescOfProductRows(exportPayload) {
     if (items.length > 0) {
         items.forEach((item) => {
             item.landings.forEach((landing) => {
-                let dte = moment(landing.model.dateLanded).format(DATE_FORMAT);
+                const dte = moment(landing.model.dateLanded).format(DATE_FORMAT);
                 let faoArea = 'FAO27';
                 if (landing.model.faoArea && landing.model.faoArea.length > 0) {
                     faoArea = landing.model.faoArea;
                 }
-                let accumItem = accum[item.product.species.code + item.product.commodityCode + faoArea +landing.model.vessel.vesselName + landing.model.vessel.pln + dte];
+                const accumItem = accum[item.product.species.code + item.product.commodityCode + faoArea +landing.model.vessel.vesselName + landing.model.vessel.pln + dte];
                 if (accumItem) {
-                    let accumTotal = parseFloat(accumItem.exportWeight) + parseFloat(landing.model.exportWeight)
+                    const accumTotal = Number.parseFloat(accumItem.exportWeight) + Number.parseFloat(landing.model.exportWeight)
                     accumItem.exportWeight = accumTotal.toFixed(2);
                 } else {
                     accum[item.product.species.code + item.product.commodityCode + faoArea + landing.model.vessel.vesselName + landing.model.vessel.pln + dte] = {
@@ -1420,8 +1421,8 @@ const section3 = (doc, data, startY) => {
     PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, startY + 26, 515, PdfStyle.ROW.HEIGHT);
 
     let cellHeight = PdfStyle.ROW.HEIGHT * 3;
-    let rowData = getDescOfProductRows(data.exportPayload);
-    let arrLength = rowData.length;
+    const rowData = getDescOfProductRows(data.exportPayload);
+    const arrLength = rowData.length;
     const allRowsLength = getProductScheduleRows(data.exportPayload).length;
 
     const myTable = doc.struct('Table');
