@@ -113,8 +113,9 @@ function getStandardEncodingMap(encodingName) {
         return MacExpertEncoding;
     }
 
-    if(encodingName === 'MacRomanEncoding')
+    if(encodingName === 'MacRomanEncoding') {
         return MacRomanEncoding;
+    }
 
     return null; 
 }
@@ -127,7 +128,7 @@ function setupDifferencesEncodingMap(pdfReader,font, encodingDict) {
     // k. got ourselves differences array. let's see.
     let newEncoding = null;
     if(encodingDict.exists('BaseEncoding')) {
-        let baseEncoding = getStandardEncodingMap(pdfReader.queryDictionaryObject(encodingDict,'BaseEncoding').value);
+        const baseEncoding = getStandardEncodingMap(pdfReader.queryDictionaryObject(encodingDict,'BaseEncoding').value);
         if(baseEncoding) {
             newEncoding = _.extend({},baseEncoding);
         }
@@ -137,10 +138,10 @@ function setupDifferencesEncodingMap(pdfReader,font, encodingDict) {
         // no base encoding. use standard or symbol. i'm gonna use either standard encoding or symbol encoding.
         // i know the right thing is to check first the font native encoding...but that's too much of a hassle
         // so i'll take the shortcut and if it is ever a problem - improve
-        let fontDescriptor = getFontDescriptorForDifferencesEncodingMap(font, pdfReader);
+        const fontDescriptor = getFontDescriptorForDifferencesEncodingMap(font, pdfReader);
         if(fontDescriptor) {
             // check font descriptor to determine whether this is a symbolic font. if so, use symbol encoding. otherwise - standard
-            let flags = pdfReader.queryDictionaryObject(fontDescriptor,'Flags').value;
+            const flags = pdfReader.queryDictionaryObject(fontDescriptor,'Flags').value;
             if(flags & (1<<2)) {
                 newEncoding = _.extend({},SymbolEncoding);
             }
