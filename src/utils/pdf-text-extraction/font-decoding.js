@@ -261,8 +261,9 @@ function parseCIDFontDimensions(self, pdfReader,font) {
                 ++i;
                 const width = widths[i].value;
                 ++i;
-                for(let w=cFirst;w<=cLast;++w)
+                for(let w=cFirst;w<=cLast;++w) {
                     self.widths[w] = width;
+                }
             }
         }
     }
