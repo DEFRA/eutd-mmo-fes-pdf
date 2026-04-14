@@ -170,18 +170,16 @@ function setupDifferencesEncodingMap(pdfReader,font, encodingDict) {
                 ++firstIndex;
             }
         }
-    }
-
-    return newEncoding;
-}
-
-function parseSimpleFontEncoding(self,pdfReader,font, encoding) {
-    if(encoding.getType() === muhammara.ePDFObjectName) {
-        self.fromSimpleEncodingMap = getStandardEncodingMap(encoding.value);
-        self.hasSimpleEncoding = true;
-    }
-    else if(encoding.getType() === muhammara.ePDFObjectIndirectObjectReference || encoding.getType() === muhammara.ePDFObjectDictionary) {
-        // make sure we have a dict here
+                }
+            } else if(font.exists('BaseFont')) {
+                const name = pdfReader.queryDictionaryObject(font,'BaseFont').value;
+                const standardDimensions = StandardFontsDimensions[name] || StandardFontsDimensions[name.replace(/-/g,'−')]; // seriously...WTF
+                if(standardDimensions) {
+                    self.descent = standardDimensions.descent;
+                    self.ascent = standardDimensions.ascent;
+                    self.widths = _.extend({},standardDimensions.widths);
+                }
+            }
         encoding = (encoding.getType() === muhammara.ePDFObjectIndirectObjectReference) ? pdfReader.parseNewObject(encoding.toPDFIndirectObjectReference().getObjectID()):encoding;
         // now figure it out
         self.fromSimpleEncodingMap = setupDifferencesEncodingMap(pdfReader,font, encoding);
@@ -195,8 +193,8 @@ function parseSimpleFontDimensions(self,pdfReader,font) {
     // read specified widths
     if(font.exists('FirstChar') && font.exists('LastChar') && font.exists('Widths')) {
         const firstChar = pdfReader.queryDictionaryObject(font,'FirstChar').value;
-        let lastChar = pdfReader.queryDictionaryObject(font,'LastChar').value;
-        let widths = pdfReader.queryDictionaryObject(font,'Widths').toPDFArray();
+        const lastChar = pdfReader.queryDictionaryObject(font,'LastChar').value;
+        const widths = pdfReader.queryDictionaryObject(font,'Widths').toPDFArray();
 
         // store widths for specified glyphs
         self.widths = {};
@@ -204,9 +202,8 @@ function parseSimpleFontDimensions(self,pdfReader,font) {
             self.widths[i] = pdfReader.queryArrayObject(widths,i-firstChar).value;
         }
     }
-    else {
-        // wtf. probably one of the standard fonts. aha! [will also take care of ascent descent]
-        if(font.exists('BaseFont')) {
+    } else if(font.exists('BaseFont')) {
+        {
             let name = pdfReader.queryDictionaryObject(font,'BaseFont').value;
             let standardDimensions = StandardFontsDimensions[name] || StandardFontsDimensions[name.replace(/-/g,'−')]; // seriously...WTF
             if(standardDimensions) {
