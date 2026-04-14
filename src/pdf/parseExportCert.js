@@ -49,10 +49,10 @@ const SCHED_VESSEL_LICENCE_NO_PREFIX = 'Licence NumberRow';
 const SCHED_FAO_AREA_PREFIX = 'FAO AREARow';
 
 const parseExportCert = async (pdfJson, buffer) => {
-    let result = {...pdfJson};
-    let pdfReader = muhammara.createReader(new muhammara.PDFRStreamForBuffer(buffer));
-    let form = new PDFDigitalForm(pdfReader);
-    let raw = form.createSimpleKeyValue();
+    const result = {...pdfJson};
+    const pdfReader = muhammara.createReader(new muhammara.PDFRStreamForBuffer(buffer));
+    const form = new PDFDigitalForm(pdfReader);
+    const raw = form.createSimpleKeyValue();
     result.errors = [];
 
     result.exporter = parseExporter(raw);
@@ -89,12 +89,12 @@ const parseExportCert = async (pdfJson, buffer) => {
 };
 
 const extractScheduleExportPayload = (raw, result) => {
-    let items = [];
+    const items = [];
     let pageIdx;
     let rowIdx;
     for (pageIdx = 1; pageIdx <= 3; pageIdx++) {
         for (rowIdx = 1; rowIdx <= 14; rowIdx++) {
-            let item = extractScheduleExportItem(pageIdx, rowIdx, raw);
+            const item = extractScheduleExportItem(pageIdx, rowIdx, raw);
             if (item) {
                 items.push(item);
                 result.errors = result.errors.concat(validateScheduleExportItem(pageIdx, rowIdx, item));
@@ -107,7 +107,7 @@ const extractScheduleExportPayload = (raw, result) => {
 }
 
 const extractScheduleExportItem = (pageIdx, rowIdx, raw) => {
-    let item = {
+    const item = {
         product: extractScheduleExportItemProduct(pageIdx, rowIdx, raw)
     }
     if (!item.product) {
