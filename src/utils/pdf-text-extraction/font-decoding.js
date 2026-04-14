@@ -157,7 +157,7 @@ function setupDifferencesEncodingMap(pdfReader,font, encodingDict) {
 
     // now apply differences
     if(encodingDict.exists('Differences')) {
-        let differences = pdfReader.queryDictionaryObject(encodingDict,('Differences')).toPDFArray().toJSArray();
+        const differences = pdfReader.queryDictionaryObject(encodingDict,('Differences')).toPDFArray().toJSArray();
         let i=0;
         while(i<differences.length) {
             // first item is always a number
@@ -186,13 +186,15 @@ function parseSimpleFontEncoding(self,pdfReader,font, encoding) {
         // now figure it out
         self.fromSimpleEncodingMap = setupDifferencesEncodingMap(pdfReader,font, encoding);
         self.hasSimpleEncoding = true;
+    } else {
+        // unrecognised encoding type - ignore
     }
 }
 
 function parseSimpleFontDimensions(self,pdfReader,font) {
     // read specified widths
     if(font.exists('FirstChar') && font.exists('LastChar') && font.exists('Widths')) {
-        let firstChar = pdfReader.queryDictionaryObject(font,'FirstChar').value;
+        const firstChar = pdfReader.queryDictionaryObject(font,'FirstChar').value;
         let lastChar = pdfReader.queryDictionaryObject(font,'LastChar').value;
         let widths = pdfReader.queryDictionaryObject(font,'Widths').toPDFArray();
 
