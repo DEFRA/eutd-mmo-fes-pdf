@@ -121,23 +121,14 @@ const extractScheduleExportItem = (pageIdx, rowIdx, raw) => {
 }
 
 const extractScheduleExportItemProduct = (pageIdx, rowIdx, raw) => {
-    const product = {};
-    let prodCodeKey = SCHED_PRODUCT_CODE_PREFIX + rowIdx;
-    let speciesKey = SCHED_SPECIES_PREFIX + rowIdx;
-    let presKey = SCHED_PRESENTATION_PREFIX + rowIdx;
+    const prodCodeKey = pageIdx !== 1 ? `${SCHED_PRODUCT_CODE_PREFIX}${rowIdx}_${pageIdx}` : SCHED_PRODUCT_CODE_PREFIX + rowIdx;
+    const speciesKey = pageIdx !== 1 ? `${SCHED_SPECIES_PREFIX}${rowIdx}_${pageIdx}` : SCHED_SPECIES_PREFIX + rowIdx;
+    const presKey = pageIdx !== 1 ? `${SCHED_PRESENTATION_PREFIX}${rowIdx}_${pageIdx}` : SCHED_PRESENTATION_PREFIX + rowIdx;
 
-    if (1!== pageIdx) {
-        prodCodeKey = `${prodCodeKey}_${pageIdx}`;
-        speciesKey = `${speciesKey}_${pageIdx}`;
-        presKey = `${presKey}_${pageIdx}`;
-    }
-
-    product.commodityCode = raw[prodCodeKey];
-    product.species = {
-        label: raw[speciesKey]
-    };
-    product.presentation = {
-        label: raw[presKey]
+    const product = {
+        commodityCode: raw[prodCodeKey],
+        species: { label: raw[speciesKey] },
+        presentation: { label: raw[presKey] }
     };
     if ((!product.commodityCode || product.commodityCode.trim().length === 0)
         && (!product.species?.label || product.species.label.trim().length === 0)
@@ -149,24 +140,16 @@ const extractScheduleExportItemProduct = (pageIdx, rowIdx, raw) => {
 }
 
 const extractScheduleExportItemLandings = (pageIdx, rowIdx, raw) => {
-    const landings = [{ model: {}}];
-    let dateLandedKey = SCHED_DATE_LANDED_PREFIX + rowIdx;
-    let consignedWeightKey = SCHED_CONSIGNED_WEIGHT_PREFIX + rowIdx;
-    let vesselNameKey = SCHED_VESSEL_NAME_PREFIX + rowIdx;
-    let vesselPlnKey = SCHED_VESSEL_PLN_PREFIX + rowIdx;
-    let vesselImoKey = SCHED_VESSEL_IMO_PREFIX + rowIdx;
-    let vesselLicenseNoKey = SCHED_VESSEL_LICENCE_NO_PREFIX + rowIdx;
-    let faoAreaKey = SCHED_FAO_AREA_PREFIX + rowIdx;
+    const suffix = pageIdx !== 1 ? `_${pageIdx}` : '';
+    const dateLandedKey = `${SCHED_DATE_LANDED_PREFIX}${rowIdx}${suffix}`;
+    const consignedWeightKey = `${SCHED_CONSIGNED_WEIGHT_PREFIX}${rowIdx}${suffix}`;
+    const vesselNameKey = `${SCHED_VESSEL_NAME_PREFIX}${rowIdx}${suffix}`;
+    const vesselPlnKey = `${SCHED_VESSEL_PLN_PREFIX}${rowIdx}${suffix}`;
+    const vesselImoKey = `${SCHED_VESSEL_IMO_PREFIX}${rowIdx}${suffix}`;
+    const vesselLicenseNoKey = `${SCHED_VESSEL_LICENCE_NO_PREFIX}${rowIdx}${suffix}`;
+    const faoAreaKey = `${SCHED_FAO_AREA_PREFIX}${rowIdx}${suffix}`;
 
-    if (1!== pageIdx) {
-        dateLandedKey = `${dateLandedKey}_${pageIdx}`;
-        consignedWeightKey = `${consignedWeightKey}_${pageIdx}`;
-        vesselNameKey = `${vesselNameKey}_${pageIdx}`;
-        vesselPlnKey = `${vesselPlnKey}_${pageIdx}`;
-        vesselImoKey = `${vesselImoKey}_${pageIdx}`;
-        vesselLicenseNoKey = `${vesselLicenseNoKey}_${pageIdx}`;
-        faoAreaKey = `${faoAreaKey}_${pageIdx}`;
-    }
+    const landings = [{ model: {}}];
 
     landings[0].model.faoArea = raw[faoAreaKey];
     landings[0].model.dateLanded = raw[dateLandedKey];
@@ -186,10 +169,11 @@ const extractScheduleExportItemLandings = (pageIdx, rowIdx, raw) => {
 }
 
 const extractFrontPageExportPayload = (raw, singleVessel, result) => {
-    let items = [];
+    const items = [];
     let i;
-    for (i = 0; i < 6; i++) {
-        let item = extractFrontPageExportItem(i, raw, singleVessel);
+    const MAX_FRONT_PAGE_ITEMS = 6;
+    for (i = 0; i < MAX_FRONT_PAGE_ITEMS; i++) {
+        const item = extractFrontPageExportItem(i, raw, singleVessel);
         if (item) {
             items.push(item);
             result.errors = result.errors.concat(validateFrontPageExportItem(i, item));
@@ -204,22 +188,22 @@ const extractFrontPageExportPayload = (raw, singleVessel, result) => {
 }
 
 const extractFrontPageExportItem = (i, raw, singleVessel) => {
-    let item = {
+    const item = {
         product: extractFrontPageExportItemProduct(i, raw)
     }
-    if (!item.product) {
-        return null;
-    } else {
+    if (item.product) {
         item.landings = extractFrontPageExportItemLandings(i, raw, singleVessel);
         return item;
     }
+    return null;
 }
 
 const extractFrontPageExportItemProduct = (i, raw) => {
-    let product = {};
-    product.commodityCode = raw[FP_PROD_CODE_KEY_PREFIX + (i + 1)];
-    product.species = {
-        label: raw[FP_SPECIES_KEY_PREFIX + (i + 1)]
+    const product = {
+        commodityCode: raw[FP_PROD_CODE_KEY_PREFIX + (i + 1)],
+        species: {
+            label: raw[FP_SPECIES_KEY_PREFIX + (i + 1)]
+        }
     };
     if ((!product.commodityCode || product.commodityCode.trim().length === 0)
             && (!product.species?.label || product.species.label.trim().length === 0)) {
@@ -230,7 +214,7 @@ const extractFrontPageExportItemProduct = (i, raw) => {
 }
 
 const extractFrontPageExportItemLandings = (i, raw, singleVessel) => {
-    let landings = [{ model: {}}];
+    const landings = [{ model: {}}];
     landings[0].model.faoArea = raw[FP_CATCH_AREA_KEY_PREFIX + i];
     landings[0].model.dateLanded = raw[FP_DATES_LANDED_KEY_PREFIX + i];
     landings[0].model.exportWeight = raw[FP_WEIGHT_KEY_PREFIX + i];
@@ -298,23 +282,25 @@ const parseTransport = (raw) => {
 };
 
 const parseExporter = (raw) => {
-    let exporter = {};
-    exporter.exporterFullName = raw[VESSEL_REP_KEY];
-    exporter.exporterAddress = raw[EXPORTER_ADDRESS_KEY]; // ! not a direct match to online form
+    const exporter = {
+        exporterFullName: raw[VESSEL_REP_KEY],
+        exporterAddress: raw[EXPORTER_ADDRESS_KEY] // ! not a direct match to online form
+    };
     return exporter;
 };
 
-const parseSingleVessel = (raw, result) => {
-    let vessel = {};
-    vessel.pln = raw[SINGLE_VESSEL_PLN_KEY];
-    vessel.vesselName = raw[SINGLE_VESSEL_NAME_KEY];
-    vessel.flag = raw[SINGLE_VESSEL_FLAG_KEY];
-    vessel.licenceNumber = raw[SINGLE_VESSEL_LICENSE_NO_KEY];
-    vessel.imoNumber = raw[SINGLE_VESSEL_IMO_KEY];
-    vessel.licenceValidTo = raw[SINGLE_VESSEL_LICENSE_VALID_TO_KEY];
-    vessel.gearCode = raw[SINGLE_VESSEL_GEAR_CODE_KEY];
-    vessel.label = raw[SINGLE_VESSEL_NAME_KEY];
-    vessel.contact = raw[SINGLE_VESSEL_CONTACT_KEY];
+const parseSingleVessel = (raw, _result) => {
+    const vessel = {
+        pln: raw[SINGLE_VESSEL_PLN_KEY],
+        vesselName: raw[SINGLE_VESSEL_NAME_KEY],
+        flag: raw[SINGLE_VESSEL_FLAG_KEY],
+        licenceNumber: raw[SINGLE_VESSEL_LICENSE_NO_KEY],
+        imoNumber: raw[SINGLE_VESSEL_IMO_KEY],
+        licenceValidTo: raw[SINGLE_VESSEL_LICENSE_VALID_TO_KEY],
+        gearCode: raw[SINGLE_VESSEL_GEAR_CODE_KEY],
+        label: raw[SINGLE_VESSEL_NAME_KEY],
+        contact: raw[SINGLE_VESSEL_CONTACT_KEY]
+    };
     return vessel;
 };
 
@@ -326,16 +312,16 @@ const validateScheduleExportItem = (pageIdx, rowIdx, item) => {
 
     const errors = [];
     if (verifyExportItemLabel(item.product.species.label)) {
-        errors.push('Species required on schedule page ' + pageIdx + ' row ' + rowIdx);
+        errors.push(`Species required on schedule page ${pageIdx} row ${rowIdx}`);
     }
     if (verifyExportItemLabel(item.product.presentation.label)) {
-        errors.push('Presentation required on schedule page ' + pageIdx + ' row ' + rowIdx);
+        errors.push(`Presentation required on schedule page ${pageIdx} row ${rowIdx}`);
     }
     if (verifyExportItemLabel(item.product.commodityCode)) {
-        errors.push('Product code required on schedule page ' + pageIdx + ' row ' + rowIdx);
+        errors.push(`Product code required on schedule page ${pageIdx} row ${rowIdx}`);
     }
     if (verifyExportItemLabel(item.landings[0].model.dateLanded)) {
-        errors.push('Dates landed required on schedule page ' + pageIdx + ' row ' + rowIdx);
+        errors.push(`Dates landed required on schedule page ${pageIdx} row ${rowIdx}`);
     }
     if (verifyExportItemLabel(item.landings[0].model.exportWeight)) {
         errors.push('Consigned weight (kg) required on schedule page ' + pageIdx + ' row ' + rowIdx);
@@ -345,13 +331,13 @@ const validateScheduleExportItem = (pageIdx, rowIdx, item) => {
         errors.push('Vessel name is required on schedule page ' + pageIdx + ' row ' + rowIdx);
     }
     if (!item.landings[0].model.vessel || verifyExportItemLabel(item.landings[0].model.vessel.pln)) {
-        errors.push('PLN / Call Sign is required on schedule page ' + pageIdx + ' row ' + rowIdx);
+        errors.push(`PLN / Call Sign is required on schedule page ${pageIdx} row ${rowIdx}`);
     }
     if (!item.landings[0].model.vessel || verifyExportItemLabel(item.landings[0].model.vessel.imoNumber)) {
-        errors.push('IMO / Lloyd’s number is required on schedule page ' + pageIdx + ' row ' + rowIdx);
+        errors.push(`IMO / Lloyd's number is required on schedule page ${pageIdx} row ${rowIdx}`);
     }
     if (!item.landings[0].model.vessel || verifyExportItemLabel(item.landings[0].model.vessel.licenceNumber)) {
-        errors.push('Fishing licence number is required on schedule page ' + pageIdx + ' row ' + rowIdx);
+        errors.push(`Fishing licence number is required on schedule page ${pageIdx} row ${rowIdx}`);
     }
     return errors;
 }
@@ -360,18 +346,18 @@ const validateFrontPageExportItem = (idx, item) => {
 
     const errors = [];
     if (!item.product.species.label || item.product.species.label.trim().length === 0) {
-        errors.push('Species required on row ' + (idx + 1));
+        errors.push(`Species required on row ${idx + 1}`);
     }
     if (!item.product.commodityCode || item.product.commodityCode.trim().length === 0) {
-        errors.push('Product code required on row ' + (idx + 1));
+        errors.push(`Product code required on row ${idx + 1}`);
     }
 
     if (!item.landings[0].model.dateLanded || item.landings[0].model.dateLanded.trim().length === 0) {
-        errors.push('Dates landed required on row ' + (idx + 1));
+        errors.push(`Dates landed required on row ${idx + 1}`);
     }
 
     if (!item.landings[0].model.exportWeight || item.landings[0].model.exportWeight.trim().length === 0) {
-        errors.push('Estimated weight to be landed (kg) required on row ' + (idx + 1));
+        errors.push(`Estimated weight to be landed (kg) required on row ${idx + 1}`);
     }
     return errors;
 }
