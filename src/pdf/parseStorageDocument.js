@@ -188,18 +188,14 @@ const extractScheduleConsDetailItem = (pageIdx, rIdx, raw) => {
 };
 
 const extractExporterDetails = (raw, result) => {
-
-    let exporterDetails = {};
-
-    exporterDetails.exporterCompanyName = raw[EXPORTER_COMPANY_NAME_KEY];
+    const exporterDetails = {
+        exporterCompanyName: raw[EXPORTER_COMPANY_NAME_KEY],
+        exporterAddress: raw[EXPORTER_ADDRESS_KEY],
+        exporterDateAccepted: raw[EXPORTER_DATE_ACCEPT_KEY]
+    };
     result.errors = result.errors.concat(validateRequired(exporterDetails.exporterCompanyName, 'Exporter company name is required'));
-
-    exporterDetails.exporterAddress = raw[EXPORTER_ADDRESS_KEY];
     result.errors = result.errors.concat(validateRequired(exporterDetails.exporterAddress, 'Exporter address is required'));
-
-    exporterDetails.exporterDateAccepted = raw[EXPORTER_DATE_ACCEPT_KEY];
     result.errors = result.errors.concat(validateRequired(exporterDetails.exporterDateAccepted, 'Exporter date of acceptance is required'));
-
     result.exporterDetails = exporterDetails;
 }
 
@@ -214,8 +210,8 @@ const extractDepartureDetails = (raw, result) => {
 }
 
 const extractFrontPageFacilityDetails = (raw, result) => {
-    let facilities = [];
-    let item = extractFrontPageFacilityDetailItem(raw);
+    const facilities = [];
+    const item = extractFrontPageFacilityDetailItem(raw);
     if (item) {
         facilities.push(item);
         result.errors = result.errors.concat(validateFrontPageFacilityDetailItem(item));
@@ -227,9 +223,10 @@ const extractFrontPageFacilityDetails = (raw, result) => {
 };
 
 const extractFrontPageFacilityDetailItem = (raw) => {
-    let item = {};
-    item.facilityName = raw[FP_STORAGE_FAC_NAME_KEY];
-    item.facilityAddress = raw[FP_STORAGE_FAC_ADDRESS_KEY];
+    const item = {
+        facilityName: raw[FP_STORAGE_FAC_NAME_KEY],
+        facilityAddress: raw[FP_STORAGE_FAC_ADDRESS_KEY]
+    };
 
     if ((!item.facilityName || item.facilityName.trim().length === 0)
         && (!item.facilityAddress || item.facilityAddress.trim().length === 0))
@@ -241,8 +238,8 @@ const extractFrontPageFacilityDetailItem = (raw) => {
 };
 
 const extractFrontPageConsDetails = (raw, result) => {
-    let catches = [];
-    let item = extractFrontPageConsDetailItem(raw);
+    const catches = [];
+    const item = extractFrontPageConsDetailItem(raw);
     if (item) {
         catches.push(item);
         result.errors = result.errors.concat(validateFrontPageConsDetailItem(item));
@@ -254,15 +251,15 @@ const extractFrontPageConsDetails = (raw, result) => {
 };
 
 const extractFrontPageConsDetailItem = (raw) => {
-    let item = {};
-
-    item.product = raw[FP_CONS_PROD_KEY];
-    item.commodityCode = raw[FP_CONS_CODE_KEY];
-    item.certificateNumber = raw[FP_CONS_CC_KEY];
-    item.productWeight = raw[FP_CONS_WEIGHT_KEY];
-    item.dateOfUnloading = raw[FP_CONS_DATE_KEY];
-    item.placeOfUnloading = raw[FP_CONS_PLACE_KEY];
-    item.transportUnloadedFrom = raw[FP_CONS_TRANSPORT_KEY];
+    const item = {
+        product: raw[FP_CONS_PROD_KEY],
+        commodityCode: raw[FP_CONS_CODE_KEY],
+        certificateNumber: raw[FP_CONS_CC_KEY],
+        productWeight: raw[FP_CONS_WEIGHT_KEY],
+        dateOfUnloading: raw[FP_CONS_DATE_KEY],
+        placeOfUnloading: raw[FP_CONS_PLACE_KEY],
+        transportUnloadedFrom: raw[FP_CONS_TRANSPORT_KEY]
+    };
 
     if ((!item.product || item.product.trim().length === 0)
         && (!item.commodityCode || item.commodityCode.trim().length === 0)
@@ -287,10 +284,10 @@ const validateFrontPageFacilityDetailItem = (item) => {
 const validateScheduleFacilityDetailItem = (pageIdx, rowIdx, item) => {
     const errors = [];
     if (!item.facilityName || item.facilityName.trim().length === 0) {
-        errors.push('Storage facility name is required on schedule page ' + pageIdx + ' row ' + rowIdx);
+        errors.push(`Storage facility name is required on schedule page ${pageIdx} row ${rowIdx}`);
     }
     if (!item.facilityAddress || item.facilityAddress.trim().length === 0) {
-        errors.push('Storage facility address is required on schedule page ' + pageIdx + ' row ' + rowIdx);
+        errors.push(`Storage facility address is required on schedule page ${pageIdx} row ${rowIdx}`);
     }
     return errors;
 };
@@ -324,25 +321,25 @@ const validateFrontPageConsDetailItem = (item) => {
 const validateScheduleConsDetailItem = (pageIdx, rowIdx, item) => {
     const errors = [];
     if (!item.product || item.product.trim().length === 0) {
-        errors.push('Description of fishery products required on schedule page ' + pageIdx + ' row ' + rowIdx);
+        errors.push(`Description of fishery products required on schedule page ${pageIdx} row ${rowIdx}`);
     }
     if (!item.commodityCode || item.commodityCode.trim().length === 0) {
-        errors.push('Commodity code required on schedule page ' + pageIdx + ' row ' + rowIdx);
+        errors.push(`Commodity code required on schedule page ${pageIdx} row ${rowIdx}`);
     }
     if (!item.certificateNumber || item.certificateNumber.trim().length === 0) {
-        errors.push('Catch certificate or processing statement number required on schedule page ' + pageIdx + ' row ' + rowIdx);
+        errors.push(`Catch certificate or processing statement number required on schedule page ${pageIdx} row ${rowIdx}`);
     }
     if (!item.productWeight || item.productWeight.trim().length === 0) {
-        errors.push('Weight (kg) required on schedule page ' + pageIdx + ' row ' + rowIdx);
+        errors.push(`Weight (kg) required on schedule page ${pageIdx} row ${rowIdx}`);
     }
     if (!item.dateOfUnloading || item.dateOfUnloading.trim().length === 0) {
-        errors.push('Date of unloading required on schedule page ' + pageIdx + ' row ' + rowIdx);
+        errors.push(`Date of unloading required on schedule page ${pageIdx} row ${rowIdx}`);
     }
     if (!item.placeOfUnloading || item.placeOfUnloading.trim().length === 0) {
-        errors.push('Place of unloading required on schedule page ' + pageIdx + ' row ' + rowIdx);
+        errors.push(`Place of unloading required on schedule page ${pageIdx} row ${rowIdx}`);
     }
     if (!item.transportUnloadedFrom || item.transportUnloadedFrom.trim().length === 0) {
-        errors.push('Details of transport unloaded from required on schedule page ' + pageIdx + ' row ' + rowIdx);
+        errors.push(`Details of transport unloaded from required on schedule page ${pageIdx} row ${rowIdx}`);
     }
     return errors;
 };

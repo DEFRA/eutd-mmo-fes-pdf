@@ -139,9 +139,8 @@ function collectPlacements(resources,placements,formsUsed) {
 
             case 'gs': {
                 const gstateName = operands.pop();
-                if(resources.extGStates[gstateName.value]) {
-                    if(resources.extGStates[gstateName.value].font)
-                        state.currentTextState().text.font = _.extend({},resources.extGStates[gstateName.value].font);
+                if(resources.extGStates[gstateName.value] && resources.extGStates[gstateName.value].font) {
+                    state.currentTextState().text.font = _.extend({},resources.extGStates[gstateName.value].font);
                 }
                 break;
             }
@@ -259,14 +258,16 @@ function collectPlacements(resources,placements,formsUsed) {
             case 'TJ': {
                 const params = operands.pop().toPDFArray().toJSArray();
                 textPlacement(_.map(params,(item)=>{
-                    if(item.getType() === muhammara.ePDFObjectLiteralString || item.getType() === muhammara.ePDFObjectHexString) 
+                    if(item.getType() === muhammara.ePDFObjectLiteralString || item.getType() === muhammara.ePDFObjectHexString) {
                         return {asEncodedText:item.value,asBytes:item.toBytesArray()};
-                    else
+                    } else {
                         return item.value;
+                    }
                 }),state,placements);
                 break;
             }
-        }
+            default:
+                break;
     };
 }
 
@@ -312,10 +313,10 @@ function translatePlacements(state,pdfReader,placements) {
                                 asBytes: result.asBytes.concat(textItem.asBytes),
                                 asText: result.asText.concat(textItem.asText.length === 0 ? ' ':textItem.asText),
                                 translationMethod: textItem.translationMethod
-                            }
-                        }
-                        else
+                            };
+                        } else {
                             return result;
+                        }
                     },{asBytes:[],asText:'',translationMethod:null});
                 }
                 else {
@@ -354,8 +355,9 @@ function computePlacementsDimensions(state, pdfReader, placements) {
             let nextPlacementDefaultTm = null;
             placement.text.forEach((item)=> {
                 // if matrix is not dirty (no matrix changing operators were running betwee items), replace with computed matrix of the previous round.
-                if(!item.textState.tmDirty && nextPlacementDefaultTm)
+                if(!item.textState.tmDirty && nextPlacementDefaultTm) {
                     item.textState.tm = nextPlacementDefaultTm.slice();
+                }
 
                 // Compute matrix and placement after this text
                 const decoder = fetchFontDecoder(item, pdfReader, state);
