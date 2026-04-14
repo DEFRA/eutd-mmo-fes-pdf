@@ -121,9 +121,9 @@ const extractScheduleExportItem = (pageIdx, rowIdx, raw) => {
 }
 
 const extractScheduleExportItemProduct = (pageIdx, rowIdx, raw) => {
-    const prodCodeKey = pageIdx !== 1 ? `${SCHED_PRODUCT_CODE_PREFIX}${rowIdx}_${pageIdx}` : SCHED_PRODUCT_CODE_PREFIX + rowIdx;
-    const speciesKey = pageIdx !== 1 ? `${SCHED_SPECIES_PREFIX}${rowIdx}_${pageIdx}` : SCHED_SPECIES_PREFIX + rowIdx;
-    const presKey = pageIdx !== 1 ? `${SCHED_PRESENTATION_PREFIX}${rowIdx}_${pageIdx}` : SCHED_PRESENTATION_PREFIX + rowIdx;
+    const prodCodeKey = pageIdx === 1 ? SCHED_PRODUCT_CODE_PREFIX + rowIdx : `${SCHED_PRODUCT_CODE_PREFIX}${rowIdx}_${pageIdx}`;
+    const speciesKey = pageIdx === 1 ? SCHED_SPECIES_PREFIX + rowIdx : `${SCHED_SPECIES_PREFIX}${rowIdx}_${pageIdx}`;
+    const presKey = pageIdx === 1 ? SCHED_PRESENTATION_PREFIX + rowIdx : `${SCHED_PRESENTATION_PREFIX}${rowIdx}_${pageIdx}`;
 
     const product = {
         commodityCode: raw[prodCodeKey],
@@ -140,7 +140,7 @@ const extractScheduleExportItemProduct = (pageIdx, rowIdx, raw) => {
 }
 
 const extractScheduleExportItemLandings = (pageIdx, rowIdx, raw) => {
-    const suffix = pageIdx !== 1 ? `_${pageIdx}` : '';
+    const suffix = pageIdx === 1 ? '' : `_${pageIdx}`;
     const dateLandedKey = `${SCHED_DATE_LANDED_PREFIX}${rowIdx}${suffix}`;
     const consignedWeightKey = `${SCHED_CONSIGNED_WEIGHT_PREFIX}${rowIdx}${suffix}`;
     const vesselNameKey = `${SCHED_VESSEL_NAME_PREFIX}${rowIdx}${suffix}`;
@@ -324,11 +324,11 @@ const validateScheduleExportItem = (pageIdx, rowIdx, item) => {
         errors.push(`Dates landed required on schedule page ${pageIdx} row ${rowIdx}`);
     }
     if (verifyExportItemLabel(item.landings[0].model.exportWeight)) {
-        errors.push('Consigned weight (kg) required on schedule page ' + pageIdx + ' row ' + rowIdx);
+        errors.push(`Consigned weight (kg) required on schedule page ${pageIdx} row ${rowIdx}`);
     }
 
     if (!item.landings[0].model.vessel || verifyExportItemLabel(item.landings[0].model.vessel.vesselName)) {
-        errors.push('Vessel name is required on schedule page ' + pageIdx + ' row ' + rowIdx);
+        errors.push(`Vessel name is required on schedule page ${pageIdx} row ${rowIdx}`);
     }
     if (!item.landings[0].model.vessel || verifyExportItemLabel(item.landings[0].model.vessel.pln)) {
         errors.push(`PLN / Call Sign is required on schedule page ${pageIdx} row ${rowIdx}`);
@@ -383,7 +383,7 @@ const validateExporter = (exporter) => {
 };
 
 const validateTransport = (transport) => {
-    let errors = validateRequired(transport.departurePlace, 'Place of departure is required');
+    const errors = validateRequired(transport.departurePlace, 'Place of departure is required');
     return errors;
 };
 

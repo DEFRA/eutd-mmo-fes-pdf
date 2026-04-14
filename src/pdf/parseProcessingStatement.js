@@ -32,10 +32,10 @@ const SCHED_CATCHES_PROCESSED_WEIGHT_KEY_PREFIX = 'Processed fishery productkgRo
 
 const parseProcessingStatement = async (pdfJson, buffer) => {
 
-    let result = {...pdfJson};
-    let pdfReader = muhammara.createReader(new muhammara.PDFRStreamForBuffer(buffer));
-    let form = new PDFDigitalForm(pdfReader);
-    let raw = form.createSimpleKeyValue();
+    const result = {...pdfJson};
+    const pdfReader = muhammara.createReader(new muhammara.PDFRStreamForBuffer(buffer));
+    const form = new PDFDigitalForm(pdfReader);
+    const raw = form.createSimpleKeyValue();
     result.errors = [];
 
     result.consignmentDescription = raw[PROD_DESC_KEY];
@@ -86,12 +86,12 @@ const parseProcessingStatement = async (pdfJson, buffer) => {
 };
 
 const extractScheduleCatchDetails = (raw, result) => {
-    let catches = [];
+    const catches = [];
     let pageIdx;
     let rowIdx;
     for (pageIdx = 2; pageIdx <= 4; pageIdx++) {
         for (rowIdx = 1; rowIdx <= 24; rowIdx++) {
-            let item = extractScheduleCatchDetailItem(pageIdx, rowIdx, raw);
+            const item = extractScheduleCatchDetailItem(pageIdx, rowIdx, raw);
             if (item) {
                 catches.push(item);
                 result.errors = result.errors.concat(validateScheduleCatchDetailItem(pageIdx, rowIdx, item));
@@ -102,26 +102,20 @@ const extractScheduleCatchDetails = (raw, result) => {
 };
 
 const extractScheduleCatchDetailItem = (pageIdx, rowIdx, raw) => {
-    let item = {};
-    let speciesKey = SCHED_CATCHES_CATCH_DESC_KEY_PREFIX + rowIdx;
-    let catchCertificateNumberKey = SCHED_CATCHES_CC_NUM_KEY_PREFIX + rowIdx;
-    let totalWeightLandedKey = SCHED_CATCHES_TOTAL_LANDED_WEIGHT_KEY_PREFIX + rowIdx;
-    let exportWeightBeforeProcessingKey = SCHED_CATCHES_CATCH_PROCESSED_WEIGHT_KEY_PREFIX + rowIdx;
-    let exportWeightAfterProcessingKey = SCHED_CATCHES_PROCESSED_WEIGHT_KEY_PREFIX + rowIdx;
+    const suffix = pageIdx !== 2 ? `_${pageIdx - 1}` : '';
+    const speciesKey = `${SCHED_CATCHES_CATCH_DESC_KEY_PREFIX}${rowIdx}${suffix}`;
+    const catchCertificateNumberKey = `${SCHED_CATCHES_CC_NUM_KEY_PREFIX}${rowIdx}${suffix}`;
+    const totalWeightLandedKey = `${SCHED_CATCHES_TOTAL_LANDED_WEIGHT_KEY_PREFIX}${rowIdx}${suffix}`;
+    const exportWeightBeforeProcessingKey = `${SCHED_CATCHES_CATCH_PROCESSED_WEIGHT_KEY_PREFIX}${rowIdx}${suffix}`;
+    const exportWeightAfterProcessingKey = `${SCHED_CATCHES_PROCESSED_WEIGHT_KEY_PREFIX}${rowIdx}${suffix}`;
 
-    if (2!== pageIdx) {
-        speciesKey = speciesKey + '_' + (pageIdx - 1);
-        catchCertificateNumberKey = catchCertificateNumberKey + '_' + (pageIdx - 1);
-        totalWeightLandedKey = totalWeightLandedKey + '_' + (pageIdx - 1);
-        exportWeightBeforeProcessingKey = exportWeightBeforeProcessingKey + '_' + (pageIdx - 1);
-        exportWeightAfterProcessingKey = exportWeightAfterProcessingKey + '_' + (pageIdx - 1);
-    }
-
-    item.species = raw[speciesKey];
-    item.catchCertificateNumber = raw[catchCertificateNumberKey];
-    item.totalWeightLanded = raw[totalWeightLandedKey];
-    item.exportWeightBeforeProcessing = raw[exportWeightBeforeProcessingKey];
-    item.exportWeightAfterProcessing = raw[exportWeightAfterProcessingKey];
+    const item = {
+        species: raw[speciesKey],
+        catchCertificateNumber: raw[catchCertificateNumberKey],
+        totalWeightLanded: raw[totalWeightLandedKey],
+        exportWeightBeforeProcessing: raw[exportWeightBeforeProcessingKey],
+        exportWeightAfterProcessing: raw[exportWeightAfterProcessingKey]
+    };
 
     if ((!item.species || item.species.trim().length === 0)
         && (!item.catchCertificateNumber || item.catchCertificateNumber.trim().length === 0)
