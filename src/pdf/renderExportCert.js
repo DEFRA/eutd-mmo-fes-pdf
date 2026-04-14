@@ -414,7 +414,7 @@ const multiVesselScheduleHeading = (doc, data, isSample, buff, page, pageSize, s
     }
 
     const fromIdx = (page - 1) * pageSize;
-    let numDataRows = pageSize;
+    const numDataRows = pageSize;
     if (fromIdx + numDataRows > rows.length) {
         numDataRows = rows.length - fromIdx;
     }
@@ -539,7 +539,7 @@ const generateMultiVesselTableRows = (tableBodyRow, doc, yPos, cellHeight, rowId
 
 const end = (doc, startY) => {
     let yPos = startY + 10 * PdfStyle.ROW.HEIGHT + 10;
-    let cellHeight = PdfStyle.ROW.HEIGHT * 8;
+    const cellHeight = PdfStyle.ROW.HEIGHT * 8;
     PdfUtils.tableHeaderCellBold(doc, PdfStyle.MARGIN.LEFT, yPos, 270, cellHeight, 'FOR OFFICIAL USE ONLY');
     PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 270, yPos, 260, cellHeight, 'Import Control Authority Stamp');
 
@@ -617,7 +617,7 @@ const appendixTransportDetails = (doc, data, startY) => {
     PdfUtils.label(doc, PdfStyle.MARGIN.LEFT, yPos, 'Container number(s) list attached');
     PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 270, yPos, 'Exporter details');
     yPos = yPos + PdfStyle.ROW.HEIGHT - 2;
-    let cellHeight = PdfStyle.ROW.HEIGHT * 8;
+    const cellHeight = PdfStyle.ROW.HEIGHT * 8;
 
     const containerNumber = data?.transport?.containerNumber ?? '';
     PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT, yPos, 250, cellHeight, containerNumber.toString());
