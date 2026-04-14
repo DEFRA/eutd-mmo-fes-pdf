@@ -159,7 +159,7 @@ module.exports = {
         }
     },
     heading: function(doc, text) {
-        let imageFile = path.join(__dirname, '../resources/hmgovlogo.png');
+        const imageFile = path.join(__dirname, '../resources/hmgovlogo.png');
         doc.addStructure(doc.struct('Figure', {
             alt: 'HM Government logo'
         }, () => {

@@ -1,3 +1,4 @@
+/* eslint-disable no-magic-numbers */
 const PdfStyle = require('./mmoPdfStyles');
 const PdfUtils = require('./mmoPdfUtils');
 const CommonUtils = require('../utils/common-utils');

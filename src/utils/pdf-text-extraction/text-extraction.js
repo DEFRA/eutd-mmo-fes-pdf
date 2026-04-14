@@ -139,7 +139,7 @@ function collectPlacements(resources,placements,formsUsed) {
 
             case 'gs': {
                 const gstateName = operands.pop();
-                if(resources.extGStates[gstateName.value] && resources.extGStates[gstateName.value].font) {
+                if(resources.extGStates[gstateName.value]?.font) {
                     state.currentTextState().text.font = _.extend({},resources.extGStates[gstateName.value].font);
                 }
                 break;
