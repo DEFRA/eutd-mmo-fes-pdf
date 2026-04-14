@@ -1,3 +1,4 @@
+/* eslint-disable no-magic-numbers */
 const PdfStyle = require('./mmoPdfStyles');
 const PdfUtils = require('./mmoPdfUtils');
 const CommonUtils = require('../utils/common-utils');
@@ -33,11 +34,11 @@ const renderStorageNote = async (data, isSample, uri, stream) => {
     doc.pipe(stream);
  
     PdfUtils.heading(doc, 'NON-MANIPULATION DOCUMENT');
-    let startY = PdfStyle.MARGIN.TOP + 65;
+    const startY = PdfStyle.MARGIN.TOP + 65;
  
     renderAllSections(doc, data, isSample, buff, startY, dateOfSubmission);
  
-    if (isSample) CommonUtils.addSampleWatermark(doc);
+    if (isSample) { CommonUtils.addSampleWatermark(doc); }
     PdfUtils.endOfPage(doc, currentPage);
  
     doc.end();
@@ -48,11 +49,11 @@ const renderAllSections = (doc, data, isSample, buff, initialStartY, dateOfSubmi
  
     const ensureSpaceAndMaybeNewPage = (estHeight) => {
         if (startY + estHeight > PAGE_HEIGHT) {
-            if (isSample) CommonUtils.addSampleWatermark(doc);
+            if (isSample) { CommonUtils.addSampleWatermark(doc); }
             PdfUtils.endOfPage(doc, currentPage);
             doc.addPage();
             currentPage += 1;
-            if (isSample) CommonUtils.addSampleWatermark(doc);
+            if (isSample) { CommonUtils.addSampleWatermark(doc); }
             startY = PdfStyle.MARGIN.TOP + 25;
         }
     };

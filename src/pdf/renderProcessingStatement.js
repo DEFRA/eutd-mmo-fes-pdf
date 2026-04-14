@@ -510,7 +510,7 @@ const addSpeciesScheduleTableHeaders = (doc, startY, tableHeadRow) => {
 
 const section5 = (doc, _data, isSample, buff, startY) => {
     PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, 'Endorsement by the competent authority');
-    const yPos = startY + 12;
+    let yPos = startY + 12;
     const cellHeight = PdfStyle.ROW.HEIGHT * 5;
 
     const tableStruct = doc.struct('Table');
@@ -638,8 +638,8 @@ const section3 = (doc, data, startY) => {
 
 const section2 = (doc, data, startY) => {
     PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '2    Processing plant details');
-    let yPos = startY + 12;
-    let cellHeight = PdfStyle.ROW.HEIGHT * 2 - 5;
+    const yPos = startY + 12;
+    const cellHeight = PdfStyle.ROW.HEIGHT * 2 - 5;
     const ppAddress = PdfUtils.constructAddress([data.plantAddressOne, data.plantAddressTwo, data.plantTownCity, data.plantPostcode]);
 
     doc.addStructure(doc.struct('Table', [
