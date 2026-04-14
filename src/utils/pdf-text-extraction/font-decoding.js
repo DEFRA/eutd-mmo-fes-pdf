@@ -289,10 +289,11 @@ function parseFontData(self,pdfReader,fontObject) {
         // to unicode map
         self.hasToUnicode = true;
         self.toUnicodeMap = parseToUnicode(pdfReader,font.queryObject('ToUnicode').toPDFIndirectObjectReference().getObjectID());
-    } else if(self.isSimpleFont) {
+    } else if(self.isSimpleFont && font.exists('Encoding')) {
         // simple font encoding
-        if(font.exists('Encoding'))
-            parseSimpleFontEncoding(self,pdfReader,font, font.queryObject('Encoding'));
+        parseSimpleFontEncoding(self,pdfReader,font, font.queryObject('Encoding'));
+    } else {
+        // No encoding map available. Keep defaults.
     }
 
     // parse dimensions information
@@ -317,7 +318,7 @@ function toUnicodeEncoding(toUnicodeMap,bytes) {
                 value = value*256 + bytes[i];
                 i+=1;
             }
-            result+= String.fromCharCode.apply(String,toUnicodeMap[value]);
+            result += String.fromCodePoint(...toUnicodeMap[value]);
         }
     return result;
 }
@@ -327,12 +328,12 @@ function toSimpleEncoding(encodingMap,encodedBytes) {
 
     encodedBytes.forEach((encodedByte)=> {
         const glyphName = encodingMap[encodedByte];
-        if(!!glyphName) {
+        if(glyphName) {
             let mapping = AdobeGlyphList[glyphName];
             if(!_.isArray(mapping)) {
                 mapping = [mapping];
             }
-            result+= String.fromCharCode.apply(String,mapping);
+            result += String.fromCodePoint(...mapping);
         }
     });
 
@@ -340,10 +341,11 @@ function toSimpleEncoding(encodingMap,encodedBytes) {
 }
 
 function defaultEncoding(bytes) {
-    return String.fromCharCode.apply(String,bytes);
+    return String.fromCodePoint(...bytes);
 }
 
 
+// eslint-disable-next-line id-match
 function FontDecoding(pdfReader,fontObject) {
     parseFontData(this,pdfReader,fontObject);
 }

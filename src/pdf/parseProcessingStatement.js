@@ -216,50 +216,30 @@ const parseExporter = (raw) => {
     return exporter;
 };
 
+const collectMissingFieldErrors = (validations) => {
+    return validations
+        .filter((validation) => !validation.value || validation.value.trim().length === 0)
+        .map((validation) => validation.message);
+};
+
 const validateFrontPageCatchDetailItem = (idx, item) => {
-    const errors = [];
-    if (!item.species || item.species.trim().length === 0) {
-        errors.push('Catch description required on row ' + idx);
-    }
-    if (!item.catchCertificateNumber || item.catchCertificateNumber.trim().length === 0) {
-        errors.push('Catch certificate number required on row ' + idx);
-    }
-
-    if (!item.totalWeightLanded || item.totalWeightLanded.trim().length === 0) {
-        errors.push('Total landed weight (kg) required on row ' + idx);
-    }
-
-    if (!item.exportWeightBeforeProcessing || item.exportWeightBeforeProcessing.trim().length === 0) {
-        errors.push('Catch processed (kg) required on row ' + idx);
-    }
-
-    if (!item.exportWeightAfterProcessing || item.exportWeightAfterProcessing.trim().length === 0) {
-        errors.push('Processed fishery product (kg) required on row ' + idx);
-    }
-    return errors;
+    return collectMissingFieldErrors([
+        {value: item.species, message: 'Catch description required on row ' + idx},
+        {value: item.catchCertificateNumber, message: 'Catch certificate number required on row ' + idx},
+        {value: item.totalWeightLanded, message: 'Total landed weight (kg) required on row ' + idx},
+        {value: item.exportWeightBeforeProcessing, message: 'Catch processed (kg) required on row ' + idx},
+        {value: item.exportWeightAfterProcessing, message: 'Processed fishery product (kg) required on row ' + idx}
+    ]);
 }
 
 const validateScheduleCatchDetailItem = (pageIdx, rowIdx, item) => {
-    const errors = [];
-    if (!item.species || item.species.trim().length === 0) {
-        errors.push(`Catch description required on schedule page ${pageIdx} row ${rowIdx}`);
-    }
-    if (!item.catchCertificateNumber || item.catchCertificateNumber.trim().length === 0) {
-        errors.push(`Catch certificate number required on schedule page ${pageIdx} row ${rowIdx}`);
-    }
-
-    if (!item.totalWeightLanded || item.totalWeightLanded.trim().length === 0) {
-        errors.push(`Total landed weight (kg) required on schedule page ${pageIdx} row ${rowIdx}`);
-    }
-
-    if (!item.exportWeightBeforeProcessing || item.exportWeightBeforeProcessing.trim().length === 0) {
-        errors.push(`Catch processed (kg) required on schedule page ${pageIdx} row ${rowIdx}`);
-    }
-
-    if (!item.exportWeightAfterProcessing || item.exportWeightAfterProcessing.trim().length === 0) {
-        errors.push(`Processed fishery product (kg) required on schedule page ${pageIdx} row ${rowIdx}`);
-    }
-    return errors;
+    return collectMissingFieldErrors([
+        {value: item.species, message: `Catch description required on schedule page ${pageIdx} row ${rowIdx}`},
+        {value: item.catchCertificateNumber, message: `Catch certificate number required on schedule page ${pageIdx} row ${rowIdx}`},
+        {value: item.totalWeightLanded, message: `Total landed weight (kg) required on schedule page ${pageIdx} row ${rowIdx}`},
+        {value: item.exportWeightBeforeProcessing, message: `Catch processed (kg) required on schedule page ${pageIdx} row ${rowIdx}`},
+        {value: item.exportWeightAfterProcessing, message: `Processed fishery product (kg) required on schedule page ${pageIdx} row ${rowIdx}`}
+    ]);
 }
 
 const validateRequired = (item, errorMessage) => {

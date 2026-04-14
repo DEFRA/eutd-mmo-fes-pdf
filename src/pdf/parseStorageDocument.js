@@ -303,56 +303,34 @@ const validateScheduleFacilityDetailItem = (pageIdx, rowIdx, item) => {
     return errors;
 };
 
+const collectMissingFieldErrors = (validations) => {
+    return validations
+        .filter((validation) => !validation.value || validation.value.trim().length === 0)
+        .map((validation) => validation.message);
+};
+
 const validateFrontPageConsDetailItem = (item) => {
-    const errors = [];
-    if (!item.product || item.product.trim().length === 0) {
-        errors.push('Description of fishery products required');
-    }
-    if (!item.commodityCode || item.commodityCode.trim().length === 0) {
-        errors.push('Commodity code required');
-    }
-    if (!item.certificateNumber || item.certificateNumber.trim().length === 0) {
-        errors.push('Catch certificate or processing statement number required');
-    }
-    if (!item.productWeight || item.productWeight.trim().length === 0) {
-        errors.push('Weight (kg) required');
-    }
-    if (!item.dateOfUnloading || item.dateOfUnloading.trim().length === 0) {
-        errors.push('Date of unloading required');
-    }
-    if (!item.placeOfUnloading || item.placeOfUnloading.trim().length === 0) {
-        errors.push('Place of unloading required');
-    }
-    if (!item.transportUnloadedFrom || item.transportUnloadedFrom.trim().length === 0) {
-        errors.push('Details of transport unloaded from required');
-    }
-    return errors;
+    return collectMissingFieldErrors([
+        {value: item.product, message: 'Description of fishery products required'},
+        {value: item.commodityCode, message: 'Commodity code required'},
+        {value: item.certificateNumber, message: 'Catch certificate or processing statement number required'},
+        {value: item.productWeight, message: 'Weight (kg) required'},
+        {value: item.dateOfUnloading, message: 'Date of unloading required'},
+        {value: item.placeOfUnloading, message: 'Place of unloading required'},
+        {value: item.transportUnloadedFrom, message: 'Details of transport unloaded from required'}
+    ]);
 };
 
 const validateScheduleConsDetailItem = (pageIdx, rowIdx, item) => {
-    const errors = [];
-    if (!item.product || item.product.trim().length === 0) {
-        errors.push(`Description of fishery products required on schedule page ${pageIdx} row ${rowIdx}`);
-    }
-    if (!item.commodityCode || item.commodityCode.trim().length === 0) {
-        errors.push(`Commodity code required on schedule page ${pageIdx} row ${rowIdx}`);
-    }
-    if (!item.certificateNumber || item.certificateNumber.trim().length === 0) {
-        errors.push(`Catch certificate or processing statement number required on schedule page ${pageIdx} row ${rowIdx}`);
-    }
-    if (!item.productWeight || item.productWeight.trim().length === 0) {
-        errors.push(`Weight (kg) required on schedule page ${pageIdx} row ${rowIdx}`);
-    }
-    if (!item.dateOfUnloading || item.dateOfUnloading.trim().length === 0) {
-        errors.push(`Date of unloading required on schedule page ${pageIdx} row ${rowIdx}`);
-    }
-    if (!item.placeOfUnloading || item.placeOfUnloading.trim().length === 0) {
-        errors.push(`Place of unloading required on schedule page ${pageIdx} row ${rowIdx}`);
-    }
-    if (!item.transportUnloadedFrom || item.transportUnloadedFrom.trim().length === 0) {
-        errors.push(`Details of transport unloaded from required on schedule page ${pageIdx} row ${rowIdx}`);
-    }
-    return errors;
+    return collectMissingFieldErrors([
+        {value: item.product, message: `Description of fishery products required on schedule page ${pageIdx} row ${rowIdx}`},
+        {value: item.commodityCode, message: `Commodity code required on schedule page ${pageIdx} row ${rowIdx}`},
+        {value: item.certificateNumber, message: `Catch certificate or processing statement number required on schedule page ${pageIdx} row ${rowIdx}`},
+        {value: item.productWeight, message: `Weight (kg) required on schedule page ${pageIdx} row ${rowIdx}`},
+        {value: item.dateOfUnloading, message: `Date of unloading required on schedule page ${pageIdx} row ${rowIdx}`},
+        {value: item.placeOfUnloading, message: `Place of unloading required on schedule page ${pageIdx} row ${rowIdx}`},
+        {value: item.transportUnloadedFrom, message: `Details of transport unloaded from required on schedule page ${pageIdx} row ${rowIdx}`}
+    ]);
 };
 
 const validateRequired = (item, errorMessage) => {

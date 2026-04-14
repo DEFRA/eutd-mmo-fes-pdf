@@ -312,38 +312,25 @@ const verifyExportItemLabel = (label) => {
     return !label || label?.trim()?.length === 0
 }
 
+const collectMissingFieldErrors = (validations) => {
+    return validations
+        .filter((validation) => verifyExportItemLabel(validation.value))
+        .map((validation) => validation.message);
+};
+
 const validateScheduleExportItem = (pageIdx, rowIdx, item) => {
-
-    const errors = [];
-    if (verifyExportItemLabel(item.product.species.label)) {
-        errors.push(`Species required on schedule page ${pageIdx} row ${rowIdx}`);
-    }
-    if (verifyExportItemLabel(item.product.presentation.label)) {
-        errors.push(`Presentation required on schedule page ${pageIdx} row ${rowIdx}`);
-    }
-    if (verifyExportItemLabel(item.product.commodityCode)) {
-        errors.push(`Product code required on schedule page ${pageIdx} row ${rowIdx}`);
-    }
-    if (verifyExportItemLabel(item.landings[0].model.dateLanded)) {
-        errors.push(`Dates landed required on schedule page ${pageIdx} row ${rowIdx}`);
-    }
-    if (verifyExportItemLabel(item.landings[0].model.exportWeight)) {
-        errors.push(`Consigned weight (kg) required on schedule page ${pageIdx} row ${rowIdx}`);
-    }
-
-    if (!item.landings[0].model.vessel || verifyExportItemLabel(item.landings[0].model.vessel.vesselName)) {
-        errors.push(`Vessel name is required on schedule page ${pageIdx} row ${rowIdx}`);
-    }
-    if (!item.landings[0].model.vessel || verifyExportItemLabel(item.landings[0].model.vessel.pln)) {
-        errors.push(`PLN / Call Sign is required on schedule page ${pageIdx} row ${rowIdx}`);
-    }
-    if (!item.landings[0].model.vessel || verifyExportItemLabel(item.landings[0].model.vessel.imoNumber)) {
-        errors.push(`IMO / Lloyd’s number is required on schedule page ${pageIdx} row ${rowIdx}`);
-    }
-    if (!item.landings[0].model.vessel || verifyExportItemLabel(item.landings[0].model.vessel.licenceNumber)) {
-        errors.push(`Fishing licence number is required on schedule page ${pageIdx} row ${rowIdx}`);
-    }
-    return errors;
+    const vessel = item.landings[0].model.vessel || {};
+    return collectMissingFieldErrors([
+        {value: item.product.species.label, message: `Species required on schedule page ${pageIdx} row ${rowIdx}`},
+        {value: item.product.presentation.label, message: `Presentation required on schedule page ${pageIdx} row ${rowIdx}`},
+        {value: item.product.commodityCode, message: `Product code required on schedule page ${pageIdx} row ${rowIdx}`},
+        {value: item.landings[0].model.dateLanded, message: `Dates landed required on schedule page ${pageIdx} row ${rowIdx}`},
+        {value: item.landings[0].model.exportWeight, message: `Consigned weight (kg) required on schedule page ${pageIdx} row ${rowIdx}`},
+        {value: vessel.vesselName, message: `Vessel name is required on schedule page ${pageIdx} row ${rowIdx}`},
+        {value: vessel.pln, message: `PLN / Call Sign is required on schedule page ${pageIdx} row ${rowIdx}`},
+        {value: vessel.imoNumber, message: `IMO / Lloyd’s number is required on schedule page ${pageIdx} row ${rowIdx}`},
+        {value: vessel.licenceNumber, message: `Fishing licence number is required on schedule page ${pageIdx} row ${rowIdx}`}
+    ]);
 }
 
 const validateFrontPageExportItem = (idx, item) => {
