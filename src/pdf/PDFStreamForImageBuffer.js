@@ -12,7 +12,7 @@ PDFStreamForImageBuffer.prototype.read = function(inAmount) {
     if (endPos > this.arr.length - 1) {
         endPos = this.arr.length - 1;
     }
-    let result = this.arr.slice(this.position, endPos);
+    const result = this.arr.slice(this.position, endPos);
     this.position = endPos + 1;
     return result;
 };

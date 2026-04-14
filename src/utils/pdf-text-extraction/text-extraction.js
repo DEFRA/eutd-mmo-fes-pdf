@@ -291,7 +291,7 @@ function translateText(pdfReader,textItem,state,item) {
 
 function translatePlacements(state,pdfReader,placements) {
     // iterate the placements, getting the texts and translating them
-    placements.forEach((placement,index)=> {
+    placements.forEach((placement,_index)=> {
         if(placement.type === 'text') {
             placement.text.forEach((item,_indexItem)=> {
                 if(_.isArray(item.text)) {
@@ -330,12 +330,12 @@ function translatePlacements(state,pdfReader,placements) {
 
 function translate(state,pdfReader,pagesPlacements,formsPlacements) {
     pagesPlacements.forEach(
-        (placements,index)=>{
+        (placements,_index)=>{
             translatePlacements(state,pdfReader,placements)
         }
     );
     _.forOwn(formsPlacements,
-        (placements,objectId)=>{
+        (placements,_objectId)=>{
             translatePlacements(state,pdfReader,placements)
         }
     );

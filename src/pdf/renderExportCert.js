@@ -435,7 +435,7 @@ const multiVesselScheduleHeading = (doc, data, isSample, buff, page, pageSize, s
     doc.endMarkedContent();
 
     const pageCountRow = doc.struct('TR', () => {
-        mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT, y: yPos, width: 780, height: PdfStyle.ROW.HEIGHT, text: 'Page ' + page + ' of ' + pageCount}, true, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
+        mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT, y: yPos, width: 780, height: PdfStyle.ROW.HEIGHT, text: `Page ${page} of ${pageCount}`}, true, PdfStyle.FONT_SIZE.SMALLER, 'left', '#767676', '#353535', '#ffffff');
     });
     tableBody.add(pageCountRow);
     pageCountRow.end();
@@ -933,7 +933,7 @@ const generateSection11 = (doc, _data, startY) => {
 const section17 = (doc, _data, startY) => {
     PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '4    Re-export control');
     let yPos = startY + 12;
-    let cellHeight = PdfStyle.ROW.HEIGHT * 2 - 3;
+    const cellHeight = PdfStyle.ROW.HEIGHT * 2 - 3;
 
     doc.addStructure(doc.struct('Table', [
         doc.struct('THead', [
@@ -962,8 +962,8 @@ const section17 = (doc, _data, startY) => {
 
 const section16 = (doc, _data, startY) => {
     PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '3    Authority');
-    let yPos = startY + 12;
-    let cellHeight = PdfStyle.ROW.HEIGHT * 6;
+    const yPos = startY + 12;
+    const cellHeight = PdfStyle.ROW.HEIGHT * 6;
 
     doc.addStructure(doc.struct('Table', [
         doc.struct('THead', [
@@ -989,10 +989,10 @@ const section16 = (doc, _data, startY) => {
 
 const section15 = (doc, _data, startY) => {
 
-    let yPos = startY;
+    const yPos = startY;
     PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, yPos, '2');
 
-    let cellHeight = PdfStyle.ROW.HEIGHT * 6;
+    const cellHeight = PdfStyle.ROW.HEIGHT * 6;
 
     doc.addStructure(doc.struct('Table', [
         doc.struct('THead', [
@@ -1018,10 +1018,9 @@ const section15 = (doc, _data, startY) => {
 
 const section14 = (doc, _data, startY) => {
 
-    let yPos = startY;
+    const yPos = startY;
     PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, yPos, '1    Description of re-exported product');
-    yPos += 12;
-    let cellHeight = PdfStyle.ROW.HEIGHT * 2 - 3;
+    const cellHeight = PdfStyle.ROW.HEIGHT * 2 - 3;
 
     doc.addStructure(doc.struct('Table', [
         doc.struct('THead', [
@@ -1129,8 +1128,8 @@ const section10 = (doc, _data, startY) => {
 
 const section9 = (doc, data, isSample, buff, startY) => {
     PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '9    Flag State Authority Validation:');
-    let yPos = startY + 12;
-    let cellHeight = PdfStyle.ROW.HEIGHT * 2 - 3;
+    const yPos = startY + 12;
+    const cellHeight = PdfStyle.ROW.HEIGHT * 2 - 3;
 
     let dateIssued = PdfUtils.todaysDate();
     if (data.isBlankTemplate) {
@@ -1266,10 +1265,10 @@ const section7 = (doc, _data, startY) => {
 
 const section6 = (doc, _data, startY) => {
 
-    let yPos = startY;
+    const yPos = startY;
     PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, yPos, '6');
 
-    let cellHeight = PdfStyle.ROW.HEIGHT * 2;
+    const cellHeight = PdfStyle.ROW.HEIGHT * 2;
 
     doc.addStructure(doc.struct('Table', [
         doc.struct('THead', [
@@ -1384,7 +1383,7 @@ function getDescOfProductRows(exportPayload) {
 
 
 function getExportWeight(weight) {
-    return `${Number(weight).toFixed(2) > 9999999.99 ? parseInt(weight) : Number(weight).toFixed(2)}`;
+    return `${Number(weight).toFixed(2) > 9999999.99 ? Number.parseInt(weight, 10) : Number(weight).toFixed(2)}`;
 }
 
 function getExportWeightText(rowIdx, arrLength, rowData) {
@@ -1612,7 +1611,7 @@ const section2 = (doc, data, startY) => {
     let homePortAndFlag = '';
     if (Object.keys(vesselCounts).length === 1) {
         pln = items[0].landings[0].model.vessel.pln;
-        homePortAndFlag = items[0].landings[0].model.vessel.flag + ' - ' + items[0].landings[0].model.vessel.homePort;
+        homePortAndFlag = `${items[0].landings[0].model.vessel.flag} - ${items[0].landings[0].model.vessel.homePort}`;
     }
 
     PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 285, startY + 4, 'Flag - Home Port');
@@ -1700,7 +1699,7 @@ const mvsHeadingCell = ({doc, x, y, width, height, text}, isBold, fontSize, alig
     if (!text || Array.isArray(text)) {
         mvsCell({doc, x, y, width, height, topPad: height / 3, textArr: text}, isBold, fontSize, align, lineColor, textColor, bgColour);
     } else {
-        let textArr = [text];
+        const textArr = [text];
         mvsCell({doc, x, y, width, height, topPad: height / 3, textArr}, isBold, fontSize, align, lineColor, textColor, bgColour);
     }
 };
@@ -1709,7 +1708,7 @@ const mvsTableCell = ({doc, x, y, width, height, text}, isBold, fontSize, align,
     if (!text || Array.isArray(text)) {
         return mvsCell({doc, x, y, width, height, topPad: 4, textArr: text}, isBold, fontSize, align, lineColor, textColor, bgColour);
     } else {
-        let textArr = [text];
+        const textArr = [text];
        return mvsCell({doc, x, y, width, height, topPad: 4, textArr}, isBold, fontSize, align, lineColor, textColor, bgColour);
     }
 };
@@ -1736,7 +1735,7 @@ const mvsCell = ({doc, x, y, width, height, topPad, textArr}, isBold, fontSize, 
             width: width - 8,
             align: align
         });
-        let arrlength = textArr.length;
+        const arrlength = textArr.length;
         for (let idx = 1; idx < arrlength; idx++) {
             yPos += 10;
             doc.moveDown(1);
