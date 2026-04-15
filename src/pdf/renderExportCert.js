@@ -33,6 +33,7 @@ const PAGE_NUMBER_THREE = 3;
 const PAGE_NUMBER_FOUR = 4;
 const PAGE_NUMBER_FIVE = 5;
 const PAGE_NUMBER_SIX = 6;
+const YES_NO_AS_APPROPRIATE = 'Yes/No (as appropriate)';
 
 function addMainCertificatePages(doc, data, isSample, buff) {
     // Page 1: Sections 1-3
@@ -235,7 +236,27 @@ function getProductScheduleRows(exportPayload) {
 }
 
 /* eslint-disable no-magic-numbers */
-const multiVesselScheduleHeading = (doc, data, isSample, buff, page, pageSize, startY) => {
+function getMultiVesselDocumentNumber(data, isSample) {
+    if (data.isBlankTemplate) {
+        return '';
+    }
+
+    if (isSample) {
+        return '###-####-##-#########';
+    }
+
+    return data.documentNumber;
+}
+
+function getMultiVesselTodayDate(data) {
+    if (data.isBlankTemplate) {
+        return '';
+    }
+
+    return PdfUtils.todaysDate();
+}
+
+function renderMultiVesselTopSection(doc, data, isSample, buff, startY) {
     const imageFile = path.join(__dirname, '../resources/hmgovlogo.png');
     doc.addStructure(doc.struct('Figure', {
         alt: 'HM Government logo'
@@ -244,6 +265,10 @@ const multiVesselScheduleHeading = (doc, data, isSample, buff, page, pageSize, s
             width: 220
         });
     }));
+
+    const documentNumber = getMultiVesselDocumentNumber(data, isSample);
+    const todaysDate = getMultiVesselTodayDate(data);
+
     let cellHeight = PdfStyle.ROW.HEIGHT * 2;
     mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 430, y: startY, width: 350, height: cellHeight, text: 'UNITED KINGDOM'}, true, PdfStyle.FONT_SIZE.LARGEST, 'center', '#767676', '#353535', '#ffcc00');
     let yPos = startY + cellHeight;
@@ -255,15 +280,6 @@ const multiVesselScheduleHeading = (doc, data, isSample, buff, page, pageSize, s
 
     cellHeight = PdfStyle.ROW.HEIGHT * 2 + 20;
     mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT, y: yPos, width: 90, height: cellHeight, text: ['Catch Certificate', 'Number']}, true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffcc00');
-
-    let documentNumber = '';
-    if (!data.isBlankTemplate) {
-        if (isSample) {
-            documentNumber = '###-####-##-#########';
-        } else {
-            documentNumber = data.documentNumber;
-        }
-    }
 
     mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 90, y: yPos, width: 140, height: cellHeight, text: documentNumber}, true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffffff');
     mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 230, y: yPos, width: 270, height: cellHeight, text: null}, true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffffff');
@@ -277,124 +293,52 @@ const multiVesselScheduleHeading = (doc, data, isSample, buff, page, pageSize, s
     cellHeight = PdfStyle.ROW.HEIGHT * 2 + 5;
 
     mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT, y: yPos, width: 90, height: cellHeight, text: 'Date'}, true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffcc00');
-    let todaysDate = '';
-    if (!data.isBlankTemplate) {
-        todaysDate = PdfUtils.todaysDate();
-    }
     mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 90, y: yPos, width: 140, height: cellHeight, text: todaysDate}, true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffffff');
     mvsHeadingCell({doc, x: PdfStyle.MARGIN.LEFT + 230, y: yPos, width: 270, height: cellHeight, text: null}, true, PdfStyle.FONT_SIZE.SMALL, 'center', '#767676', '#353535', '#ffffff');
 
     if (!data.isBlankTemplate && !isSample) {
         PdfUtils.qrCode(doc, buff, PdfStyle.MARGIN.LEFT + 590, yPos - 45);
     }
-    yPos = yPos + cellHeight + 10;
-    cellHeight = PdfStyle.ROW.HEIGHT * 3 + 5;
 
-    const myTable = doc.struct('Table');
-    doc.addStructure(myTable);
+    return yPos + cellHeight + 10;
+}
+
+function renderMultiVesselTableHead(doc, myTable, yPos, cellHeight) {
+    const headerSpecs = [
+        { left: 0, width: 85, text: 'Species' },
+        { left: 85, width: 60, text: ['Presentation'] },
+        { left: 145, width: 50, text: ['Product', 'code'] },
+        { left: 195, width: 60, text: ['Catch Date(s)', '(from-to)'] },
+        { left: 255, width: 50, text: ['Estimated weight to be landed in kg'] },
+        { left: 305, width: 50, text: ['Net catch', 'weight in kg'] },
+        { left: 355, width: 65, text: ['Verified weight landed(net catch weight in kg)'] },
+        { left: 420, width: 60, text: ['Vessel name and PLN / Callsign'] },
+        { left: 480, width: 70, text: [IMO_IDENTIFIER_LABEL] },
+        { left: 550, width: 70, text: 'Master / Licence Holder' },
+        { left: 620, width: 80, text: ['Licence Number /', 'Flag-Homeport'] },
+        { left: 700, width: 40, text: ['FAO', 'AREA'] },
+        { left: 740, width: 40, text: ['Fishing', 'Gear'] },
+    ];
 
     const tableHead = doc.struct('THead');
     myTable.add(tableHead);
-
     const tableHeadRow = doc.struct('TR');
     tableHead.add(tableHeadRow);
 
-    const tableHeadOne = doc.struct('TH');
-    tableHeadRow.add(tableHeadOne);
-    const tableHeadOneContent = doc.markStructureContent('TH');
-    tableHeadOne.add(tableHeadOneContent);
-    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT, y: yPos, width: 85, height: cellHeight, text: 'Species'}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
-    tableHeadOne.end();
+    headerSpecs.forEach((spec) => {
+        const headerCell = doc.struct('TH');
+        tableHeadRow.add(headerCell);
+        const headerCellContent = doc.markStructureContent('TH');
+        headerCell.add(headerCellContent);
+        mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + spec.left, y: yPos, width: spec.width, height: cellHeight, text: spec.text}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
+        headerCell.end();
+    });
 
-    const tableHeadTwo = doc.struct('TH');
-    tableHeadRow.add(tableHeadTwo);
-    const tableHeadTwoContent = doc.markStructureContent('TH');
-    tableHeadTwo.add(tableHeadTwoContent);
-    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 85, y: yPos, width: 60, height: cellHeight, text: ['Presentation']}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
-    tableHeadTwo.end();
-
-    const tableHeadThree = doc.struct('TH');
-    tableHeadRow.add(tableHeadThree);
-    const tableHeadThreeContent = doc.markStructureContent('TH');
-    tableHeadThree.add(tableHeadThreeContent);
-    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 145, y: yPos, width: 50, height: cellHeight, text: ['Product', 'code']}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
-    tableHeadThree.end();
-
-    const tableHeadFour = doc.struct('TH');
-    tableHeadRow.add(tableHeadFour);
-    const tableHeadFourContent = doc.markStructureContent('TH');
-    tableHeadFour.add(tableHeadFourContent);
-    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 195, y: yPos, width: 60, height: cellHeight, text: ['Catch Date(s)', '(from-to)']}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
-    tableHeadFour.end();
-
-    const tableHeadEstWeight = doc.struct('TH');
-    tableHeadRow.add(tableHeadEstWeight);
-    const tableHeadEstWeightContent = doc.markStructureContent('TH');
-    tableHeadEstWeight.add(tableHeadEstWeightContent);
-    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 255, y: yPos, width: 50, height: cellHeight, text: ['Estimated weight to be landed in kg']}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
-    tableHeadEstWeight.end();
-
-    const tableHeadVerifiedWeight = doc.struct('TH');
-    tableHeadRow.add(tableHeadVerifiedWeight);
-    const tableHeadVerifiedWeightContent = doc.markStructureContent('TH');
-    tableHeadVerifiedWeight.add(tableHeadVerifiedWeightContent);
-    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 305, y: yPos, width: 50, height: cellHeight, text: ['Net catch', 'weight in kg']}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
-    tableHeadVerifiedWeight.end();
-
-    const tableHeadFive = doc.struct('TH');
-    tableHeadRow.add(tableHeadFive);
-    const tableHeadFiveContent = doc.markStructureContent('TH');
-    tableHeadFive.add(tableHeadFiveContent);
-    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 355, y: yPos, width: 65, height: cellHeight, text: ['Verified weight landed(net catch weight in kg)']}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
-    tableHeadFive.end();
-
-    const tableHeadSix = doc.struct('TH');
-    tableHeadRow.add(tableHeadSix);
-    const tableHeadSixContent = doc.markStructureContent('TH');
-    tableHeadSix.add(tableHeadSixContent)
-    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 420, y: yPos, width: 60, height: cellHeight, text: ['Vessel name and PLN / Callsign']}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
-    tableHeadSix.end();
-
-    const tableHeadSeven = doc.struct('TH');
-    tableHeadRow.add(tableHeadSeven);
-    const tableHeadSevenContent = doc.markStructureContent('TH');
-    tableHeadSeven.add(tableHeadSevenContent);
-    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 480, y: yPos, width: 70, height: cellHeight, text: [IMO_IDENTIFIER_LABEL]}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
-    tableHeadSeven.end();
-
-    const tableHeadEight = doc.struct('TH');
-    tableHeadRow.add(tableHeadEight);
-    const tableHeadEightContent = doc.markStructureContent('TH');
-    tableHeadEight.add(tableHeadEightContent)
-    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 550, y: yPos, width: 70, height: cellHeight, text: 'Master / Licence Holder'}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
-    tableHeadEight.end();
-
-    const tableHeadNine = doc.struct('TH');
-    tableHeadRow.add(tableHeadNine);
-    const tableHeadNineContent = doc.markStructureContent('TH');
-    tableHeadNine.add(tableHeadNineContent)
-    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 620, y: yPos, width: 80, height: cellHeight, text: ['Licence Number /', 'Flag-Homeport']}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
-    tableHeadNine.end()
-
-    const tableHeadTen = doc.struct('TH');
-    tableHeadRow.add(tableHeadTen);
-    const tableHeadTenContent = doc.markStructureContent('TH');
-    tableHeadTen.add(tableHeadTenContent)
-    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 700, y: yPos, width: 40, height: cellHeight, text: ['FAO', 'AREA']}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
-    tableHeadTen.end()
-
-    const tableHeadEleven = doc.struct('TH');
-    tableHeadRow.add(tableHeadEleven);
-    const tableHeadElevenContent = doc.markStructureContent('TH');
-    tableHeadEleven.add(tableHeadElevenContent);
-    mvsTableCell({doc, x: PdfStyle.MARGIN.LEFT + 740, y: yPos, width: 40, height: cellHeight, text: ['Fishing', 'Gear']}, true, PdfStyle.FONT_SIZE.SMALLER, 'center', '#767676', '#353535', '#ffff00');
-    tableHeadEleven.end();
     tableHeadRow.end();
     tableHead.end();
+}
 
-    yPos = yPos + cellHeight;
-
-    const rows = getProductScheduleRows(data.exportPayload);
+function getMultiVesselPageMetrics(rows, data, page, pageSize) {
     let pageCount = Math.ceil(rows.length / pageSize);
     if (data.isBlankTemplate) {
         pageCount = 3;
@@ -405,7 +349,26 @@ const multiVesselScheduleHeading = (doc, data, isSample, buff, page, pageSize, s
     if (fromIdx + numDataRows > rows.length) {
         numDataRows = rows.length - fromIdx;
     }
-    const rowDataLimit = fromIdx + numDataRows;
+
+    return {
+        pageCount,
+        fromIdx,
+        rowDataLimit: fromIdx + numDataRows,
+    };
+}
+
+const multiVesselScheduleHeading = (doc, data, isSample, buff, page, pageSize, startY) => {
+    let yPos = renderMultiVesselTopSection(doc, data, isSample, buff, startY);
+    let cellHeight = PdfStyle.ROW.HEIGHT * 3 + 5;
+
+    const myTable = doc.struct('Table');
+    doc.addStructure(myTable);
+    renderMultiVesselTableHead(doc, myTable, yPos, cellHeight);
+
+    yPos = yPos + cellHeight;
+
+    const rows = getProductScheduleRows(data.exportPayload);
+    const { pageCount, fromIdx, rowDataLimit } = getMultiVesselPageMetrics(rows, data, page, pageSize);
 
     cellHeight = (PdfStyle.ROW.HEIGHT * 3) - 5;
 
@@ -599,20 +562,20 @@ const getVehicleType = (data) => {
     return data?.transport?.vehicle?.toUpperCase() ?? '';
 };
 
-function buildSection11Tables(_headerHeight, _rowHeight) {
+function buildSection11Tables() {
     return [
         {
             label: 'Article 14(1)',
             headers: [
                 { leftMargin: 15, width: 250, text: ['Document under Article 14(1) of Regulation (EC) No 1005/2008'] },
-                { leftMargin: 265, width: 270, text: 'Yes/No (as appropriate)' },
+                { leftMargin: 265, width: 270, text: YES_NO_AS_APPROPRIATE },
             ],
         },
         {
             label: 'Article 14(2)',
             headers: [
                 { leftMargin: 15, width: 250, text: ['Document under Article 14(2) of Regulation (EC) No 1005/2008'] },
-                { leftMargin: 265, width: 95, text: 'Yes/No (as appropriate)' },
+                { leftMargin: 265, width: 95, text: YES_NO_AS_APPROPRIATE },
                 { leftMargin: 360, width: 175, text: 'References (processing statement document number(s))' },
             ],
         },
@@ -837,96 +800,11 @@ const generateSection11 = (doc, _data, startY) => {
     generateTable(doc, yPos, headerHeight, rowHeight, productHeaders, productRows);
 
     yPos += headerHeight + rowHeight;
-    doc.addStructure(doc.struct('Table', [
-        doc.struct('THead', [
-            doc.struct('TR', [
-                doc.struct('TH', () => PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 250, headerHeight,
-                    ['Document under Article 14(1) of Regulation (EC) No 1005/2008'])),
-                doc.struct('TH', () => PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 265, yPos, 270, headerHeight, 'Yes/No (as appropriate)')),
-            ])
-        ]),
-
-        doc.struct('TBody', [
-            doc.struct('TR', [
-                doc.struct('TD', () => PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos + headerHeight, 250, rowHeight)),
-                doc.struct('TD', () => PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 265, yPos + headerHeight, 270, rowHeight)),
-            ])
-        ])
-    ]));
-
-    yPos += headerHeight + rowHeight;
-    doc.addStructure(doc.struct('Table', [
-        doc.struct('THead', [
-            doc.struct('TR', [
-                doc.struct('TH', () => PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 250, headerHeight,
-                    ['Document under Article 14(2) of Regulation (EC) No 1005/2008'])),
-                doc.struct('TH', () => PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 265, yPos, 95, headerHeight, 'Yes/No (as appropriate)')),
-                doc.struct('TH', () => PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 360, yPos, 175, headerHeight, 'References (processing statement document number(s))')),
-            ])
-        ]),
-
-        doc.struct('TBody', [
-            doc.struct('TR', [
-                doc.struct('TD', () => PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos + headerHeight, 250, rowHeight)),
-                doc.struct('TD', () => PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 265, yPos + headerHeight, 95, rowHeight)),
-                doc.struct('TD', () => PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 360, yPos + headerHeight, 175, rowHeight)),
-            ])
-        ])
-    ]));
-
-    yPos += headerHeight + rowHeight;
-    doc.addStructure(doc.struct('Table', [
-        doc.struct('THead', [
-            doc.struct('TR', [
-                doc.struct('TH', () => PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 520, headerHeight,
-                    'Member State and office of import')),
-            ])
-        ]),
-
-        doc.struct('TBody', [
-            doc.struct('TR', [
-                doc.struct('TD', () => PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos + headerHeight, 520, rowHeight)),
-            ])
-        ])
-    ]));
-
-    yPos += headerHeight + rowHeight;
-    doc.addStructure(doc.struct('Table', [
-        doc.struct('THead', [
-            doc.struct('TR', [
-                doc.struct('TH', () => PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 250, headerHeight,
-                    'Means of transport upon arrival (airplane,vehicle, ship, train)')),
-                doc.struct('TH', () => PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 265, yPos, 95, headerHeight, 'Transport document reference')),
-                doc.struct('TH', () => PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 360, yPos, 175, headerHeight, 'Estimated time of arrival (if submission under Article 12(1) of Regulation (EC) No 1005/2008')),
-            ])
-        ]),
-
-        doc.struct('TBody', [
-            doc.struct('TR', [
-                doc.struct('TD', () => PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos + headerHeight, 250, rowHeight)),
-                doc.struct('TD', () => PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 265, yPos + headerHeight, 95, rowHeight)),
-                doc.struct('TD', () => PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 360, yPos + headerHeight, 175, rowHeight)),
-            ])
-        ])
-    ]));
-
-    yPos += headerHeight + rowHeight;
-    doc.addStructure(doc.struct('Table', [
-        doc.struct('THead', [
-            doc.struct('TR', [
-                doc.struct('TH', () => PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 300, headerHeight,
-                    'Customs declaration number (if issued)')),
-                doc.struct('TH', () => PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 315, yPos, 220, headerHeight, 'CHED number (if available)')),
-            ])
-        ]),
-
-        doc.struct('TBody', [
-            doc.struct('TR', [
-                doc.struct('TD', () => PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos + headerHeight, 300, rowHeight)),
-                doc.struct('TD', () => PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 315, yPos + headerHeight, 220, rowHeight)),
-            ])
-        ])
-    ]));
+    const detailTables = buildSection11Tables();
+    detailTables.forEach((table) => {
+        renderSection11DetailTable(doc, yPos, headerHeight, rowHeight, table.headers);
+        yPos += headerHeight + rowHeight;
+    });
 
     yPos += headerHeight + rowHeight;
     doc.lineWidth(1.5);
@@ -1462,15 +1340,67 @@ function getSection2Model(data) {
 }
 
 function buildCatchAreasText(row) {
-    if (!row) return '';
+    if (!row) {
+        return '';
+    }
     const rfmoAcronym = row.rfmo?.match(/\(([^)]{1,10})\)/) ? row.rfmo.match(/\(([^)]{1,10})\)/)[1] : '';
     const eezText = row.exclusiveEconomicZones?.map(eez => eez.isoCodeAlpha2).join(', ') || '';
     const highSeasText = row.highSeasArea === 'Yes' ? 'High Seas' : '';
     return [row.catchAreas, eezText, rfmoAcronym, highSeasText].filter(Boolean).join('\n');
 }
 
-const section3 = (doc, data, startY) => {
+function renderSection3Header(doc, myTable, startY, cellHeight) {
+    const headerSpecs = [
+        { leftMargin: 15, width: 110, text: 'Species' },
+        { leftMargin: 125, width: 55, text: 'Product Code' },
+        { leftMargin: 180, width: 80, text: ['Catch Area(s)', '(Catch Area,', 'EEZ, RFMO,', 'High Seas)'] },
+        { leftMargin: 260, width: 80, text: ['Catch Date(s)', '(from - to)'] },
+        { leftMargin: 340, width: 55, text: 'Estimated weight to be landed in kg' },
+        { leftMargin: 395, width: 55, text: 'Net catch weight in kg' },
+        { leftMargin: 450, width: 80, text: 'Verified weight landed (net catch weight in kg)' },
+    ];
 
+    const tableHead = doc.struct('THead');
+    myTable.add(tableHead);
+    const tableHeadRow = doc.struct('TR');
+    tableHead.add(tableHeadRow);
+
+    headerSpecs.forEach((spec) => {
+        const headerCell = doc.struct('TH');
+        tableHeadRow.add(headerCell);
+        const headerContent = doc.markStructureContent('TH');
+        headerCell.add(headerContent);
+        PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + spec.leftMargin, startY + 48, spec.width, cellHeight, spec.text);
+        headerCell.end();
+    });
+
+    tableHeadRow.end();
+    tableHead.end();
+}
+
+function renderSection3BodyRow(doc, tableBodyRow, y, rowIdx, arrLength, rowData) {
+    const row = rowData[rowIdx] || {};
+    const rowSpecs = [
+        { leftMargin: 15, width: 110, text: row.species || '' },
+        { leftMargin: 125, width: 55, text: row.commodityCode || '' },
+        { leftMargin: 180, width: 80, text: buildCatchAreasText(rowData[rowIdx]), lines: 4 },
+        { leftMargin: 260, width: 80, text: row.dates || '', lines: 2 },
+        { leftMargin: 340, width: 55, text: '' },
+        { leftMargin: 395, width: 55, text: getExportWeightText(rowIdx, arrLength, rowData) },
+        { leftMargin: 450, width: 80, text: '' },
+    ];
+
+    rowSpecs.forEach((spec) => {
+        const bodyCell = doc.struct('TD');
+        tableBodyRow.add(bodyCell);
+        const bodyContent = doc.markStructureContent('TD');
+        bodyCell.add(bodyContent);
+        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + spec.leftMargin, y, spec.width, PdfStyle.ROW.HEIGHT + 30, spec.text, spec.lines);
+        bodyCell.end();
+    });
+}
+
+const section3 = (doc, data, startY) => {
     PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '3    Description of Product');
     PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 15, startY + 14, 'Type of processing authorised on board:');
     PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, startY + 26, 515, PdfStyle.ROW.HEIGHT);
@@ -1482,150 +1412,22 @@ const section3 = (doc, data, startY) => {
 
     const myTable = doc.struct('Table');
     doc.addStructure(myTable);
-
-    const tableHead = doc.struct('THead');
-    myTable.add(tableHead);
-
-    const tableHeadRow = doc.struct('TR');
-    tableHead.add(tableHeadRow);
-
-    const tableHeadOne = doc.struct('TH');
-    tableHeadRow.add(tableHeadOne);
-    const headOneContent = doc.markStructureContent('TH');
-    tableHeadOne.add(headOneContent)
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, startY + 48, 110, cellHeight, 'Species');
-    tableHeadOne.end();
-
-    const tableHeadTwo = doc.struct('TH');
-    tableHeadRow.add(tableHeadTwo);
-    const headTwoContent = doc.markStructureContent('TH');
-    tableHeadTwo.add(headTwoContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 125, startY + 48, 55, cellHeight, 'Product Code');
-    tableHeadTwo.end();
-
-    const tableHeadThree = doc.struct('TH');
-    tableHeadRow.add(tableHeadThree);
-    const headThreeContent = doc.markStructureContent('TH');
-    tableHeadThree.add(headThreeContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 180, startY + 48, 80, cellHeight, ['Catch Area(s)', '(Catch Area,', 'EEZ, RFMO,', 'High Seas)']);
-    tableHeadThree.end();
-
-    const tableHeadFour = doc.struct('TH');
-    tableHeadRow.add(tableHeadFour);
-    const headFourContent = doc.markStructureContent('TH');
-    tableHeadFour.add(headFourContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 260, startY + 48, 80, cellHeight, ['Catch Date(s)', '(from - to)']);
-    tableHeadFour.end();
-
-    const tableHeadFive = doc.struct('TH');
-    tableHeadRow.add(tableHeadFive);
-    const headFiveContent =  doc.markStructureContent('TH');
-    tableHeadFive.add(headFiveContent)
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 340, startY + 48, 55, cellHeight, 'Estimated weight to be landed in kg');
-    tableHeadFive.end();
-
-    const tableHeadSix = doc.struct('TH');
-    tableHeadRow.add(tableHeadSix);
-    const headSixContent =  doc.markStructureContent('TH');
-    tableHeadSix.add(headSixContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 395, startY + 48, 55, cellHeight, 'Net catch weight in kg');
-    tableHeadSix.end();
-
-    const tableHeadSeven = doc.struct('TH');
-    tableHeadRow.add(tableHeadSeven);
-    const headSevenContent = doc.markStructureContent('TH');
-    tableHeadSeven.add(headSevenContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 450, startY + 48, 80, cellHeight, 'Verified weight landed (net catch weight in kg)');
-    tableHeadSeven.end();
-
-    tableHeadRow.end();
-    tableHead.end();
+    renderSection3Header(doc, myTable, startY, cellHeight);
 
     const tableBody = doc.struct('TBody');
     myTable.add(tableBody);
 
     let y = startY + 48 + cellHeight;
-    let listLimit = 6;
-    if (arrLength > 6) {
-        listLimit = 0;
-    }
+    const listLimit = arrLength > 6 ? 0 : 6;
 
     for (let rowIdx = 0; rowIdx < listLimit; rowIdx++) {
         const tableBodyRow = doc.struct('TR');
         tableBody.add(tableBodyRow);
-
-        const hasData = rowIdx < arrLength;
-        let speciesText = '';
-        let commodityCodeText = '';
-        let datesText = '';
-        let catchAreasText = '';
-        
-        if (hasData) {
-            const row = rowData[rowIdx];
-            speciesText = `${row.species}`;
-            commodityCodeText = `${row.commodityCode}`;
-            datesText = `${row.dates}`;
-            const rfmoAcronym = row.rfmo?.match(/\(([^)]{1,10})\)/) ? row.rfmo.match(/\(([^)]{1,10})\)/)[1] : '';
-            const eezText = row.exclusiveEconomicZones?.map(eez => eez.isoCodeAlpha2).join(', ') || '';
-            const highSeasText = row.highSeasArea === 'Yes' ? 'High Seas' : '';
-            catchAreasText = [row.catchAreas, eezText, rfmoAcronym, highSeasText].filter(Boolean).join('\n');
-        }
-
-        const TdOne = doc.struct('TD');
-        tableBodyRow.add(TdOne);
-        const TdOneContent = doc.markStructureContent('TD');
-        TdOne.add(TdOneContent);
-        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, y, 110, PdfStyle.ROW.HEIGHT + 30, speciesText);
-        TdOne.end();
-
-        const TdTwo = doc.struct('TD');
-        tableBodyRow.add(TdTwo);
-        const TdTwoContent = doc.markStructureContent('TD');
-        TdTwo.add(TdTwoContent);
-        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 125, y, 55, PdfStyle.ROW.HEIGHT + 30, commodityCodeText);
-        TdTwo.end();
-
-        const TdThree = doc.struct('TD');
-        tableBodyRow.add(TdThree);
-        const TdThreeContent = doc.markStructureContent('TD');
-        TdThree.add(TdThreeContent);
-        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 180, y, 80, PdfStyle.ROW.HEIGHT + 30, catchAreasText, 4);
-        TdThree.end();
-
-        const TdFour = doc.struct('TD');
-        tableBodyRow.add(TdFour);
-        const TdFourContent = doc.markStructureContent('TD');
-        TdFour.add(TdFourContent);
-        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 260, y, 80, PdfStyle.ROW.HEIGHT + 30, datesText, 2);
-        TdFour.end();
-
-        const TdFive = doc.struct('TD');
-        tableBodyRow.add(TdFive);
-        const TdFiveContent = doc.markStructureContent('TD');
-        TdFive.add(TdFiveContent);
-        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 340, y, 55, PdfStyle.ROW.HEIGHT + 30);
-        TdFive.end();
-
-        const TdSix = doc.struct('TD');
-        tableBodyRow.add(TdSix);
-        const TdSixContent = doc.markStructureContent('TD');
-        TdSix.add(TdSixContent);
-        const exportWeightText = getExportWeightText(rowIdx, arrLength, rowData);
-        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 395, y, 55, PdfStyle.ROW.HEIGHT + 30, exportWeightText);
-        TdSix.end();
-
-        const TdSeven = doc.struct('TD');
-        tableBodyRow.add(TdSeven);
-        const TdSevenContent = doc.markStructureContent('TD');
-        TdSeven.add(TdSevenContent);
-        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 450, y, 80, PdfStyle.ROW.HEIGHT + 30);
-        TdSeven.end();
-
+        renderSection3BodyRow(doc, tableBodyRow, y, rowIdx, arrLength, rowData);
         tableBodyRow.end();
         y += PdfStyle.ROW.HEIGHT + 30;
     }
     doc.endMarkedContent();
-
 
     if (arrLength > 6) {
         cellHeight = PdfStyle.ROW.HEIGHT * 6;
