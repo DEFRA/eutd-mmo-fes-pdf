@@ -1461,6 +1461,14 @@ function getSection2Model(data) {
     };
 }
 
+function buildCatchAreasText(row) {
+    if (!row) return '';
+    const rfmoAcronym = row.rfmo?.match(/\(([^)]{1,10})\)/) ? row.rfmo.match(/\(([^)]{1,10})\)/)[1] : '';
+    const eezText = row.exclusiveEconomicZones?.map(eez => eez.isoCodeAlpha2).join(', ') || '';
+    const highSeasText = row.highSeasArea === 'Yes' ? 'High Seas' : '';
+    return [row.catchAreas, eezText, rfmoAcronym, highSeasText].filter(Boolean).join('\n');
+}
+
 const section3 = (doc, data, startY) => {
 
     PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '3    Description of Product');
