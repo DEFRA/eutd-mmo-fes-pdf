@@ -1,3 +1,4 @@
+const path = require('path');
 const PdfStyle = require('./mmoPdfStyles');
 const PdfUtils = require('./mmoPdfUtils');
 const moment = require ('moment');
@@ -5,29 +6,10 @@ const muhammara = require('muhammara');
 const PDFStreamForNodeJsStream = require('./PDFStreamForNodeJsStream');
 const PDFStreamForImageBuffer = require('./PDFStreamForImageBuffer');
 
-const SAMPLE_WATERMARK_X = 30;
-const SAMPLE_WATERMARK_Y = 100;
-const DOC_NUMBER_X = 130;
-const DOC_NUMBER_Y = 720;
-const QR_CODE_X = 285;
-const QR_CODE_Y = 115;
-const QR_SCALE = 0.235;
-const QR_TEXT_X_OFFSET = 95;
-const QR_TEXT_Y_1 = 50;
-const QR_TEXT_Y_2 = 36;
-const QR_TEXT_Y_3 = 22;
-const PAGE_1 = 1;
-const PAGE_2 = 2;
-const PAGE_3 = 3;
-const FONT_SIZE_10 = 10;
-const FONT_SIZE_11 = 11;
-const FONT_PATH = 'fonts/arial.ttf';
-const GRAY_COLOR = 0x00;
-
 const renderBlankProcStmnt = async (data, isSample, uri, stream, pathToTemplate) => {
     const inStream = new muhammara.PDFRStreamForFile(pathToTemplate + 'proc-stmnt-blank.pdf');
     const pdfStream = new PDFStreamForNodeJsStream(stream);
-    const pdfWriter = muhammara.createWriterToModify(inStream, pdfStream);
+    let pdfWriter = muhammara.createWriterToModify(inStream, pdfStream);
     let watermarkStreamImageXObject, imageXObject;
     if (isSample) {
         const sampleWatermarkStream = new muhammara.PDFRStreamForFile(pathToTemplate + 'sample-watermark.png'); // './src/resources/export-cert-blank.pdf'
@@ -44,68 +26,60 @@ const renderBlankProcStmnt = async (data, isSample, uri, stream, pathToTemplate)
 
     if (isSample) {
         docNumber = '###-####-##-#########';
-        renderSampleWatermark(ctx, watermarkStreamImageXObject, SAMPLE_WATERMARK_X, SAMPLE_WATERMARK_Y);
+        renderSampleWatermark(pdfWriter, ctx, watermarkStreamImageXObject, 30, 100);
     }
     ctx.writeText(
         docNumber,
-        DOC_NUMBER_X, DOC_NUMBER_Y,
-        {font: pdfWriter.getFontForFile(pathToTemplate + FONT_PATH), size: FONT_SIZE_10, colorspace: 'gray', color: GRAY_COLOR}
+        130, 720,
+        {font: pdfWriter.getFontForFile(pathToTemplate + 'fonts/arial.ttf'), size: 10, colorspace: 'gray', color: 0x00}
     );
 
     if (isSample) {
-        renderSampleWatermark(ctx, watermarkStreamImageXObject, SAMPLE_WATERMARK_X, SAMPLE_WATERMARK_Y);
+        renderSampleWatermark(pdfWriter, ctx, watermarkStreamImageXObject, 30, 100);
     } else {
-        renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, QR_CODE_X, QR_CODE_Y);
+        renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, 285, 115);
     }
     pageModifier.endContext().writePage();
 
+    // Handle page 1 (the additional schedule page in the template)
+    pageModifier = new muhammara.PDFPageModifier(pdfWriter, 1);
+    ctx = pageModifier.startContext().getContext();
+    
     if (isSample) {
-        pageModifier = new muhammara.PDFPageModifier(pdfWriter, PAGE_1);
-        ctx = pageModifier.startContext().getContext();
-        renderSampleWatermark(ctx, watermarkStreamImageXObject, SAMPLE_WATERMARK_X, SAMPLE_WATERMARK_Y);
-        pageModifier.endContext().writePage();
-
-        pageModifier = new muhammara.PDFPageModifier(pdfWriter, PAGE_2);
-        ctx = pageModifier.startContext().getContext();
-        renderSampleWatermark(ctx, watermarkStreamImageXObject, SAMPLE_WATERMARK_X, SAMPLE_WATERMARK_Y);
-        pageModifier.endContext().writePage();
-
-        pageModifier = new muhammara.PDFPageModifier(pdfWriter, PAGE_3);
-        ctx = pageModifier.startContext().getContext();
-        renderSampleWatermark(ctx, watermarkStreamImageXObject, SAMPLE_WATERMARK_X, SAMPLE_WATERMARK_Y);
-        pageModifier.endContext().writePage();
+        renderSampleWatermark(pdfWriter, ctx, watermarkStreamImageXObject, 30, 100);
     }
+    
+    pageModifier.endContext().writePage();
 
     pdfWriter.end();
     stream.end();
 };
 
 const renderQrCode = (pathToTemplate, pdfWriter, ctx, imageXObject, x, y) => {
-    const font = pdfWriter.getFontForFile(pathToTemplate + FONT_PATH);
     ctx.q()
         .cm(1,0,0,1,x,y)
-        .cm(QR_SCALE,0,0,QR_SCALE,0,0)
+        .cm(0.235,0,0,0.235,0,0)
         .doXObject(imageXObject)
         .Q();
 
     ctx.writeText(
         'Use the QR code',
-        x + QR_TEXT_X_OFFSET, y + QR_TEXT_Y_1,
-        {font,size:FONT_SIZE_11,colorspace:'gray',color:GRAY_COLOR}
+        x + 95, y + 50,
+        {font:pdfWriter.getFontForFile(pathToTemplate + 'fonts/arial.ttf'),size:11,colorspace:'gray',color:0x00}
     );
     ctx.writeText(
         'to check that this',
-        x + QR_TEXT_X_OFFSET, y + QR_TEXT_Y_2,
-        {font,size:FONT_SIZE_11,colorspace:'gray',color:GRAY_COLOR}
+        x + 95, y + 36,
+        {font:pdfWriter.getFontForFile(pathToTemplate + 'fonts/arial.ttf'),size:11,colorspace:'gray',color:0x00}
     );
     ctx.writeText(
         'certificate is valid',
-        x + QR_TEXT_X_OFFSET, y + QR_TEXT_Y_3,
-        {font,size:FONT_SIZE_11,colorspace:'gray',color:GRAY_COLOR}
+        x + 95, y + 22,
+        {font:pdfWriter.getFontForFile(pathToTemplate + 'fonts/arial.ttf'),size:11,colorspace:'gray',color:0x00}
     );
 }
 
-const renderSampleWatermark = (ctx, imageXObject, x, y) => {
+const renderSampleWatermark = (pdfWriter, ctx, imageXObject, x, y) => {
     ctx.q()
         .cm(1,0,0,1,x,y)
         //.cm(0.235,0,0,0.235,0,0)
