@@ -7,7 +7,7 @@ const MacRomanEncoding = require('./encoding/mac-roman-encoding');
 const StandardEncoding = require('./encoding/standard-encoding');
 const SymbolEncoding = require('./encoding/symbol-encoding');
 const AdobeGlyphList = require('./encoding/adobe-glyph-list');
-const StandardFontsDimensions = require('./standard-fonts-dimensions');
+const StandardFontsDimensions = require('./standard-fonts-dimensions.json');
 
 /* eslint-disable no-magic-numbers */
 function besToUnicodes(inArray) {
