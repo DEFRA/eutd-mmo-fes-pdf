@@ -2915,4 +2915,70 @@ test('render processing statement - QR code NOT rendered when sample', async () 
     await renderPdf(pdfType.EXPORT_CERT, data, false, sasJson.qrUri, mockedStream);
     expect(mockedStream).toBeDefined();
   });
+
+  test('render transport pdf: with other transport documents', async () => {
+    const sasJson = {
+      qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+    };
+
+    const data = {
+      documentNumber: 'GBR-2018-CC-TRANSPORT-DOCS',
+      exportPayload: {
+        items: [
+          {
+            product: {
+              commodityCode: '30000001',
+              presentation: { code: 'FIL', label: 'Filleted' },
+              state: { code: 'FRO', label: 'Frozen' },
+              species: { code: 'COD', label: 'Atlantic cod (COD)' }
+            },
+            landings: [
+              {
+                addMode: false,
+                editMode: false,
+                model: {
+                  id: 'ce1fe347-2825-4152-884b-e8bad5ccde61',
+                  vessel: {
+                    pln: 'B192',
+                    vesselName: 'GOLDEN BELLS 11',
+                    homePort: 'ARDGLASS',
+                    registrationNumber: 'A12186',
+                    label: 'GOLDEN BELLS 11 (B192)'
+                  },
+                  dateLanded: '2019-01-26T00:00:00.000Z',
+                  exportWeight: '10'
+                }
+              }
+            ]
+          }
+        ]
+      },
+      exporter: {
+        exporterFullName: 'Jim Jessop',
+        exporterCompanyName: 'FishByMail Ltd',
+        addressOne: '77 Coast Road',
+        townCity: 'Jarrow',
+        postcode: 'NE31 1YW',
+      },
+      transport: {
+        vehicle: 'plane',
+        departurePlace: 'Heathrow',
+        flightNumber: 'BA456',
+        documents: [
+          { name: 'Bill of Lading', reference: 'BOL-12345' },
+          { name: 'Air Waybill', reference: 'AWB-98765' },
+          { name: 'CMR', reference: 'CMR-55555' }
+        ],
+        exportedTo: {
+          officialCountryName: 'France'
+        }
+      },
+      conservation: {
+        conservationReference: 'Common fisheries policy'
+      }
+    };
+
+    await renderPdf(pdfType.EXPORT_CERT, data, false, sasJson.qrUri, mockedStream);
+    expect(mockedStream).toBeDefined();
+  });
 });
