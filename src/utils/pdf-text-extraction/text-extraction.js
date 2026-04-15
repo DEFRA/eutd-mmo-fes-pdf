@@ -9,6 +9,33 @@ const FontDecoding = require('./font-decoding');
 // unique id provider for font decoding
 let uniqueId = 0;
 
+function toPdfDictionaryObject(extGState,pdfReader) {
+    if(extGState.getType() === muhammara.ePDFObjectIndirectObjectReference) {
+        return pdfReader.parseNewObject(extGState.toPDFIndirectObjectReference().getObjectID()).toPDFDictionary();
+    }
+    return extGState.toPDFDictionary();
+}
+
+function getExtGStateItem(extGState,pdfReader) {
+    const extGStateDict = toPdfDictionaryObject(extGState,pdfReader);
+    if(!extGStateDict) {
+        return null;
+    }
+
+    const item = {
+        theObject: extGStateDict
+    };
+
+    if(extGStateDict.exists('Font')) {
+        const fontEntry = pdfReader.queryDictionaryObject(extGStateDict,'Font');
+        item.font = {
+            reference:fontEntry.queryObject[0].toPDFIndirectObjectReference().getObjectID(),
+            size:fontEntry.queryObject[1].value
+        };
+    }
+    return item;
+}
+
 function readResources(resourcesDicts,pdfReader,result) {
     const extGStates = {};
     const fonts = {};
@@ -18,26 +45,8 @@ function readResources(resourcesDicts,pdfReader,result) {
         if(extGStatesEntry) {
             const extGStatesJS = extGStatesEntry.toPDFDictionary().toJSObject();
             _.forOwn(extGStatesJS,(extGState,extGStateName)=>{
-                if(extGState.getType() === muhammara.ePDFObjectIndirectObjectReference) {
-                    extGState = pdfReader.parseNewObject(extGState.toPDFIndirectObjectReference().getObjectID()).toPDFDictionary();
-                }
-                else {
-                    extGState = extGState.toPDFDictionary();
-                }
-
-                if(extGState) {
-                    const item = {
-                        theObject: extGState
-                    };
-                    // all i care about are font entries, so store it so i dont have to parse later (will cause trouble with interpretation)
-                    if(extGState.exists('Font')) {
-                        const fontEntry = pdfReader.queryDictionaryObject(extGState.toPDFDictionary(),'Font');
-                        item.font = {
-                            reference:fontEntry.queryObject[0].toPDFIndirectObjectReference().getObjectID(),
-                            size:fontEntry.queryObject[1].value
-                        };
-                    }
-
+                const item = getExtGStateItem(extGState,pdfReader);
+                if(item) {
                     extGStates[extGStateName] = item;
                 }
             });
@@ -115,160 +124,149 @@ function textPlacement(input,state) {
     state.texts.push(item);
 }
 
+function mapTJTextItems(params) {
+    return _.map(params,(item)=>{
+        if(item.getType() === muhammara.ePDFObjectLiteralString || item.getType() === muhammara.ePDFObjectHexString) {
+            return {asEncodedText:item.value,asBytes:item.toBytesArray()};
+        }
+        return item.value;
+    });
+}
+
+function registerGraphicStateHandlers(handlers,state,resources) {
+    handlers.set('q', () => {
+        state.pushGraphicState();
+    });
+    handlers.set('Q', () => {
+        state.popGraphicState();
+    });
+    handlers.set('cm', (operands) => {
+        const newMatrix = _.map(operands,item => item.value);
+        state.currentGraphicState().ctm = transformations.multiplyMatrix(newMatrix,state.currentGraphicState().ctm);
+    });
+    handlers.set('gs', (operands) => {
+        const gstateName = operands.pop();
+        if(resources.extGStates[gstateName.value]?.font) {
+            state.currentTextState().text.font = _.extend({},resources.extGStates[gstateName.value].font);
+        }
+    });
+}
+
+function registerXObjectHandlers(handlers,state,resources,placements,formsUsed) {
+    handlers.set('Do', (operands) => {
+        const formName = operands.pop();
+        if(resources.forms[formName.value]) {
+            const form = resources.forms[formName.value];
+            placements.push({
+                type:'xobject',
+                objectId:form.id,
+                matrix: form.matrix ? form.matrix.slice():null,
+                ctm:state.currentGraphicState().ctm.slice()
+            });
+            formsUsed[resources.forms[formName.value].id] = resources.forms[formName.value].xobject;
+        }
+    });
+}
+
+function registerTextStateHandlers(handlers,state,resources) {
+    handlers.set('Tc', (operands) => {
+        const param = operands.pop();
+        setCharSpace(param.value,state);
+    });
+    handlers.set('Tw', (operands) => {
+        const param = operands.pop();
+        setWordSpace(param.value,state);
+    });
+    handlers.set('Tz', (operands) => {
+        const param = operands.pop();
+        state.currentTextState().scale = param.value;
+    });
+    handlers.set('TL', (operands) => {
+        const param = operands.pop();
+        setTextLeading(param.value,state);
+    });
+    handlers.set('Ts', (operands) => {
+        const param = operands.pop();
+        state.currentTextState().rise = param.value;
+    });
+    handlers.set('Tf', (operands) => {
+        const size = operands.pop();
+        const fontName = operands.pop();
+        if(resources.fonts[fontName.value]) {
+            state.currentTextState().font = {
+                reference:resources.fonts[fontName.value],
+                size: size.value
+            };
+        }
+    });
+}
+
+function registerTextElementHandlers(handlers,state,placements) {
+    handlers.set('BT', () => {
+        state.startTextElement();
+    });
+    handlers.set('ET', () => {
+        state.endTextElement(placements);
+    });
+}
+
+function registerTextPositioningHandlers(handlers,state) {
+    handlers.set('Td', (operands) => {
+        const param2 = operands.pop();
+        const param1 = operands.pop();
+        moveTextPosition(param1.value,param2.value,state);
+    });
+    handlers.set('TD', (operands) => {
+        const param2 = operands.pop();
+        const param1 = operands.pop();
+        setTextLeading(-param2.value,state);
+        moveTextPosition(param1.value,param2.value,state);
+    });
+    handlers.set('Tm', (operands) => {
+        setTm(_.map(operands,item => item.value),state);
+    });
+    handlers.set('T*', () => {
+        moveToNextTextLine(state);
+    });
+}
+
+function registerTextPlacementHandlers(handlers,state) {
+    handlers.set('Tj', (operands) => {
+        const param = operands.pop();
+        textPlacement({asEncodedText:param.value,asBytes:param.toBytesArray()},state);
+    });
+    handlers.set('\'', (operands) => {
+        const param = operands.pop();
+        showQuotedText(param,state);
+    });
+    handlers.set('"', (operands) => {
+        const param3 = operands.pop();
+        const param2 = operands.pop();
+        const param1 = operands.pop();
+        setWordSpace(param1.value,state);
+        setCharSpace(param2.value,state);
+        showQuotedText(param3,state);
+    });
+    handlers.set('TJ', (operands) => {
+        const params = operands.pop().toPDFArray().toJSArray();
+        textPlacement(mapTJTextItems(params),state);
+    });
+}
+
 function collectPlacements(resources,placements,formsUsed) {
     const state = new CollectionState();
-    let param, param1, param2 ;
+    const handlers = new Map();
+    registerGraphicStateHandlers(handlers,state,resources);
+    registerXObjectHandlers(handlers,state,resources,placements,formsUsed);
+    registerTextStateHandlers(handlers,state,resources);
+    registerTextElementHandlers(handlers,state,placements);
+    registerTextPositioningHandlers(handlers,state);
+    registerTextPlacementHandlers(handlers,state);
 
     return (operatorName,operands)=> {
-        switch(operatorName) {
-            // Graphic State Operators
-            case 'q': {
-                state.pushGraphicState();
-                break;
-            }
-
-            case 'Q': {
-                state.popGraphicState();
-                break;
-            }
-
-            case 'cm': {
-                const newMatrix = _.map(operands,item => item.value);
-                state.currentGraphicState().ctm = transformations.multiplyMatrix(newMatrix,state.currentGraphicState().ctm);
-                break;
-            }
-
-            case 'gs': {
-                const gstateName = operands.pop();
-                if(resources.extGStates[gstateName.value]?.font) {
-                    state.currentTextState().text.font = _.extend({},resources.extGStates[gstateName.value].font);
-                }
-                break;
-            }
-
-            // XObject placement
-            case 'Do': {
-                // add placement, if form, and mark for later inspection
-                const formName = operands.pop();
-                if(resources.forms[formName.value]) {
-                    const form = resources.forms[formName.value];
-                    placements.push({
-                        type:'xobject',
-                        objectId:form.id,
-                        matrix: form.matrix ? form.matrix.slice():null,
-                        ctm:state.currentGraphicState().ctm.slice()
-                    });
-                    // add for later inspection (helping the extraction method a bit..[can i factor out? interesting enough?])
-                    formsUsed[resources.forms[formName.value].id] = resources.forms[formName.value].xobject;
-                }
-                break;
-            }
-
-            // Text State Operators
-            case 'Tc': {
-                param = operands.pop();
-                setCharSpace(param.value,state);
-                break;
-            }
-            case 'Tw': {
-                param = operands.pop();
-                setWordSpace(param.value,state);
-                break;
-            }
-            case 'Tz': {
-                param = operands.pop();
-                state.currentTextState().scale = param.value;
-                break;
-            }
-            case 'TL': {
-                param = operands.pop();
-                setTextLeading(param.value,state);
-                break;
-            }     
-            case 'Ts': {
-                param = operands.pop();
-                state.currentTextState().rise = param.value;
-                break;
-            }     
-            case 'Tf': {
-                const size = operands.pop();
-                const fontName = operands.pop();
-                if(resources.fonts[fontName.value]) {
-                    state.currentTextState().font = {
-                        reference:resources.fonts[fontName.value],
-                        size: size.value
-                    }
-                }
-                break;
-            }   
-
-            // Text elements operators
-            case 'BT': {
-                state.startTextElement();
-                break;
-            }
-
-            case 'ET': {
-                state.endTextElement(placements);
-                break;
-            }
-
-            // Text positioining operators
-            case 'Td': {
-                param2 = operands.pop();
-                param1 = operands.pop();
-                moveTextPosition(param1.value,param2.value,state);
-                break;
-            }
-            case 'TD': {
-                param2 = operands.pop();
-                param1 = operands.pop();
-                setTextLeading(-param2.value,state);
-                moveTextPosition(param1.value,param2.value,state);
-                break;
-            }
-            case 'Tm': {
-                setTm(_.map(operands,item => item.value),state);
-                break;
-            }
-            case 'T*': {
-                moveToNextTextLine(state);
-                break;
-            }
-
-            // Text placement operators
-            case 'Tj': {
-                param = operands.pop();
-                textPlacement({asEncodedText:param.value,asBytes:param.toBytesArray()},state);
-                break;
-            }
-            case '\'': {
-                param = operands.pop();
-                showQuotedText(param,state);
-                break;
-            }
-            case '"': {
-                const param3 = operands.pop();
-                param2 = operands.pop();
-                param1 = operands.pop();
-                 setWordSpace(param1.value,state);
-                 setCharSpace(param2.value,state);
-                 showQuotedText(param3,state);
-                break;
-            }
-            case 'TJ': {
-                const params = operands.pop().toPDFArray().toJSArray();
-                textPlacement(_.map(params,(item)=>{
-                    if(item.getType() === muhammara.ePDFObjectLiteralString || item.getType() === muhammara.ePDFObjectHexString) {
-                        return {asEncodedText:item.value,asBytes:item.toBytesArray()};
-                    } else {
-                        return item.value;
-                    }
-                }),state);
-                break;
-            }
-            default:
-                break;
+        const handler = handlers.get(operatorName);
+        if(handler) {
+            handler(operands);
         }
     };
 }
