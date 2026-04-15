@@ -230,6 +230,72 @@ const section5 = (doc, data, startY) => {
 const getWeightLabel = (type) => type === 'arrival' ? 'entering' : 'departing';
 const getWeighField = (type) => type === 'arrival' ? 'netWeightProductArrival' : 'netWeightProductDeparture';
 
+const addStructuredTableCell = (doc, row, structureType, cellConfig, drawCellFn) => {
+    const {x, y, width, height, content} = cellConfig;
+    const cell = doc.struct(structureType);
+    row.add(cell);
+    const cellContent = doc.markStructureContent(structureType);
+    cell.add(cellContent);
+    drawCellFn(doc, x, y, width, height, content);
+    cell.end();
+};
+
+const renderConsignmentHeaderRow = (doc, tableHead, yPos, colWidths, headerCellHeight, weightLabel) => {
+    const myTableHeadRow = doc.struct('TR');
+    tableHead.add(myTableHeadRow);
+
+    const headerDefinitions = [
+        {text: 'Description of fisheries products'},
+        {text: 'Species'},
+        {text: 'Product Code'},
+        {text: ['Catch Certificate / Processing', 'Statement/non-manipulation ', 'declaration number(s) (if',  'applicable)']},
+        {text: ['Net weight in kg', `${weightLabel} the`, 'place of storage']},
+        {text: ['Net fishery product', `weight in kg ${weightLabel}`, 'the place of storage']}
+    ];
+
+    let xPos = PdfStyle.MARGIN.LEFT + 15;
+    headerDefinitions.forEach((header, index) => {
+        addStructuredTableCell(
+            doc,
+            myTableHeadRow,
+            'TH',
+            {x: xPos, y: yPos, width: colWidths[index], height: headerCellHeight, content: header.text},
+            (document, x, y, width, height, content) => PdfUtils.tableHeaderCell(document, x, y, width, height, content)
+        );
+        xPos += colWidths[index];
+    });
+
+    myTableHeadRow.end();
+};
+
+const renderConsignmentBodyRow = (doc, tableBody, rowY, colWidths, cellHeight, item, weightField) => {
+    const tableBodyRow = doc.struct('TR');
+    tableBody.add(tableBodyRow);
+
+    const values = [
+        item?.productDescription || ' ',
+        item?.product || ' ',
+        item?.commodityCode || ' ',
+        item?.certificateNumber || ' ',
+        item?.[weightField] || ' ',
+        item?.netWeightFisheryProductDeparture || ' '
+    ];
+
+    let xPos = PdfStyle.MARGIN.LEFT + 15;
+    values.forEach((value, index) => {
+        addStructuredTableCell(
+            doc,
+            tableBodyRow,
+            'TD',
+            {x: xPos, y: rowY, width: colWidths[index], height: cellHeight, content: value},
+            (document, x, y, width, height, content) => PdfUtils.wrappedField(document, x, y, width, height, content)
+        );
+        xPos += colWidths[index];
+    });
+
+    tableBodyRow.end();
+};
+
 const createConsignmentTable = (doc, data, startY, type, maxRows = null, showSeparator = true) => {
     const yPos = startY;
     const cellHeight = PdfStyle.ROW.HEIGHT * 3;
@@ -244,53 +310,7 @@ const createConsignmentTable = (doc, data, startY, type, maxRows = null, showSep
 
     const myTableHead = doc.struct('THead');
     myTable.add(myTableHead);
-
-    const myTableHeadRow = doc.struct('TR');
-    myTableHead.add(myTableHeadRow);
-
-    const myTableHeadOne = doc.struct('TH');
-    myTableHeadRow.add(myTableHeadOne);
-    const myTableHeadOneContent = doc.markStructureContent('TH');
-    myTableHeadOne.add(myTableHeadOneContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, colWidths[0], headerCellHeight, 'Description of fisheries products');
-    myTableHeadOne.end();
-
-    const myTableHeadTwo = doc.struct('TH');
-    myTableHeadRow.add(myTableHeadTwo);
-    const myTableHeadTwoContent = doc.markStructureContent('TH');
-    myTableHeadTwo.add(myTableHeadTwoContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15 + colWidths[0], yPos, colWidths[1], headerCellHeight, 'Species');
-    myTableHeadTwo.end();
-
-    const myTableHeadThree = doc.struct('TH');
-    myTableHeadRow.add(myTableHeadThree);
-    const myTableHeadThreeContent = doc.markStructureContent('TH');
-    myTableHeadThree.add(myTableHeadThreeContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15 + colWidths[0] + colWidths[1], yPos, colWidths[2], headerCellHeight, 'Product Code');
-    myTableHeadThree.end();
-
-    const myTableHeadFour = doc.struct('TH');
-    myTableHeadRow.add(myTableHeadFour);
-    const myTableHeadFourContent = doc.markStructureContent('TH');
-    myTableHeadFour.add(myTableHeadFourContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15 + colWidths[0] + colWidths[1] + colWidths[2], yPos, colWidths[3], headerCellHeight, ['Catch Certificate / Processing', 'Statement/non-manipulation ', 'declaration number(s) (if',  'applicable)']);
-    myTableHeadFour.end();
-
-    const myTableHeadFive = doc.struct('TH');
-    myTableHeadRow.add(myTableHeadFive);
-    const myTableHeadFiveContent = doc.markStructureContent('TH');
-    myTableHeadFive.add(myTableHeadFiveContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15 + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], yPos, colWidths[4], headerCellHeight, ['Net weight in kg', `${weightLabel} the`, 'place of storage']);
-    myTableHeadFive.end();
-
-    const myTableHeadSix = doc.struct('TH');
-    myTableHeadRow.add(myTableHeadSix);
-    const myTableHeadSixContent = doc.markStructureContent('TH');
-    myTableHeadSix.add(myTableHeadSixContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15 + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4], yPos, colWidths[5], headerCellHeight, ['Net fishery product', `weight in kg ${weightLabel}`, 'the place of storage']);
-    myTableHeadSix.end();
-
-    myTableHeadRow.end();
+    renderConsignmentHeaderRow(doc, myTableHead, yPos, colWidths, headerCellHeight, weightLabel);
     myTableHead.end();
 
     const tableBody = doc.struct('TBody');
@@ -302,53 +322,7 @@ const createConsignmentTable = (doc, data, startY, type, maxRows = null, showSep
     for (let idx = 0; idx < totalRowsToRender; idx++) {
         const rowY = yPos + headerCellHeight + (idx * cellHeight);
         const c = idx < allCatches.length ? allCatches[idx] : null;
-        
-        const tableBodyRow = doc.struct('TR');
-        tableBody.add(tableBodyRow);
-
-        const TdOne = doc.struct('TD');
-        tableBodyRow.add(TdOne);
-        const TdOneContent = doc.markStructureContent('TD');
-        TdOne.add(TdOneContent);
-        PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 15, rowY, colWidths[0], cellHeight, c?.productDescription || ' ');
-        TdOne.end();
-
-        const TdTwo = doc.struct('TD');
-        tableBodyRow.add(TdTwo);
-        const TdTwoContent = doc.markStructureContent('TD');
-        TdTwo.add(TdTwoContent);
-        PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 15 + colWidths[0], rowY, colWidths[1], cellHeight, c?.product || ' ');
-        TdTwo.end();
-
-        const TdThree = doc.struct('TD');
-        tableBodyRow.add(TdThree);
-        const TdThreeContent = doc.markStructureContent('TD');
-        TdThree.add(TdThreeContent);
-        PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 15 + colWidths[0] + colWidths[1], rowY, colWidths[2], cellHeight, c?.commodityCode || ' ');
-        TdThree.end();
-
-        const TdFour = doc.struct('TD');
-        tableBodyRow.add(TdFour);
-        const TdFourContent = doc.markStructureContent('TD');
-        TdFour.add(TdFourContent);
-        PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 15 + colWidths[0] + colWidths[1] + colWidths[2], rowY, colWidths[3], cellHeight, c?.certificateNumber || ' ');
-        TdFour.end();
-
-        const TdFive = doc.struct('TD');
-        tableBodyRow.add(TdFive);
-        const TdFiveContent = doc.markStructureContent('TD');
-        TdFive.add(TdFiveContent);
-        PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 15 + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], rowY, colWidths[4], cellHeight, c?.[weightField] || ' ');
-        TdFive.end();
-
-        const TdSix = doc.struct('TD');
-        tableBodyRow.add(TdSix);
-        const TdSixContent = doc.markStructureContent('TD');
-        TdSix.add(TdSixContent);
-        PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 15 + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4], rowY, colWidths[5], cellHeight, c?.netWeightFisheryProductDeparture || ' ');
-        TdSix.end();
-
-        tableBodyRow.end();
+        renderConsignmentBodyRow(doc, tableBody, rowY, colWidths, cellHeight, c, weightField);
     }
 
     doc.endMarkedContent();
@@ -473,18 +447,9 @@ const section6 = (doc, data, startY) => {
     renderTransportDetailsTable(doc, startY + 12, rows, data, false);
 };
 
-const section8 = (doc, _data, isSample, buff, startY) => {
-    doc.addStructure(doc.struct('H3', () => {
-        PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '8    Declaration by the competent authority');
-    }));
+const renderSection8DeclarationTable = (doc, isSample, buff, startY) => {
     let yPos = startY + 50;
     const cellHeight = PdfStyle.ROW.HEIGHT * 5 + 10;
-
-    const infoText = 'I hereby declare that the information provided in this document is correct and that the products concerned did not undergo operations other than unloading, reloading or any operation designed to preserve them in good and genuine condition, and remained under the surveillance of the declaring authority.';
-    doc.addStructure(doc.struct('P', () => {
-        doc.font(PdfStyle.FONT.REGULAR).fontSize(PdfStyle.FONT_SIZE.SMALL);
-        doc.text(infoText, PdfStyle.MARGIN.LEFT, startY + 14, { width: 520 });
-    }));
 
     const myTable = doc.struct('Table');
     doc.addStructure(myTable);
@@ -494,28 +459,9 @@ const section8 = (doc, _data, isSample, buff, startY) => {
 
     const myTableHeadRow = doc.struct('TR');
     myTableHead.add(myTableHeadRow);
-
-    const myTableHeadOne = doc.struct('TH');
-    myTableHeadRow.add(myTableHeadOne);
-    const myTableHeadOneContent = doc.markStructureContent('TH');
-    myTableHeadOne.add(myTableHeadOneContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 235, PdfStyle.ROW.HEIGHT, 'Name and Address');
-    myTableHeadOne.end();
-
-    const myTableHeadTwo = doc.struct('TH');
-    myTableHeadRow.add(myTableHeadTwo);
-    const myTableHeadTwoContent = doc.markStructureContent('TH');
-    myTableHeadTwo.add(myTableHeadTwoContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 250, yPos, 200, PdfStyle.ROW.HEIGHT, 'Validation');
-    myTableHeadTwo.end();
-
-    const myTableHeadThree = doc.struct('TH');
-    myTableHeadRow.add(myTableHeadThree);
-    const myTableHeadThreeContent = doc.markStructureContent('TH');
-    myTableHeadThree.add(myTableHeadThreeContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 450, yPos, 80, PdfStyle.ROW.HEIGHT, 'Date Issued');
-    myTableHeadThree.end();
-
+    addStructuredTableCell(doc, myTableHeadRow, 'TH', {x: PdfStyle.MARGIN.LEFT + 15, y: yPos, width: 235, height: PdfStyle.ROW.HEIGHT, content: 'Name and Address'}, (document, x, y, width, height, content) => PdfUtils.tableHeaderCell(document, x, y, width, height, content));
+    addStructuredTableCell(doc, myTableHeadRow, 'TH', {x: PdfStyle.MARGIN.LEFT + 250, y: yPos, width: 200, height: PdfStyle.ROW.HEIGHT, content: 'Validation'}, (document, x, y, width, height, content) => PdfUtils.tableHeaderCell(document, x, y, width, height, content));
+    addStructuredTableCell(doc, myTableHeadRow, 'TH', {x: PdfStyle.MARGIN.LEFT + 450, y: yPos, width: 80, height: PdfStyle.ROW.HEIGHT, content: 'Date Issued'}, (document, x, y, width, height, content) => PdfUtils.tableHeaderCell(document, x, y, width, height, content));
     myTableHeadRow.end();
     myTableHead.end();
 
@@ -527,46 +473,106 @@ const section8 = (doc, _data, isSample, buff, startY) => {
     const tableBodyRow = doc.struct('TR');
     tableBody.add(tableBodyRow);
 
-    const TdOne = doc.struct('TD');
-    tableBodyRow.add(TdOne);
-    const TdOneContent = doc.markStructureContent('TD');
-    TdOne.add(TdOneContent);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 235, cellHeight, ['Illegal Unreported and Unregulated (IUU) Fishing Team,',
-        'Marine Management Organisation,', 'Tyneside House, Skinnerburn Rd,', 'Newcastle upon Tyne. NE4 7AR', 'United Kingdom',
-        'Tel: 0300 123 1032',
-        'Email: ukiuuslo@marinemanagement.org.uk']);
-    TdOne.end();
-
-    const TdTwo = doc.struct('TD');
-    tableBodyRow.add(TdTwo);
-    const TdTwoContent = doc.markStructureContent('TD');
-    TdTwo.add(TdTwoContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 250, yPos, 200, cellHeight);
-    TdTwo.end();
+    addStructuredTableCell(
+        doc,
+        tableBodyRow,
+        'TD',
+        {
+            x: PdfStyle.MARGIN.LEFT + 15,
+            y: yPos,
+            width: 235,
+            height: cellHeight,
+            content: [
+                'Illegal Unreported and Unregulated (IUU) Fishing Team,',
+                'Marine Management Organisation,',
+                'Tyneside House, Skinnerburn Rd,',
+                'Newcastle upon Tyne. NE4 7AR',
+                'United Kingdom',
+                'Tel: 0300 123 1032',
+                'Email: ukiuuslo@marinemanagement.org.uk'
+            ]
+        },
+        (document, x, y, width, height, content) => PdfUtils.field(document, x, y, width, height, content)
+    );
+    addStructuredTableCell(doc, tableBodyRow, 'TD', {x: PdfStyle.MARGIN.LEFT + 250, y: yPos, width: 200, height: cellHeight}, (document, x, y, width, height) => PdfUtils.tableHeaderCell(document, x, y, width, height));
 
     if (!isSample) {
         PdfUtils.qrCode(doc, buff, PdfStyle.MARGIN.LEFT + 255, startY + 75);
     }
 
-    const TdThree = doc.struct('TD');
-    tableBodyRow.add(TdThree);
-    const TdThreeContent = doc.markStructureContent('TD');
-    TdThree.add(TdThreeContent);
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 450, yPos, 80, cellHeight, PdfUtils.todaysDate())
-    TdThree.end();
+    addStructuredTableCell(doc, tableBodyRow, 'TD', {x: PdfStyle.MARGIN.LEFT + 450, y: yPos, width: 80, height: cellHeight, content: PdfUtils.todaysDate()}, (document, x, y, width, height, content) => PdfUtils.field(document, x, y, width, height, content));
 
     tableBodyRow.end();
     doc.endMarkedContent();
     tableBody.end();
     myTable.end();
 
-    yPos += cellHeight + 8;
+    return yPos + cellHeight + 8;
+};
+
+const section8 = (doc, _data, isSample, buff, startY) => {
+    doc.addStructure(doc.struct('H3', () => {
+        PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '8    Declaration by the competent authority');
+    }));
+    const infoText = 'I hereby declare that the information provided in this document is correct and that the products concerned did not undergo operations other than unloading, reloading or any operation designed to preserve them in good and genuine condition, and remained under the surveillance of the declaring authority.';
+    doc.addStructure(doc.struct('P', () => {
+        doc.font(PdfStyle.FONT.REGULAR).fontSize(PdfStyle.FONT_SIZE.SMALL);
+        doc.text(infoText, PdfStyle.MARGIN.LEFT, startY + 14, { width: 520 });
+    }));
+    const yPos = renderSection8DeclarationTable(doc, isSample, buff, startY);
     doc.addStructure(doc.struct('P', () => {
         doc.font(PdfStyle.FONT.REGULAR);
         doc.fontSize(PdfStyle.FONT_SIZE.SMALL);
         doc.text('Validated by the appropriate competent authority (MMO, Scottish Ministers, Welsh Ministers, Department of Agriculture, Environment and Rural Affairs for Northern Ireland, Marine Resources, Growth and Housing and Environment for Jersey, Sea Fisheries, Committee for Economic Development for Guernsey and Department Environment, Food and Agriculture for the Isle of Man) in accordance with article 15 of Council Regulation (EU) 1005/2008 (as retained under s.3(1) European Union (Withdrawal) Act 2018)', PdfStyle.MARGIN.LEFT + 10, yPos);
     }));
 }
+
+const renderSection4TableHead = (doc, myTable, yPos, cellHeight, subCellHeight) => {
+    const tableHead = doc.struct('THead');
+    myTable.add(tableHead);
+
+    const tableHeadRow = doc.struct('TR');
+    tableHead.add(tableHeadRow);
+    addStructuredTableCell(doc, tableHeadRow, 'TH', {x: PdfStyle.MARGIN.LEFT + 15, y: yPos, width: 110, height: cellHeight, content: ['Name']}, (document, x, y, width, height, content) => PdfUtils.tableHeaderCell(document, x, y, width, height, content));
+    addStructuredTableCell(doc, tableHeadRow, 'TH', {x: PdfStyle.MARGIN.LEFT + 125, y: yPos, width: 145, height: cellHeight, content: 'Address'}, (document, x, y, width, height, content) => PdfUtils.tableHeaderCell(document, x, y, width, height, content));
+    addStructuredTableCell(doc, tableHeadRow, 'TH', {x: PdfStyle.MARGIN.LEFT + 270, y: yPos, width: 110, height: cellHeight, content: ['Approval number', '(if applicable)']}, (document, x, y, width, height, content) => PdfUtils.tableHeaderCell(document, x, y, width, height, content));
+    addStructuredTableCell(doc, tableHeadRow, 'TH', {x: PdfStyle.MARGIN.LEFT + 380, y: yPos, width: 150, height: cellHeight, content: ['Stored as', '(tick as appropriate)']}, (document, x, y, width, height, content) => PdfUtils.tableHeaderCell(document, x, y, width, height, content));
+    tableHeadRow.end();
+
+    const tableHeadSubRow = doc.struct('TR');
+    tableHead.add(tableHeadSubRow);
+    addStructuredTableCell(doc, tableHeadSubRow, 'TH', {x: PdfStyle.MARGIN.LEFT + 380, y: yPos + 30, width: 50, height: subCellHeight, content: 'Chilled'}, (document, x, y, width, height, content) => PdfUtils.tableHeaderCell(document, x, y, width, height, content));
+    addStructuredTableCell(doc, tableHeadSubRow, 'TH', {x: PdfStyle.MARGIN.LEFT + 430, y: yPos + 30, width: 50, height: subCellHeight, content: 'Frozen'}, (document, x, y, width, height, content) => PdfUtils.tableHeaderCell(document, x, y, width, height, content));
+    addStructuredTableCell(doc, tableHeadSubRow, 'TH', {x: PdfStyle.MARGIN.LEFT + 480, y: yPos + 30, width: 50, height: subCellHeight, content: 'Other'}, (document, x, y, width, height, content) => PdfUtils.tableHeaderCell(document, x, y, width, height, content));
+    tableHeadSubRow.end();
+    tableHead.end();
+};
+
+const renderSection4TableBody = (doc, myTable, data, yPos, cellHeight) => {
+    const tableBody = doc.struct('TBody');
+    myTable.add(tableBody);
+
+    const tableBodyRow = doc.struct('TR');
+    tableBody.add(tableBodyRow);
+
+    const sfAddress = PdfUtils.constructAddress([
+        data.facilityAddressOne,
+        data.facilityAddressTwo,
+        data.facilityTownCity,
+        data.facilityPostcode
+    ]);
+
+    addStructuredTableCell(doc, tableBodyRow, 'TD', {x: PdfStyle.MARGIN.LEFT + 15, y: yPos - 15, width: 110, height: cellHeight, content: data.facilityName}, (document, x, y, width, height, content) => PdfUtils.wrappedField(document, x, y, width, height, content));
+    addStructuredTableCell(doc, tableBodyRow, 'TD', {x: PdfStyle.MARGIN.LEFT + 125, y: yPos - 15, width: 145, height: cellHeight, content: sfAddress}, (document, x, y, width, height, content) => PdfUtils.wrappedField(document, x, y, width, height, content));
+    addStructuredTableCell(doc, tableBodyRow, 'TD', {x: PdfStyle.MARGIN.LEFT + 270, y: yPos - 15, width: 110, height: cellHeight, content: data.facilityApprovalNumber}, (document, x, y, width, height, content) => PdfUtils.wrappedField(document, x, y, width, height, content));
+    addStructuredTableCell(doc, tableBodyRow, 'TD', {x: PdfStyle.MARGIN.LEFT + 380, y: yPos, width: 50, height: cellHeight - 15, content: data.facilityStorage === 'Chilled' ? 'Chilled' : ''}, (document, x, y, width, height, content) => PdfUtils.wrappedField(document, x, y, width, height, content));
+    addStructuredTableCell(doc, tableBodyRow, 'TD', {x: PdfStyle.MARGIN.LEFT + 430, y: yPos, width: 50, height: cellHeight - 15, content: data.facilityStorage === 'Frozen' ? 'Frozen' : ''}, (document, x, y, width, height, content) => PdfUtils.wrappedField(document, x, y, width, height, content));
+    addStructuredTableCell(doc, tableBodyRow, 'TD', {x: PdfStyle.MARGIN.LEFT + 480, y: yPos, width: 50, height: cellHeight - 15, content: data.facilityStorage === 'Other' ? 'Other' : ''}, (document, x, y, width, height, content) => PdfUtils.wrappedField(document, x, y, width, height, content));
+
+    tableBodyRow.end();
+    doc.endMarkedContent();
+    tableBody.end();
+};
 
 const section4 = (doc, data, startY) => {
     doc.addStructure(doc.struct('H3', () => {
@@ -578,127 +584,11 @@ const section4 = (doc, data, startY) => {
  
     const myTable = doc.struct('Table');
     doc.addStructure(myTable);
- 
-    const tableHead = doc.struct('THead');
-    myTable.add(tableHead);
- 
-    const tableHeadRow = doc.struct('TR');
-    tableHead.add(tableHeadRow);
- 
-    const tableHeadOne = doc.struct('TH');
-    tableHeadRow.add(tableHeadOne);
-    const tableHeadOneContent = doc.markStructureContent('TH');
-    tableHeadOne.add(tableHeadOneContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 15, yPos, 110, cellHeight, ['Name']);
-    tableHeadOne.end();
- 
-    const tableHeadTwo = doc.struct('TH');
-    tableHeadRow.add(tableHeadTwo);
-    const tableHeadTwoContent = doc.markStructureContent('TH');
-    tableHeadTwo.add(tableHeadTwoContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 125, yPos, 145, cellHeight, 'Address');
-    tableHeadTwo.end();
- 
-    const tableHeadThree = doc.struct('TH');
-    tableHeadRow.add(tableHeadThree);
-    const tableHeadThreeContent = doc.markStructureContent('TH');
-    tableHeadThree.add(tableHeadThreeContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 270, yPos, 110, cellHeight, ['Approval number', '(if applicable)']);
-    tableHeadThree.end();
- 
-    const tableHeadFour = doc.struct('TH');
-    tableHeadRow.add(tableHeadFour);
-    const tableHeadFourContent = doc.markStructureContent('TH');
-    tableHeadFour.add(tableHeadFourContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 380, yPos, 150, cellHeight, ['Stored as', '(tick as appropriate)']);
-    tableHeadFour.end();
- 
-    tableHeadRow.end();
-    const tableHeadSubRow = doc.struct('TR');
-    tableHead.add(tableHeadSubRow);
- 
-    const tableHeadFourSubOne = doc.struct('TH');
-    tableHeadSubRow.add(tableHeadFourSubOne);
-    const tableHeadFourSubOneContent = doc.markStructureContent('TH');
-    tableHeadFourSubOne.add(tableHeadFourSubOneContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 380, yPos + 30, 50, subCellHeight, 'Chilled');
-    tableHeadFourSubOne.end();
- 
-    const tableHeadFourSubTwo = doc.struct('TH');
-    tableHeadSubRow.add(tableHeadFourSubTwo);
-    const tableHeadFourSubTwoContent = doc.markStructureContent('TH');
-    tableHeadFourSubTwo.add(tableHeadFourSubTwoContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 430, yPos + 30, 50, subCellHeight, 'Frozen');
-    tableHeadFourSubTwo.end();
- 
-    const tableHeadFourSubThree = doc.struct('TH');
-    tableHeadSubRow.add(tableHeadFourSubThree);
-    const tableHeadFourSubThreeContent = doc.markStructureContent('TH');
-    tableHeadFourSubThree.add(tableHeadFourSubThreeContent);
-    PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + 480, yPos + 30, 50, subCellHeight, 'Other');
-    tableHeadFourSubThree.end();
- 
-    tableHeadSubRow.end();
-    tableHead.end();
- 
-    const tableBody = doc.struct('TBody');
-    myTable.add(tableBody);
- 
-    const tableBodyRow = doc.struct('TR');
-    tableBody.add(tableBodyRow);
- 
+
+    renderSection4TableHead(doc, myTable, yPos, cellHeight, subCellHeight);
+
     yPos += cellHeight;
-    let sfAddress = '';
-    sfAddress = PdfUtils.constructAddress([data.facilityAddressOne,
-        data.facilityAddressTwo,
-        data.facilityTownCity,
-        data.facilityPostcode]);
- 
-    const TdOne = doc.struct('TD');
-    tableBodyRow.add(TdOne);
-    const TdOneContent = doc.markStructureContent('TD');
-    TdOne.add(TdOneContent);
-    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 15, yPos - 15, 110, cellHeight, data.facilityName);
-    TdOne.end();
- 
-    const TdTwo = doc.struct('TD');
-    tableBodyRow.add(TdTwo);
-    const TdTwoContent = doc.markStructureContent('TD');
-    TdTwo.add(TdTwoContent)
-    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 125, yPos - 15, 145, cellHeight, sfAddress);
-    TdTwo.end();
-    
-    const TdThree = doc.struct('TD');
-    tableBodyRow.add(TdThree);
-    const TdThreeContent = doc.markStructureContent('TD');
-    TdThree.add(TdThreeContent);
-    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 270, yPos - 15, 110, cellHeight, data.facilityApprovalNumber);
-    TdThree.end();
- 
-    const TdFourSubOne = doc.struct('TD');
-    tableBodyRow.add(TdFourSubOne);
-    const TdFourSubOneContent = doc.markStructureContent('TD');
-    TdFourSubOne.add(TdFourSubOneContent);
-    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 380, yPos, 50, cellHeight - 15, data.facilityStorage === "Chilled" ? "Chilled" : "");
-    TdFourSubOne.end();
- 
-    const TdFourSubTwo = doc.struct('TD');
-    tableBodyRow.add(TdFourSubTwo);
-    const TdFourSubTwoContent = doc.markStructureContent('TD');
-    TdFourSubTwo.add(TdFourSubTwoContent);
-    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 430, yPos, 50, cellHeight - 15, data.facilityStorage === "Frozen" ? "Frozen" : "");
-    TdFourSubTwo.end();
- 
-    const TdFourSubThree = doc.struct('TD');
-    tableBodyRow.add(TdFourSubThree);
-    const TdFourSubThreeContent = doc.markStructureContent('TD');
-    TdFourSubThree.add(TdFourSubThreeContent);
-    PdfUtils.wrappedField(doc, PdfStyle.MARGIN.LEFT + 480, yPos, 50, cellHeight - 15, data.facilityStorage === "Other" ? "Other" : "");
-    TdFourSubThree.end();
- 
-    tableBodyRow.end();
-    doc.endMarkedContent();
-    tableBody.end();
+    renderSection4TableBody(doc, myTable, data, yPos, cellHeight);
     myTable.end();
  
     doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
@@ -720,6 +610,13 @@ const isVehicleTransportKey = (key) =>
 const getTransportType = (transport) => 
     (transport.vehicle || '').toLowerCase();
 
+const transportFormatters = {
+    containervessel: (transport) => `Vessel: ${transport.vesselName || ''} - ${transport.flagState || ''}`,
+    truck: (transport) => `Truck: ${transport.registrationNumber || ''} - ${transport.freightBillNumber || ''}`,
+    train: (transport) => `Train: ${transport.railwayBillNumber || ''} - ${transport.freightBillNumber || ''}`,
+    plane: (transport) => `Plane: ${transport.flightNumber || ''} - ${transport.airwayBillNumber || ''} - ${transport.freightBillNumber || ''}`
+};
+
 const formatTransportValue = (rowKey, data, isArrival = true) => {
     if (!isVehicleTransportKey(rowKey)) {
         return getNestedValue(data, rowKey);
@@ -727,19 +624,9 @@ const formatTransportValue = (rowKey, data, isArrival = true) => {
     
     const transport = isArrival ? (data.arrivalTransport || {}) : (data.transport || {});
     const type = getTransportType(transport);
- 
-    switch (type) {
-        case 'containervessel':
-            return `Vessel: ${transport.vesselName || ''} - ${transport.flagState || ''}`;
-        case 'truck':
-            return `Truck: ${transport.registrationNumber || ''} - ${transport.freightBillNumber || ''}`;
-        case 'train':
-            return `Train: ${transport.railwayBillNumber || ''} - ${transport.freightBillNumber || ''}`;
-        case 'plane':
-            return `Plane: ${transport.flightNumber || ''} - ${transport.airwayBillNumber || ''} - ${transport.freightBillNumber || ''}`;
-        default:
-            return '';
-    }
+
+    const formatter = transportFormatters[type];
+    return formatter ? formatter(transport) : '';
 };
 
 const renderTransportDetailsTable = (doc, startY, rows, data, isArrival) => {

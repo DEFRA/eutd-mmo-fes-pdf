@@ -64,7 +64,6 @@ function addMainCertificatePages(doc, data, isSample, buff) {
     section12(doc, data, PdfStyle.MARGIN.TOP);
     isSample ?? CommonUtils.addSampleWatermark(doc);
     PdfUtils.endOfPage(doc, PAGE_NUMBER_FOUR);
-
     doc.addPage();
     section13(doc, data, PdfStyle.MARGIN.TOP);
     section14(doc, data, PdfStyle.MARGIN.TOP + MAIN_PAGE_FIVE_SECTION_14_OFFSET);
@@ -85,14 +84,13 @@ function addMainCertificatePages(doc, data, isSample, buff) {
     isSample ?? CommonUtils.addSampleWatermark(doc);
     PdfUtils.endOfPage(doc, PAGE_NUMBER_SIX);
 }
-
 const renderExportCert = async (data, isSample, uri, stream) => {
     let buff = null;
     if (!data.isBlankTemplate && !isSample) {
         buff = await PdfUtils.generateQRCode(uri);
     }
 
-    const doc = CommonUtils.createBaseDocument(uri);  
+    const doc = CommonUtils.createBaseDocument(uri);
     doc.pipe(stream);
     doc.addStructure(doc.struct('Document', {
         lang: 'en-GB'
@@ -113,29 +111,28 @@ const renderExportCert = async (data, isSample, uri, stream) => {
 
     doc.end();
 };
-
 function processBlankTemplate(data, doc, isDictionaryTabs, isSample, buff) {
     const pageSize = 14;
     const numPages = 3;
-        for(let page = 1; page <= numPages; page++) {
-            // Add a schedule
-            doc.addPage({
-                size: 'A4',
-                margins: {
-                    top: PdfStyle.MARGIN.TOP,
-                    bottom: PdfStyle.MARGIN.BOT,
-                    left: PdfStyle.MARGIN.LEFT,
-                    right: PdfStyle.MARGIN.RIGHT,
-                },
-                layout: 'landscape'
-            });
+    for(let page = 1; page <= numPages; page++) {
+        // Add a schedule
+        doc.addPage({
+            size: 'A4',
+            margins: {
+                top: PdfStyle.MARGIN.TOP,
+                bottom: PdfStyle.MARGIN.BOT,
+                left: PdfStyle.MARGIN.LEFT,
+                right: PdfStyle.MARGIN.RIGHT,
+            },
+            layout: 'landscape'
+        });
 
-            multiVesselScheduleHeading(doc, data, isSample, buff, page, pageSize, PdfStyle.MARGIN.TOP);
+        multiVesselScheduleHeading(doc, data, isSample, buff, page, pageSize, PdfStyle.MARGIN.TOP);
 
         if (isDictionaryTabs) {
-              doc.page.dictionary.data.Tabs = 'S';
-            }
+            doc.page.dictionary.data.Tabs = 'S';
         }
+    }
 }
 
 function processMultiData(data, doc, isDictionaryTabs, isSample, buff) {
@@ -194,57 +191,46 @@ function getCatchDates(startDate, dateLanded){
     return formattedStartDate ? `${formattedStartDate} - ${formattedDateLanded}` : formattedDateLanded;
 }
 
+function getLandingDetail(vessel) {
+    const licenceNumber = vessel.licenceNumber ?? '';
+    if(!licenceNumber || !vessel.licenceValidTo) {
+        return licenceNumber;
+    }
+
+    const dte = moment(vessel.licenceValidTo).format(DATE_FORMAT);
+    return `${licenceNumber} - ${dte}`;
+}
+
 function getProductScheduleRows(exportPayload) {
 
     const items = exportPayload?.items ?? [];
     const rows = [];
-        items.forEach((item) => {
-            item.landings.forEach((landing) => {
-                const faoArea = landing.model?.faoArea?.length > 0 ? landing.model.faoArea : 'FAO27';
+    items.forEach((item) => {
+        item.landings.forEach((landing) => {
+            const vessel = landing.model.vessel;
+            const faoArea = landing.model?.faoArea?.length > 0 ? landing.model.faoArea : 'FAO27';
 
-                let landingDetail = landing.model.vessel.licenceNumber ?? '';
-
-                if (landingDetail && landing.model.vessel.licenceValidTo) {
-                    const dte = moment(landing.model.vessel.licenceValidTo).format(DATE_FORMAT);
-                    landingDetail = `${landingDetail} - ${dte}`;
-                }
-
-                let imo = '';
-                if (landing.model.vessel.imoNumber) {
-                    imo = landing.model.vessel.imoNumber;
-                }
-
-                let cfr = '';
-                if (landing.model.vessel.cfr) {
-                    cfr = landing.model.vessel.cfr
-                }
-
-                let homePort = '';
-                if (landing.model.vessel.homePort) {
-                    homePort = landing.model.vessel.homePort;
-                }
-
-                rows.push({
-                    species: item.product.species.admin ?? item.product.species.label,
-                    presentation: item.product.presentation.admin ?? item.product.presentation.label,
-                    commodityCode: item.product.commodityCodeAdmin ?? item.product.commodityCode,
-                    catchAreas: faoArea,
-                    dateLanded: getCatchDates(landing.model.startDate, landing.model.dateLanded),
-                    estimatedWeight: "",
-                    exportWeight: landing.model.exportWeight,
-                    verifiedWeight: "",
-                    vessel: landing.model.vessel.vesselName,
-                    pln: landing.model.vessel.pln,
-                    licenceDetail: landingDetail,
-                    faoArea: faoArea,
-                    homePort: homePort,
-                    imo: imo,
-                    cfr: cfr,
-                    licenceHolder: landing.model.vessel.licenceHolder,
-                    gearCode: landing.model.gearCode,
-                });
-            })
+            rows.push({
+                species: item.product.species.admin ?? item.product.species.label,
+                presentation: item.product.presentation.admin ?? item.product.presentation.label,
+                commodityCode: item.product.commodityCodeAdmin ?? item.product.commodityCode,
+                catchAreas: faoArea,
+                dateLanded: getCatchDates(landing.model.startDate, landing.model.dateLanded),
+                estimatedWeight: "",
+                exportWeight: landing.model.exportWeight,
+                verifiedWeight: "",
+                vessel: vessel.vesselName,
+                pln: vessel.pln,
+                licenceDetail: getLandingDetail(vessel),
+                faoArea: faoArea,
+                homePort: vessel.homePort || '',
+                imo: vessel.imoNumber || '',
+                cfr: vessel.cfr || '',
+                licenceHolder: vessel.licenceHolder,
+                gearCode: landing.model.gearCode,
+            });
         });
+    });
     return rows;
 }
 
@@ -762,7 +748,7 @@ const generateTable = (doc, yPos, headerHeight, rowHeight, headers, rows) => {
             doc.struct('TR', {}, () => {
                 headers.forEach((header, _index) => {
                     doc.addStructure(
-                        doc.struct('TH', () => 
+                        doc.struct('TH', () =>
                             PdfUtils.tableHeaderCell(
                                 doc,
                                 PdfStyle.MARGIN.LEFT + header.leftMargin,
@@ -780,7 +766,7 @@ const generateTable = (doc, yPos, headerHeight, rowHeight, headers, rows) => {
             doc.struct('TR', {}, () => {
                 rows.forEach((row, _index) => {
                     doc.addStructure(
-                        doc.struct('TD', () => 
+                        doc.struct('TD', () =>
                             PdfUtils.field(
                                 doc,
                                 PdfStyle.MARGIN.LEFT + row.leftMargin,
@@ -1422,6 +1408,42 @@ function getFishingGear(exportPayload) {
     return firstLanding?.model?.gearType ?? '';
 }
 
+function getSection2Model(data) {
+    const vesselCounts = {};
+    const items = data.exportPayload?.items ?? [];
+
+    items.forEach((item) => {
+        item.landings.forEach((landing) => {
+            const vessel = landing.model.vessel;
+            const vesselKey = vessel.vesselName + vessel.pln + vessel.licenceNumber;
+            vesselCounts[vesselKey] = (vesselCounts[vesselKey] || 0) + 1;
+        });
+    });
+
+    const vesselCount = Object.keys(vesselCounts).length;
+    const singleVessel = vesselCount === 1 ? items[0].landings[0].model.vessel : null;
+    let vesselName = '';
+    if (singleVessel) {
+        vesselName = singleVessel.vesselName;
+    } else if (vesselCount > 1) {
+        vesselName = 'Multiple vessels - SEE SCHEDULE';
+    } else {
+        // Intentionally empty: default empty vessel name.
+    }
+
+    return {
+        vesselName,
+        homePortAndFlag: singleVessel ? `${singleVessel.flag} - ${singleVessel.homePort}` : '',
+        pln: singleVessel?.pln ?? '',
+        licenceNumber: singleVessel?.licenceNumber ?? '',
+        licenceValidTo: singleVessel?.licenceValidTo
+            ? moment(singleVessel.licenceValidTo, 'YYYY-MM-DD[T]HH:mm:ss').format(DATE_FORMAT)
+            : '',
+        imoNumberOrCfr: getImoOrCfr(vesselCounts, data),
+        fishingGearText: isMultiVessel(data.exportPayload) ? 'Multiple vessels - SEE SCHEDULE' : getFishingGear(data.exportPayload),
+    };
+}
+
 const section3 = (doc, data, startY) => {
 
     PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '3    Description of Product');
@@ -1595,66 +1617,31 @@ const section3 = (doc, data, startY) => {
 };
 
 const section2 = (doc, data, startY) => {
-    // How many fishing vessels?
-    const vesselCounts = {};
-    const items = data.exportPayload?.items ?? [];
-
-    if (items.length > 0) {
-        items.forEach((item) => {
-            item.landings.forEach((landing) => {
-                vesselCounts[landing.model.vessel.vesselName + landing.model.vessel.pln + landing.model.vessel.licenceNumber] = (vesselCounts[landing.model.vessel.vesselName + landing.model.vessel.pln + landing.model.vessel.licenceNumber] || 0) + 1;
-            })
-        });
-    }
+    const section2Model = getSection2Model(data);
 
     PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY + 4, '2    Fishing Vessel Name');
-    if (Object.keys(vesselCounts).length === 1) {
-        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 120, startY + 2, 155, PdfStyle.ROW.HEIGHT, items[0].landings[0].model.vessel.vesselName);
-    } else if (Object.keys(vesselCounts).length > 1) {
-        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 120, startY + 2, 155, PdfStyle.ROW.HEIGHT, 'Multiple vessels - SEE SCHEDULE');
-    } else {
-        PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 120, startY + 2, 155, PdfStyle.ROW.HEIGHT);
-    }
-
-    let pln = '';
-    let homePortAndFlag = '';
-    if (Object.keys(vesselCounts).length === 1) {
-        pln = items[0].landings[0].model.vessel.pln;
-        homePortAndFlag = `${items[0].landings[0].model.vessel.flag} - ${items[0].landings[0].model.vessel.homePort}`;
-    }
+    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 120, startY + 2, 155, PdfStyle.ROW.HEIGHT, section2Model.vesselName);
 
     PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 285, startY + 4, 'Flag - Home Port');
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 400, startY + 2, 130, PdfStyle.ROW.HEIGHT, homePortAndFlag);
+    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 400, startY + 2, 130, PdfStyle.ROW.HEIGHT, section2Model.homePortAndFlag);
 
     PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 15, startY + 29, 'Call Sign / PLN');
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 120, startY + 27, 155, PdfStyle.ROW.HEIGHT, pln);
+    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 120, startY + 27, 155, PdfStyle.ROW.HEIGHT, section2Model.pln);
 
-    const imoNumberOrCfr = getImoOrCfr(vesselCounts, data);
     PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 285, startY + 18, 'IMO number or other');
     PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 285, startY + 30, 'unique vessel identifier');
     PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 285, startY + 42, '(if applicable)');
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 400, startY + 26, 130, PdfStyle.ROW.HEIGHT, imoNumberOrCfr);
+    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 400, startY + 26, 130, PdfStyle.ROW.HEIGHT, section2Model.imoNumberOrCfr);
 
     PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 15, startY + 54, 'Fishing Licence No.');
 
-    let ln = '';
-    let lvt = '';
-    if (Object.keys(vesselCounts).length === 1) {
-        ln = items[0].landings[0].model.vessel.licenceNumber;
-        if (items[0].landings[0].model.vessel.licenceValidTo) {
-            lvt = moment(items[0].landings[0].model.vessel.licenceValidTo, 'YYYY-MM-DD[T]HH:mm:ss').format(DATE_FORMAT);
-        }
-    }
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 120, startY + 52, 220, PdfStyle.ROW.HEIGHT, ln ?? '');
+    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 120, startY + 52, 220, PdfStyle.ROW.HEIGHT, section2Model.licenceNumber);
 
     PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 350, startY + 54, 'Valid to');
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 400, startY + 52, 130, PdfStyle.ROW.HEIGHT, lvt ?? '');
-
-
-    const fishingGearText = isMultiVessel(data.exportPayload) ? 'Multiple vessels - SEE SCHEDULE' : getFishingGear(data.exportPayload);
+    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 400, startY + 52, 130, PdfStyle.ROW.HEIGHT, section2Model.licenceValidTo);
 
     PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 15, startY + 77, 'Fishing Gear');
-    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 120, startY + 77, 410, PdfStyle.ROW.HEIGHT, fishingGearText ?? '');
+    PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 120, startY + 77, 410, PdfStyle.ROW.HEIGHT, section2Model.fishingGearText);
 
     PdfUtils.label(doc, PdfStyle.MARGIN.LEFT + 15, startY + 100, 'Inmarsat No. Telefax No. Telephone No. E-mail address (if issued)');
     PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + 15, startY + 112, 515, PdfStyle.ROW.HEIGHT);
