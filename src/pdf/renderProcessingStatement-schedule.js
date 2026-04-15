@@ -49,6 +49,11 @@ const estimateSection5Height = () => {
     return 12 + headerHeight + bodyHeight + 2 + footerTextHeight;
 };
 
+const getProductsArray = (data) => {
+    const useProductsDescription = (Array.isArray(data.products) && data.products.length > 0);
+    return useProductsDescription ? data.products : [{ commodityCode: '', description: data.consignmentDescription || '' }];
+};
+
 const createProductTable = (doc, data, startY, productIndex, currentPage, isSample, usablePageHeight) => {
     let yPos = startY;
     let page = currentPage;

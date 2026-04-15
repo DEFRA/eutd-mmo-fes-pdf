@@ -11,6 +11,9 @@ const {
     renderTransportDetailsTable,
     section2,
     section1,
+    ARRIVAL_TRANSPORT_VEHICLE_KEY,
+    TRANSPORT_VEHICLE_KEY,
+    addStructuredTableCell,
 } = require('./renderStorageNote-helpers');
 
 const getSectionContinuedTitle = (sectionNumber, type) => {
@@ -20,8 +23,6 @@ const getSectionContinuedTitle = (sectionNumber, type) => {
 
 const PAGE_HEIGHT = 780;
 const GAP = 15;
-const ARRIVAL_TRANSPORT_VEHICLE_KEY = 'arrivalTransport.vehicle';
-const TRANSPORT_VEHICLE_KEY = 'transport.vehicle';
 let currentPage = 1;
  
 const formatCurrentDate = () => {
@@ -239,16 +240,6 @@ const section5 = (doc, data, startY) => {
  
 const getWeightLabel = (type) => type === 'arrival' ? 'entering' : 'departing';
 const getWeighField = (type) => type === 'arrival' ? 'netWeightProductArrival' : 'netWeightProductDeparture';
-
-const addStructuredTableCell = (doc, row, structureType, cellConfig, drawCellFn) => {
-    const {x, y, width, height, content} = cellConfig;
-    const cell = doc.struct(structureType);
-    row.add(cell);
-    const cellContent = doc.markStructureContent(structureType);
-    cell.add(cellContent);
-    drawCellFn(doc, x, y, width, height, content);
-    cell.end();
-};
 
 const renderConsignmentHeaderRow = (doc, tableHead, yPos, colWidths, headerCellHeight, weightLabel) => {
     const myTableHeadRow = doc.struct('TR');

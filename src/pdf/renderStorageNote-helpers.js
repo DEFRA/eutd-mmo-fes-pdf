@@ -3,6 +3,19 @@ const PdfStyle = require('./mmoPdfStyles');
 const PdfUtils = require('./mmoPdfUtils');
 const CommonUtils = require('../utils/common-utils');
 
+const ARRIVAL_TRANSPORT_VEHICLE_KEY = 'arrivalTransport.vehicle';
+const TRANSPORT_VEHICLE_KEY = 'transport.vehicle';
+
+const addStructuredTableCell = (doc, row, structureType, cellConfig, drawCellFn) => {
+    const {x, y, width, height, content} = cellConfig;
+    const cell = doc.struct(structureType);
+    row.add(cell);
+    const cellContent = doc.markStructureContent(structureType);
+    cell.add(cellContent);
+    drawCellFn(doc, x, y, width, height, content);
+    cell.end();
+};
+
 const renderSection8DeclarationTable = (doc, isSample, buff, startY) => {
     let yPos = startY + 50;
     const cellHeight = PdfStyle.ROW.HEIGHT * 5 + 10;
@@ -315,4 +328,7 @@ module.exports = {
     renderTransportDetailsTable,
     section2,
     section1,
+    ARRIVAL_TRANSPORT_VEHICLE_KEY,
+    TRANSPORT_VEHICLE_KEY,
+    addStructuredTableCell,
 };
