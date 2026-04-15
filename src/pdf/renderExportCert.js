@@ -599,6 +599,66 @@ const getVehicleType = (data) => {
     return data?.transport?.vehicle?.toUpperCase() ?? '';
 };
 
+function buildSection11Tables(_headerHeight, _rowHeight) {
+    return [
+        {
+            label: 'Article 14(1)',
+            headers: [
+                { leftMargin: 15, width: 250, text: ['Document under Article 14(1) of Regulation (EC) No 1005/2008'] },
+                { leftMargin: 265, width: 270, text: 'Yes/No (as appropriate)' },
+            ],
+        },
+        {
+            label: 'Article 14(2)',
+            headers: [
+                { leftMargin: 15, width: 250, text: ['Document under Article 14(2) of Regulation (EC) No 1005/2008'] },
+                { leftMargin: 265, width: 95, text: 'Yes/No (as appropriate)' },
+                { leftMargin: 360, width: 175, text: 'References (processing statement document number(s))' },
+            ],
+        },
+        {
+            label: 'Member State',
+            headers: [
+                { leftMargin: 15, width: 520, text: 'Member State and office of import' },
+            ],
+        },
+        {
+            label: 'Means of Transport',
+            headers: [
+                { leftMargin: 15, width: 250, text: 'Means of transport upon arrival (airplane,vehicle, ship, train)' },
+                { leftMargin: 265, width: 95, text: 'Transport document reference' },
+                { leftMargin: 360, width: 175, text: 'Estimated time of arrival (if submission under Article 12(1) of Regulation (EC) No 1005/2008' },
+            ],
+        },
+        {
+            label: 'Customs/CHED',
+            headers: [
+                { leftMargin: 15, width: 300, text: 'Customs declaration number (if issued)' },
+                { leftMargin: 315, width: 220, text: 'CHED number (if available)' },
+            ],
+        },
+    ];
+}
+
+function renderSection11DetailTable(doc, yPos, headerHeight, rowHeight, headers) {
+    const rows = headers.map(h => ({ leftMargin: h.leftMargin, width: h.width }));
+    const headRowCells = headers.map(h =>
+        doc.struct('TH', () =>
+            PdfUtils.tableHeaderCell(doc, PdfStyle.MARGIN.LEFT + h.leftMargin, yPos, h.width, headerHeight, h.text)
+        )
+    );
+    const bodyRowCells = rows.map(r =>
+        doc.struct('TD', () =>
+            PdfUtils.field(doc, PdfStyle.MARGIN.LEFT + r.leftMargin, yPos + headerHeight, r.width, rowHeight)
+        )
+    );
+
+    doc.addStructure(doc.struct('Table', [
+        doc.struct('THead', [doc.struct('TR', headRowCells)]),
+        doc.struct('TBody', [doc.struct('TR', bodyRowCells)]),
+    ]));
+}
+
 const getVcDetails = (data) => {
     const vehicleType = getVehicleType(data);
 
