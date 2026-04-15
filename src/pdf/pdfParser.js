@@ -10,8 +10,20 @@ const pdfType = {
     PROCESSING_STATEMENT: 'Processing Statement'
 };
 
+const EXPORT_PAGE_COUNT = 9;
+const EXPORT_FIRST_ROW_LENGTH = 79;
+const EXPORT_DOC_INDEX = 78;
+const PROCESSING_PAGE_COUNT = 4;
+const PROCESSING_FIRST_ROW_LENGTH = 58;
+const PROCESSING_DOC_INDEX = 54;
+const STORAGE_PAGE_COUNT = 5;
+const STORAGE_FIRST_ROW_LENGTH = 64;
+const STORAGE_DOC_INDEX = 60;
+const DOCUMENT_NUMBER_LENGTH = 21;
+const DOCUMENT_PARTS_LENGTH = 4;
+
 const parsePdfBuffer = async (buffer) => {
-    let pdfText = await extractPdfText(buffer);
+    const pdfText = await extractPdfText(buffer);
     let pdfJson = identifyPdf(pdfText);
     switch (pdfJson.type) {
         case pdfType.EXPORT_CERT:
@@ -30,45 +42,49 @@ const parsePdfBuffer = async (buffer) => {
 };
 
 const identifyPdf = (pdfText) => {
-    let pdfJson = {};
+    const pdfJson = {};
     let type;
     let documentNumber;
-    if (pdfText.length === 9 && pdfText[0].length === 79) {
-        documentNumber = pdfText[0][78].text;
+    if (pdfText.length === EXPORT_PAGE_COUNT && pdfText[0].length === EXPORT_FIRST_ROW_LENGTH) {
+        documentNumber = pdfText[0][EXPORT_DOC_INDEX].text;
         type = getType(documentNumber);
         if (pdfType.EXPORT_CERT === type) {
             pdfJson.documentNumber = documentNumber;
             pdfJson.type = type;
         }
-    } else if (pdfText.length === 4 && pdfText[0].length === 58) {
-        documentNumber = pdfText[0][54].text;
+    } else if (pdfText.length === PROCESSING_PAGE_COUNT && pdfText[0].length === PROCESSING_FIRST_ROW_LENGTH) {
+        documentNumber = pdfText[0][PROCESSING_DOC_INDEX].text;
         type = getType(documentNumber);
         if (pdfType.PROCESSING_STATEMENT === type) {
             pdfJson.documentNumber = documentNumber;
             pdfJson.type = type;
         }
-    } else if (pdfText.length === 5 && pdfText[0].length === 64) {
-        documentNumber = pdfText[0][60].text;
+    } else if (pdfText.length === STORAGE_PAGE_COUNT && pdfText[0].length === STORAGE_FIRST_ROW_LENGTH) {
+        documentNumber = pdfText[0][STORAGE_DOC_INDEX].text;
         type = getType(documentNumber);
         if (pdfType.STORAGE_NOTE === type) {
             pdfJson.documentNumber = documentNumber;
             pdfJson.type = type;
         }
+    } else {
+        // Unknown layout.
     }
     return pdfJson;
 };
 
 const getType = (documentNumber) => {
     let type;
-    if (documentNumber && documentNumber.length === 21) {
-        let parts = documentNumber.split('-');
-        if (parts && parts.length === 4 && parts[0] === 'GBR') {
+    if (documentNumber?.length === DOCUMENT_NUMBER_LENGTH) {
+        const parts = documentNumber.split('-');
+        if (parts?.length === DOCUMENT_PARTS_LENGTH && parts[0] === 'GBR') {
             if ('CM' === parts[2]) {
                 type = pdfType.EXPORT_CERT;
             } else if ('PM' === parts[2]) {
                 type = pdfType.PROCESSING_STATEMENT;
             } else if ('SM' === parts[2]) {
                 type = pdfType.STORAGE_NOTE;
+            } else {
+                // Unknown document subtype.
             }
         }
     }
@@ -77,8 +93,8 @@ const getType = (documentNumber) => {
 
 const extractPdfText = async (data) => {
     const pdfStream = new muhammara.PDFRStreamForBuffer(data);
-    let pdfReader = muhammara.createReader(pdfStream);
-    return await extractText(pdfReader);
+    const pdfReader = muhammara.createReader(pdfStream);
+    return extractText(pdfReader);
 };
 
 module.exports = {parsePdfBuffer, pdfType, extractPdfText, identifyPdf};

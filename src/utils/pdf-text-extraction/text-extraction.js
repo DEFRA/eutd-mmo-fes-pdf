@@ -4,6 +4,7 @@ const extractPlacements = require('./placements-extraction');
 const transformations = require('./transformations');
 const CollectionState = require('./collection-state');
 const FontDecoding = require('./font-decoding');
+/* eslint-disable id-match */
 
 // unique id provider for font decoding
 let uniqueId = 0;
@@ -65,11 +66,11 @@ function readResources(resourcesDicts,pdfReader,result) {
     result.fonts = fonts;
 }
 
-function Tc(charSpace,state) {
+function setCharSpace(charSpace,state) {
     state.currentTextState().charSpace = charSpace;
 }
 
-function Tw(wordSpace,state) {
+function setWordSpace(wordSpace,state) {
     state.currentTextState().wordSpace = wordSpace;
 }
 
@@ -82,24 +83,24 @@ function setTm(newM,state) {
     currentTextEnv.tlmDirty = true;
 }
 
-function Td(tx,ty,state) {
+function moveTextPosition(tx,ty,state) {
     setTm(transformations.multiplyMatrix([1,0,0,1,tx,ty],state.currentTextState().tlm),state);
 }
 
-function TL(leading,state) {
+function setTextLeading(leading,state) {
     state.currentTextState().leading = leading;
 }
 
-function TStar(state) {
+function moveToNextTextLine(state) {
     // there's an error in the book explanation
     // but we know better. leading goes below,
     // not up. this is further explicated by
     // the TD explanation
-    Td(0,-state.currentTextState().leading,state);
+    moveTextPosition(0,-state.currentTextState().leading,state);
 }
 
-function Quote(text,state,_placements) {
-    TStar(state);
+function showQuotedText(text,state) {
+    moveToNextTextLine(state);
     textPlacement({asEncodedText:text.value,asBytes:text.toBytesArray()},state);
 }
 
@@ -166,12 +167,12 @@ function collectPlacements(resources,placements,formsUsed) {
             // Text State Operators
             case 'Tc': {
                 param = operands.pop();
-                Tc(param.value,state);
+                setCharSpace(param.value,state);
                 break;
             }
             case 'Tw': {
                 param = operands.pop();
-                Tw(param.value,state);
+                setWordSpace(param.value,state);
                 break;
             }
             case 'Tz': {
@@ -181,7 +182,7 @@ function collectPlacements(resources,placements,formsUsed) {
             }
             case 'TL': {
                 param = operands.pop();
-                TL(param.value,state);
+                setTextLeading(param.value,state);
                 break;
             }     
             case 'Ts': {
@@ -216,14 +217,14 @@ function collectPlacements(resources,placements,formsUsed) {
             case 'Td': {
                 param2 = operands.pop();
                 param1 = operands.pop();
-                Td(param1.value,param2.value,state);
+                moveTextPosition(param1.value,param2.value,state);
                 break;
             }
             case 'TD': {
                 param2 = operands.pop();
                 param1 = operands.pop();
-                TL(-param2.value,state);
-                Td(param1.value,param2.value,state);
+                setTextLeading(-param2.value,state);
+                moveTextPosition(param1.value,param2.value,state);
                 break;
             }
             case 'Tm': {
@@ -231,28 +232,28 @@ function collectPlacements(resources,placements,formsUsed) {
                 break;
             }
             case 'T*': {
-                TStar(state);
+                moveToNextTextLine(state);
                 break;
             }
 
             // Text placement operators
             case 'Tj': {
                 param = operands.pop();
-                textPlacement({asEncodedText:param.value,asBytes:param.toBytesArray()},state,placements);
+                textPlacement({asEncodedText:param.value,asBytes:param.toBytesArray()},state);
                 break;
             }
             case '\'': {
                 param = operands.pop();
-                Quote(param,state,placements);
+                showQuotedText(param,state);
                 break;
             }
             case '"': {
                 const param3 = operands.pop();
                 param2 = operands.pop();
                 param1 = operands.pop();
-                 Tw(param1.value,state);
-                 Tc(param2.value,state);
-                 Quote(param3,state,placements);
+                 setWordSpace(param1.value,state);
+                 setCharSpace(param2.value,state);
+                 showQuotedText(param3,state);
                 break;
             }
             case 'TJ': {
@@ -263,7 +264,7 @@ function collectPlacements(resources,placements,formsUsed) {
                     } else {
                         return item.value;
                     }
-                }),state,placements);
+                }),state);
                 break;
             }
             default:

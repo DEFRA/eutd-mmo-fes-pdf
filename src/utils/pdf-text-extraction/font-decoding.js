@@ -124,6 +124,40 @@ function getFontDescriptorForDifferencesEncodingMap(font, pdfReader) {
     return font.exists('FontDescriptor') ? pdfReader.queryDictionaryObject(font,'FontDescriptor').toPDFDictionary():null
 }
 
+function getDefaultDifferencesEncoding(font, pdfReader) {
+    const fontDescriptor = getFontDescriptorForDifferencesEncodingMap(font, pdfReader);
+    if(!fontDescriptor) {
+        return _.extend({},StandardEncoding);
+    }
+
+    // check font descriptor to determine whether this is a symbolic font. if so, use symbol encoding. otherwise - standard
+    const flags = pdfReader.queryDictionaryObject(fontDescriptor,'Flags').value;
+    if(flags & (1<<2)) {
+        return _.extend({},SymbolEncoding);
+    }
+    return _.extend({},StandardEncoding);
+}
+
+function applyDifferencesToEncoding(pdfReader, encodingDict, newEncoding) {
+    if(!encodingDict.exists('Differences')) {
+        return;
+    }
+
+    const differences = pdfReader.queryDictionaryObject(encodingDict,('Differences')).toPDFArray().toJSArray();
+    let i=0;
+    while(i<differences.length) {
+        // first item is always a number
+        let firstIndex = differences[i].value;
+        ++i;
+        // now come names, one for each index
+        while(i<differences.length && differences[i].getType() === muhammara.ePDFObjectName) {
+            newEncoding[firstIndex] = differences[i].value;
+            ++i;
+            ++firstIndex;
+        }
+    }
+}
+
 function setupDifferencesEncodingMap(pdfReader,font, encodingDict) {
     // k. got ourselves differences array. let's see.
     let newEncoding = null;
@@ -138,39 +172,11 @@ function setupDifferencesEncodingMap(pdfReader,font, encodingDict) {
         // no base encoding. use standard or symbol. i'm gonna use either standard encoding or symbol encoding.
         // i know the right thing is to check first the font native encoding...but that's too much of a hassle
         // so i'll take the shortcut and if it is ever a problem - improve
-        const fontDescriptor = getFontDescriptorForDifferencesEncodingMap(font, pdfReader);
-        if(fontDescriptor) {
-            // check font descriptor to determine whether this is a symbolic font. if so, use symbol encoding. otherwise - standard
-            const flags = pdfReader.queryDictionaryObject(fontDescriptor,'Flags').value;
-            if(flags & (1<<2)) {
-                newEncoding = _.extend({},SymbolEncoding);
-            }
-            else {
-                newEncoding = _.extend({},StandardEncoding);
-            }
-        }
-        else {
-            // assume standard
-            newEncoding = _.extend({},StandardEncoding);
-        }
+        newEncoding = getDefaultDifferencesEncoding(font, pdfReader);
     }
 
     // now apply differences
-    if(encodingDict.exists('Differences')) {
-        const differences = pdfReader.queryDictionaryObject(encodingDict,('Differences')).toPDFArray().toJSArray();
-        let i=0;
-        while(i<differences.length) {
-            // first item is always a number
-            let firstIndex = differences[i].value;            
-            ++i;
-            // now come names, one for each index
-            while(i<differences.length && differences[i].getType() === muhammara.ePDFObjectName) {
-                newEncoding[firstIndex] = differences[i].value;
-                ++i;
-                ++firstIndex;
-            }
-        }
-    }
+    applyDifferencesToEncoding(pdfReader, encodingDict, newEncoding);
 
     return newEncoding;
 }
@@ -191,6 +197,29 @@ function parseSimpleFontEncoding(self,pdfReader,font, encoding) {
     }
 }
 
+function mapSpecifiedSimpleWidths(pdfReader, firstChar, lastChar, widths) {
+    const mappedWidths = {};
+    for(let i = firstChar; i<=lastChar && (i-firstChar) < widths.getLength();++i) {
+        mappedWidths[i] = pdfReader.queryArrayObject(widths,i-firstChar).value;
+    }
+    return mappedWidths;
+}
+
+function applyStandardBaseFontDimensions(self, pdfReader, font) {
+    if(!font.exists('BaseFont')) {
+        return;
+    }
+
+    // wtf. probably one of the standard fonts. aha! [will also take care of ascent descent]
+    const name = pdfReader.queryDictionaryObject(font,'BaseFont').value;
+    const standardDimensions = StandardFontsDimensions[name] || StandardFontsDimensions[name.replaceAll('-','−')]; // seriously...WTF
+    if(standardDimensions) {
+        self.descent = standardDimensions.descent;
+        self.ascent = standardDimensions.ascent;
+        self.widths = _.extend({},standardDimensions.widths);
+    }
+}
+
 function parseSimpleFontDimensions(self,pdfReader,font) {
     // read specified widths
     if(font.exists('FirstChar') && font.exists('LastChar') && font.exists('Widths')) {
@@ -198,39 +227,57 @@ function parseSimpleFontDimensions(self,pdfReader,font) {
         const lastChar = pdfReader.queryDictionaryObject(font,'LastChar').value;
         const widths = pdfReader.queryDictionaryObject(font,'Widths').toPDFArray();
 
-        // store widths for specified glyphs
-        self.widths = {};
-        for(let i = firstChar; i<=lastChar && (i-firstChar) < widths.getLength();++i) {
-            self.widths[i] = pdfReader.queryArrayObject(widths,i-firstChar).value;
-        }
+        self.widths = mapSpecifiedSimpleWidths(pdfReader, firstChar, lastChar, widths);
     }
-    else if(font.exists('BaseFont')) {
-        // wtf. probably one of the standard fonts. aha! [will also take care of ascent descent]
-        const name = pdfReader.queryDictionaryObject(font,'BaseFont').value;
-        const standardDimensions = StandardFontsDimensions[name] || StandardFontsDimensions[name.replaceAll('-','−')]; // seriously...WTF
-        if(standardDimensions) {
-            self.descent = standardDimensions.descent;
-            self.ascent = standardDimensions.ascent;
-            self.widths = _.extend({},standardDimensions.widths);
-        }
-    } else {
-        // no BaseFont information available
-    }
-    
-
-    if(!font.exists('FontDescriptor')) {
-        return;
+    else {
+        applyStandardBaseFontDimensions(self, pdfReader, font);
     }
 
-    // complete info with font descriptor
-    const fontDescriptor = pdfReader.queryDictionaryObject(font,'FontDescriptor');
-    self.descent = pdfReader.queryDictionaryObject(fontDescriptor,'Descent').value;
-    self.ascent = pdfReader.queryDictionaryObject(fontDescriptor,'Ascent').value;
-    self.defaultWidth = fontDescriptor.exists('MissingWidth') ? pdfReader.queryDictionaryObject(fontDescriptor,'MissingWidth').value:0;
+    if(font.exists('FontDescriptor')) {
+        // complete info with font descriptor
+        const fontDescriptor = pdfReader.queryDictionaryObject(font,'FontDescriptor');
+        self.descent = pdfReader.queryDictionaryObject(fontDescriptor,'Descent').value;
+        self.ascent = pdfReader.queryDictionaryObject(fontDescriptor,'Ascent').value;
+        self.defaultWidth = fontDescriptor.exists('MissingWidth') ? pdfReader.queryDictionaryObject(fontDescriptor,'MissingWidth').value:0;
+    }
 }
 
 function getDefaultWidthForParseCIDFontDimensions(descendentFont, pdfReader) {
     return descendentFont.exists('DW') ? pdfReader.queryDictionaryObject(descendentFont,'DW').value : 1000;
+}
+
+function addArrayWidths(widthMap, cFirst, anArray) {
+    for(let j=0;j<anArray.length;++j) {
+        widthMap[cFirst+j] = anArray[j];
+    }
+}
+
+function addRangeWidths(widthMap, cFirst, cLast, width) {
+    for(let w=cFirst;w<=cLast;++w) {
+        widthMap[w] = width;
+    }
+}
+
+function applyCIDWidths(widthMap, widths) {
+    let i=0;
+    while(i<widths.length) {
+        const cFirst = widths[i].value;
+        ++i;
+        if(widths[i].getType() === muhammara.ePDFObjectArray) {
+            const anArray = widths[i].toPDFArray().toJSArray();
+            ++i;
+            // specified widths
+            addArrayWidths(widthMap, cFirst, anArray);
+        }
+        else {
+            // same width for range
+            const cLast = widths[i].value;
+            ++i;
+            const width = widths[i].value;
+            ++i;
+            addRangeWidths(widthMap, cFirst, cLast, width);
+        }
+    }
 }
 
 function parseCIDFontDimensions(self, pdfReader,font) {
@@ -242,30 +289,7 @@ function parseCIDFontDimensions(self, pdfReader,font) {
     self.widths = {};
     if(descendentFont.exists('W')) {
         const widths = pdfReader.queryDictionaryObject(descendentFont,'W').toPDFArray().toJSArray();
-
-        let i=0;
-        while(i<widths.length) {
-            const cFirst = widths[i].value;
-            ++i;
-            if(widths[i].getType() === muhammara.ePDFObjectArray) {
-                const anArray = widths[i].toPDFArray().toJSArray();
-                ++i;
-                // specified widths
-                for(let j=0;j<anArray.length;++j) {
-                    self.widths[cFirst+j] = anArray[j];
-                }
-            }
-            else {
-                // same width for range
-                const cLast = widths[i].value;
-                ++i;
-                const width = widths[i].value;
-                ++i;
-                for(let w=cFirst;w<=cLast;++w) {
-                    self.widths[w] = width;
-                }
-            }
-        }
+        applyCIDWidths(self.widths, widths);
     }
 
     // complete info with font descriptor
@@ -344,50 +368,54 @@ function defaultEncoding(bytes) {
     return String.fromCodePoint(...bytes);
 }
 
-
-// eslint-disable-next-line id-match
-function FontDecoding(pdfReader,fontObject) {
-    parseFontData(this,pdfReader,fontObject);
+function getGlyphWidth(widths,defaultWidth,code) {
+    return ((widths?.[code]) || defaultWidth || 0) / 1000;
 }
 
-FontDecoding.prototype.translate = function(encodedBytes) {
-    if(this.hasToUnicode) {
-        return {result:toUnicodeEncoding(this.toUnicodeMap,encodedBytes),method:'toUnicode'};
+class FontDecoding {
+    constructor(pdfReader,fontObject) {
+        parseFontData(this,pdfReader,fontObject);
     }
-    else if(this.hasSimpleEncoding) {
-        return {result:toSimpleEncoding(this.fromSimpleEncodingMap,encodedBytes),method:'simpleEncoding'};
-    }
-    else {
-        return {result:defaultEncoding(encodedBytes),method:'default'};
-    }
-}
 
-FontDecoding.prototype.iterateTextDisplacements = function(encodedBytes,iterator) {
-    if(this.isSimpleFont) {
-        // one code per call
-        encodedBytes.forEach((c)=>{
-            iterator(((this.widths && this.widths[c]) || this.defaultWidth || 0) / 1000,c);
-        });
+    translate(encodedBytes) {
+        if(this.hasToUnicode) {
+            return {result:toUnicodeEncoding(this.toUnicodeMap,encodedBytes),method:'toUnicode'};
+        }
+        else if(this.hasSimpleEncoding) {
+            return {result:toSimpleEncoding(this.fromSimpleEncodingMap,encodedBytes),method:'simpleEncoding'};
+        }
+        else {
+            return {result:defaultEncoding(encodedBytes),method:'default'};
+        }
     }
-    else if(this.hasToUnicode){
-        // determine code per toUnicode (should be cmap, but i aint parsing it now, so toUnicode will do).
-        // assuming horizontal writing mode
-        let i=0;
-        while(i<encodedBytes.length) {
-            let code = encodedBytes[i];
-            i+=1;
-            while(i<encodedBytes.length && (this.toUnicodeMap[code] === undefined)) {
-                code = code*256 + encodedBytes[i];
+
+    iterateTextDisplacements(encodedBytes,iterator) {
+        if(this.isSimpleFont) {
+            // one code per call
+            encodedBytes.forEach((c)=>{
+                iterator(getGlyphWidth(this.widths,this.defaultWidth,c),c);
+            });
+        }
+        else if(this.hasToUnicode){
+            // determine code per toUnicode (should be cmap, but i aint parsing it now, so toUnicode will do).
+            // assuming horizontal writing mode
+            let i=0;
+            while(i<encodedBytes.length) {
+                let code = encodedBytes[i];
                 i+=1;
+                while(i<encodedBytes.length && (this.toUnicodeMap[code] === undefined)) {
+                    code = code*256 + encodedBytes[i];
+                    i+=1;
+                }
+                iterator(getGlyphWidth(this.widths,this.defaultWidth,code),code);
             }
-            iterator(((this.widths && this.widths[code]) || this.defaultWidth || 0) / 1000,code);
-        }        
-    }
-    else {
-        // default to 2 bytes. though i shuld be reading the cmap. and so also get the writing mode
-        for(let j=0;j<encodedBytes.length;j+=2) {
-            const codeNew = encodedBytes[0]*256 + encodedBytes[1];
-            iterator(((this.widths && this.widths[codeNew]) || this.defaultWidth || 0) / 1000,codeNew);
+        }
+        else {
+            // default to 2 bytes. though i shuld be reading the cmap. and so also get the writing mode
+            for(let j=0;j<encodedBytes.length;j+=2) {
+                const codeNew = encodedBytes[0]*256 + encodedBytes[1];
+                iterator(getGlyphWidth(this.widths,this.defaultWidth,codeNew),codeNew);
+            }
         }
     }
 }
