@@ -14,7 +14,7 @@ function readResources(resourcesDicts,pdfReader,result) {
 
     if(resourcesDicts.exists('ExtGState')) {
         const extGStatesEntry = resourcesDicts.queryDictionaryObject('ExtGState',pdfReader);
-        if(!!extGStatesEntry) {
+        if(extGStatesEntry) {
             const extGStatesJS = extGStatesEntry.toPDFDictionary().toJSObject();
             _.forOwn(extGStatesJS,(extGState,extGStateName)=>{
                 if(extGState.getType() === muhammara.ePDFObjectIndirectObjectReference) {
@@ -24,7 +24,7 @@ function readResources(resourcesDicts,pdfReader,result) {
                     extGState = extGState.toPDFDictionary();
                 }
 
-                if(!!extGState) {
+                if(extGState) {
                     const item = {
                         theObject: extGState
                     };
@@ -45,7 +45,7 @@ function readResources(resourcesDicts,pdfReader,result) {
 
     if(resourcesDicts.exists('Font')) {
         const fontsEntry = resourcesDicts.queryDictionaryObject('Font',pdfReader);
-        if(!!fontsEntry) {
+        if(fontsEntry) {
             const fontsJS = fontsEntry.toPDFDictionary().toJSObject();
             _.forOwn(fontsJS,(fontReference,fontName)=>{
                 let font;
@@ -141,7 +141,7 @@ function collectPlacements(resources,placements,formsUsed) {
                 const gstateName = operands.pop();
                 if(resources.extGStates[gstateName.value]) {
                     if(resources.extGStates[gstateName.value].font)
-                        state.currentTextState().text.font = _.extend({},resources.extGStates[gstateName.value].font);
+                        {state.currentTextState().text.font = _.extend({},resources.extGStates[gstateName.value].font);}
                 }
                 break;
             }
@@ -260,9 +260,9 @@ function collectPlacements(resources,placements,formsUsed) {
                 const params = operands.pop().toPDFArray().toJSArray();
                 textPlacement(_.map(params,(item)=>{
                     if(item.getType() === muhammara.ePDFObjectLiteralString || item.getType() === muhammara.ePDFObjectHexString) 
-                        return {asEncodedText:item.value,asBytes:item.toBytesArray()};
+                        {return {asEncodedText:item.value,asBytes:item.toBytesArray()};}
                     else
-                        return item.value;
+                        {return item.value;}
                 }),state,placements);
                 break;
             }
@@ -291,9 +291,9 @@ function translateText(pdfReader,textItem,state,item) {
 
 function translatePlacements(state,pdfReader,placements) {
     // iterate the placements, getting the texts and translating them
-    placements.forEach((placement,index)=> {
+    placements.forEach((placement,_index)=> {
         if(placement.type === 'text') {
-            placement.text.forEach((item,indexItem)=> {
+            placement.text.forEach((item,_indexItem)=> {
                 if(_.isArray(item.text)) {
                     // TJ case
                     
@@ -310,12 +310,12 @@ function translatePlacements(state,pdfReader,placements) {
                         if(textItem.asBytes) {
                             return {
                                 asBytes: result.asBytes.concat(textItem.asBytes),
-                                asText: result.asText.concat(textItem.asText.length == 0 ? ' ':textItem.asText),
+                                asText: result.asText.concat(textItem.asText.length === 0 ? ' ':textItem.asText),
                                 translationMethod: textItem.translationMethod
                             }
                         }
                         else
-                            return result;
+                            {return result;}
                     },{asBytes:[],asText:'',translationMethod:null});
                 }
                 else {
@@ -330,12 +330,12 @@ function translatePlacements(state,pdfReader,placements) {
 
 function translate(state,pdfReader,pagesPlacements,formsPlacements) {
     pagesPlacements.forEach(
-        (placements,index)=>{
+        (placements,_index)=>{
             translatePlacements(state,pdfReader,placements)
         }
     );
     _.forOwn(formsPlacements,
-        (placements,objectId)=>{
+        (placements,_objectId)=>{
             translatePlacements(state,pdfReader,placements)
         }
     );
@@ -355,7 +355,7 @@ function computePlacementsDimensions(state, pdfReader, placements) {
             placement.text.forEach((item)=> {
                 // if matrix is not dirty (no matrix changing operators were running betwee items), replace with computed matrix of the previous round.
                 if(!item.textState.tmDirty && nextPlacementDefaultTm)
-                    item.textState.tm = nextPlacementDefaultTm.slice();
+                    {item.textState.tm = nextPlacementDefaultTm.slice();}
 
                 // Compute matrix and placement after this text
                 const decoder = fetchFontDecoder(item, pdfReader, state);
@@ -374,7 +374,7 @@ function computePlacementsDimensions(state, pdfReader, placements) {
 
 function computeDimensions(state,pdfReader,pagesPlacements,formsPlacements) {
     pagesPlacements.forEach((placements)=>{computePlacementsDimensions(state,pdfReader,placements)});
-    _.forOwn(formsPlacements,(placements,objectId)=>{computePlacementsDimensions(state,pdfReader,placements)});
+    _.forOwn(formsPlacements,(placements,_objectId)=>{computePlacementsDimensions(state,pdfReader,placements)});
 
     return {
         pagesPlacements,
@@ -400,7 +400,7 @@ function resolveFormPlacements(objectPlacements,formsPlacements,resolvedForms) {
             const newPlacements = [i,1];
             resolvedFormPlacements.forEach((formTextPlacement)=> {
                 // all of them have to be text placements now, cause it's resolved
-                const clonedPlacemet = _.cloneDeep(formTextPlacement);
+                const clonedPlacemet = structuredClone(formTextPlacement);
                 // multiply with this placement CTM, and insert at this point
                 clonedPlacemet.text.forEach((tp)=> {
                     const formMatrix = placement.matrix ? transformations.multiplyMatrix(placement.matrix,placement.ctm):placement.ctm;
@@ -409,7 +409,7 @@ function resolveFormPlacements(objectPlacements,formsPlacements,resolvedForms) {
                 newPlacements.push(clonedPlacemet);
             });
             // replace xobject placement with new text placements
-            objectPlacements.splice.apply(objectPlacements,newPlacements);
+            objectPlacements.splice(...newPlacements);
         }
     }
     return objectPlacements;
@@ -440,9 +440,9 @@ function flattenPlacements(pagesPlacements) {
     });
 }
 
-const getMinPlacement = (accumulatedDisplacement, minPlacement) => {return accumulatedDisplacement < minPlacement ? accumulatedDisplacement : minPlacement;}
+const getMinPlacement = (accumulatedDisplacement, minPlacement) => {return Math.min(accumulatedDisplacement, minPlacement);}
 
-const getMaxPlacement = (accumulatedDisplacement, maxPlacement) => {return accumulatedDisplacement > maxPlacement ? accumulatedDisplacement : maxPlacement;}
+const getMaxPlacement = (accumulatedDisplacement, maxPlacement) => {return Math.max(accumulatedDisplacement, maxPlacement);}
 
 const getPlacementData = (item, decoder) => {
     let accumulatedDisplacement = 0;
