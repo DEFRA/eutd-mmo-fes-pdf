@@ -60,26 +60,30 @@ function parseOnOffValue(fieldDictionary) {
 }
 
 function parseRadioButtonValue(pdfParser,fieldDictionary) {
-    if(fieldDictionary.exists('V') && fieldDictionary?.queryObject('V')?.toString() !== 'Off' && fieldDictionary?.queryObject('V')?.toString() !== '') {
-        let result = true; // using true cause sometimes these are actually checkboxes, and there's no underlying kids
-        // for radio button this would be an appearance name of a radio button that's turned on. we wanna look for it
-        if(fieldDictionary.exists('Kids')) {
-            const kidsArray = pdfParser.queryDictionaryObject(fieldDictionary,'Kids').toPDFArray();
-            for(let i=0;i<kidsArray.getLength();++i) {
-                const widgetDictionary = pdfParser.queryArrayObject(kidsArray,i).toPDFDictionary();
-                // use the dictionary Ap/N dictionary for looking up the appearance stream name
-                const apDictionary = pdfParser.queryDictionaryObject(widgetDictionary,'AP').toPDFDictionary();
-                const nAppearances = pdfParser.queryDictionaryObject(apDictionary,'N').toPDFDictionary();
-                if(nAppearances.exists(fieldDictionary?.queryObject('V')?.toString())) {
-                    // Found!
-                    result = i; // save the selected index as value
-                    break;
-                }
+    if(!fieldDictionary.exists('V')) {
+        return null;
+    }
+    const selectedValue = fieldDictionary.queryObject('V').toString();
+    if(selectedValue === 'Off' || selectedValue === '') {
+        return null;
+    }
+    let result = true; // using true cause sometimes these are actually checkboxes, and there's no underlying kids
+    // for radio button this would be an appearance name of a radio button that's turned on. we wanna look for it
+    if(fieldDictionary.exists('Kids')) {
+        const kidsArray = pdfParser.queryDictionaryObject(fieldDictionary,'Kids').toPDFArray();
+        for(let i=0;i<kidsArray.getLength();++i) {
+            const widgetDictionary = pdfParser.queryArrayObject(kidsArray,i).toPDFDictionary();
+            // use the dictionary Ap/N dictionary for looking up the appearance stream name
+            const apDictionary = pdfParser.queryDictionaryObject(widgetDictionary,'AP').toPDFDictionary();
+            const nAppearances = pdfParser.queryDictionaryObject(apDictionary,'N').toPDFDictionary();
+            if(nAppearances.exists(selectedValue)) {
+                // Found!
+                result = i; // save the selected index as value
+                break;
             }
         }
-        return result;
     }
-    return null;
+    return result;
 }
 
 function parseTextFieldValue(pdfParser, fieldDictionary,fieldName) {
@@ -129,82 +133,74 @@ function parseChoiceValue(pdfParser, fieldDictionary) {
     }
 }
 
+function parseBtnField(result, pdfParser, fieldDictionary, flags) {
+    if((flags>>16) & 1) {
+        // push button
+        result['type'] = 'button';
+        // no value
+    } else if((flags>>15) & 1) {
+        // radio button
+        result['type'] = 'radio';
+        result['value'] = parseRadioButtonValue(pdfParser,fieldDictionary);
+    } else {
+        // checkbox
+        result['type'] = 'checkbox';
+        result['value'] = parseOnOffValue(fieldDictionary);
+    }
+}
+
+function parseTxField(result, pdfParser, fieldDictionary, flags) {
+    result['isFileSelect'] = !!(flags>>20 & 1);
+    if((flags>>25) & 1) {
+        result['type'] = 'richtext';
+        // rich text, value in 'RV'
+        result['value'] = parseTextFieldValue(pdfParser, fieldDictionary,'RV');
+        result['plainValue'] = parseTextFieldValue(pdfParser, fieldDictionary,'V');
+    } else {
+        result['type'] = 'plaintext';
+        result['value'] = parseTextFieldValue(pdfParser, fieldDictionary,'V');
+    }
+}
+
 function parseFieldsValueData(result,pdfParser,fieldDictionary,flags, inheritedProperties) {
     const localFieldType = fieldDictionary.exists('FT') ? fieldDictionary.queryObject('FT').toString():undefined;
     const fieldType = localFieldType || inheritedProperties['FT'];
 
     if(!fieldType) {
-        return null; // k. must be a widget
+        return; // k. must be a widget
     }
 
     switch(fieldType) {
-        case 'Btn': {
-            if((flags>>16) & 1)
-            {
-                // push button
-                result['type'] = 'button';
-                // no value
-            }
-            else if((flags>>15) & 1)
-            {
-                // radio button
-                result['type'] = 'radio';
-                result['value'] = parseRadioButtonValue(pdfParser,fieldDictionary);
-            }
-            else
-            {
-                // checkbox
-                result['type'] = 'checkbox';
-                result['value'] = parseOnOffValue(fieldDictionary);
-            }
-            break;
-        }
-        case 'Tx': {
-            result['isFileSelect'] = !!(flags>>20 & 1);
-            if((flags>>25) & 1) {
-                result['type'] = 'richtext';
-                // rich text, value in 'RV'
-                result['value'] = parseTextFieldValue(pdfParser, fieldDictionary,'RV');
-                result['plainValue'] = parseTextFieldValue(pdfParser, fieldDictionary,'V');
-            } else {
-                result['type'] = 'plaintext';
-                result['value'] = parseTextFieldValue(pdfParser, fieldDictionary,'V');
-            }
-
-            break;
-        }
-        case 'Ch': {
-            result['type'] = 'choice';
-            result['value'] = parseChoiceValue(pdfParser, fieldDictionary);
-
-            break;
-        }
-        case 'Sig': {
-            result['type'] = 'signature';
-            break;
-        }
-        default:
-            break;
+        case 'Btn': parseBtnField(result, pdfParser, fieldDictionary, flags); break;
+        case 'Tx': parseTxField(result, pdfParser, fieldDictionary, flags); break;
+        case 'Ch': result['type'] = 'choice'; result['value'] = parseChoiceValue(pdfParser, fieldDictionary); break;
+        case 'Sig': result['type'] = 'signature'; break;
+        default: break;
     }
+}
+
+function isWidgetAnnotation(fieldDictionary, localFieldNameT) {
+    return localFieldNameT === undefined &&
+        !fieldDictionary.exists('Kids') &&
+        fieldDictionary.exists('Subtype') &&
+        fieldDictionary.queryObject('Subtype').toString() === 'Widget';
+}
+
+function normalizeFlags(fieldDictionary, inheritedProperties) {
+    const localFlags = fieldDictionary.exists('Ff') ? fieldDictionary.queryObject('Ff').toNumber() : undefined;
+    const flags = localFlags === undefined ? inheritedProperties['Ff'] : localFlags;
+    return (flags === undefined || flags === null) ? 0 : flags;
 }
 
 function parseField(pdfParser,fieldDictionary,inheritedProperties,baseFieldName) {
     const localFieldNameT = fieldDictionary.exists('T') ? toText(fieldDictionary.queryObject('T')):undefined;
     const localFieldNameTU = fieldDictionary.exists('TU') ? toText(fieldDictionary.queryObject('TU')):undefined;
     const localFieldNameTM = fieldDictionary.exists('TM') ? toText(fieldDictionary.queryObject('TM')):undefined;
-    const localFlags = fieldDictionary.exists('Ff') ? fieldDictionary.queryObject('Ff').toNumber():undefined;
-    let flags = localFlags === undefined ? inheritedProperties['Ff'] : localFlags;
+    const flags = normalizeFlags(fieldDictionary, inheritedProperties);
 
     // i'm gonna assume that if there's no T and no kids, this is a widget annotation WHICH IS NOT a field and i'm out of here
-    if(localFieldNameT === undefined &&
-        !fieldDictionary.exists('Kids') &&
-        fieldDictionary.exists('Subtype') &&
-        fieldDictionary.queryObject('Subtype').toString() === 'Widget') {
+    if(isWidgetAnnotation(fieldDictionary, localFieldNameT)) {
         return null;
-    }
-
-    if(flags === undefined || flags === null) {
-        flags = 0;
     }
 
     const result = {
