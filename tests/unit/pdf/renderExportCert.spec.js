@@ -1,10 +1,10 @@
 const { renderPdf } = require('../../../src/pdf/pdfRenderer');
 const { pdfType } = require('../../../src/pdf/pdfRenderer');
 
-const { PassThrough } = require('stream');
+const { PassThrough } = require('node:stream');
 const mockedStream = new PassThrough();
 
-mockedStream.on('data', (d) => {
+mockedStream.on('data', (_d) => {
 });
 
 mockedStream.on('end', function() {
@@ -14,17 +14,58 @@ mockedStream.emit('data', 'hello world');
 mockedStream.end();
 mockedStream.destroy();
 
+const MOCK_CONTAINER_ID = '527fb0dd-b1d7-46c8-bfed-e06b373d041c';
+const MOCK_BLOB_NAME = '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf';
+const MOCK_QR_URI = 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf';
+const EXPORT_CERT_DOC_NUMBER = 'GBR-2018-CC-1C89DE54F';
+const LANDING_ID = 'ce1fe347-2825-4152-884b-e8bad5ccde61';
+const VESSEL_NAME_GOLDEN_BELLS = 'GOLDEN BELLS 11';
+const VESSEL_LABEL_GOLDEN_BELLS = 'GOLDEN BELLS 11 (B192)';
+const DATE_LANDED_26 = '2019-01-26T00:00:00.000Z';
+const DATE_LANDED_25 = '2019-01-25T00:00:00.000Z';
+const DATE_LANDED_24 = '2019-01-24T00:00:00.000Z';
+const LICENCE_VALID_TO = '2030-12-31T00:00:00';
+const EXPORTER_FULL_NAME = 'Jim Jessop';
+const EXPORTER_COMPANY = 'FishByMail Ltd';
+const EXPORTER_ADDRESS_ONE = '77 Coast Road';
+const CONSERVATION_REFERENCE = 'Common fisheries policy';
+const TEST_USER_ID = 'a9602f38-f220-475a-991f-a19626bc51ae';
+const FISH1_SPECIES_LABEL = 'FISH1 (FISH1)';
+const FISH2_SPECIES_LABEL = 'FISH2 (FISH2)';
+const FISH3_SPECIES_LABEL = 'FISH3 (FISH3)';
+const PS_ALBACORE_DESCRIPTION = 'Fresh or chilled albacore';
+const PS_PRODUCT_ID = 'GBR-2020-PS-3CA09BE17-';
+const PS_SPECIES_COD = 'Atlantic Cod';
+const PS_CATCH_CERT_NUMBER = 'GBR-2019-PS-3EF51C999';
+const PS_HEALTH_CERT_DATE = '31/03/2018';
+const PS_PLANT_ADDRESS_ONE = 'Trevol Business Park';
+const PS_DATE_OF_ACCEPTANCE = '30/01/2019';
+const PS_PLANT_NAME = 'Iceberg Ltd';
+const PS_DOC_NUMBER = 'GBR-2019-PS-3EF51C6D8';
+const PS_RESPONSIBLE_PERSON = 'Sarah Johnson';
+const CAVIAR_DESCRIPTION = 'Caviar substitutes';
+const LONG_CERT_NUMBER_WIDTH = 9;
+const CATCH_WEIGHT_FACTOR = 9;
+const SHORT_CERT_NUMBER_WIDTH = 3;
+const PRODUCT_2_CATCH_COUNT = 7;
+const PRODUCT_3_CATCH_COUNT = 3;
+const P1_TOTAL_WEIGHT_BASE = 20;
+const P1_BEFORE_PROC_WEIGHT_BASE = 18;
+const P2_TOTAL_WEIGHT_BASE = 30;
+const P2_BEFORE_PROC_WEIGHT_BASE = 28;
+const P2_AFTER_PROC_WEIGHT_BASE = 26;
+
 describe('pdfServiceExportCert: should run with no errors', () => {
   test('render multischedule pdf', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-      blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+      container: MOCK_CONTAINER_ID,
+      blobName: MOCK_BLOB_NAME,
+      uri: MOCK_BLOB_NAME,
+      qrUri: MOCK_QR_URI
     }
 
     const data = {
-      documentNumber: "GBR-2018-CC-1C89DE54F",
+      documentNumber: EXPORT_CERT_DOC_NUMBER,
       exportPayload: {
         items: [
             {
@@ -40,7 +81,7 @@ describe('pdfServiceExportCert: should run with no errors', () => {
                     },
                     species: {
                         "code": "FISH1",
-                        "label": "FISH1 (FISH1)"
+                        "label": FISH1_SPECIES_LABEL
                     }
                 },
                 landings: [
@@ -48,15 +89,15 @@ describe('pdfServiceExportCert: should run with no errors', () => {
                         addMode: false,
                         editMode: false,
                         model: {
-                            id: "ce1fe347-2825-4152-884b-e8bad5ccde61",
+                            id: LANDING_ID,
                             vessel: {
                                 pln: "B192",
-                                vesselName: "GOLDEN BELLS 11",
+                                vesselName: VESSEL_NAME_GOLDEN_BELLS,
                                 homePort: "ARDGLASS",
                                 registrationNumber: "A12186",
-                                label: "GOLDEN BELLS 11 (B192)"
+                                label: VESSEL_LABEL_GOLDEN_BELLS
                             },
-                            dateLanded: "2019-01-26T00:00:00.000Z",
+                            dateLanded: DATE_LANDED_26,
                             exportWeight: "10"
                         }
                     },
@@ -64,15 +105,15 @@ describe('pdfServiceExportCert: should run with no errors', () => {
                         addMode: false,
                         editMode: false,
                         model: {
-                            id: "ce1fe347-2825-4152-884b-e8bad5ccde61",
+                            id: LANDING_ID,
                             vessel: {
                                 pln: "B192",
-                                vesselName: "GOLDEN BELLS 11",
+                                vesselName: VESSEL_NAME_GOLDEN_BELLS,
                                 homePort: "ARDGLASS",
                                 registrationNumber: "A12186",
-                                label: "GOLDEN BELLS 11 (B192)"
+                                label: VESSEL_LABEL_GOLDEN_BELLS
                             },
-                            dateLanded: "2019-01-26T00:00:00.000Z",
+                            dateLanded: DATE_LANDED_26,
                             exportWeight: "10"
                         }
                     }
@@ -91,7 +132,7 @@ describe('pdfServiceExportCert: should run with no errors', () => {
                     },
                     species: {
                         "code": "FISH2",
-                        "label": "FISH2 (FISH2)"
+                        "label": FISH2_SPECIES_LABEL
                     }
                 },
                 landings: [
@@ -99,17 +140,17 @@ describe('pdfServiceExportCert: should run with no errors', () => {
                         addMode: false,
                         editMode: false,
                         model: {
-                            id: "ce1fe347-2825-4152-884b-e8bad5ccde61",
+                            id: LANDING_ID,
                             vessel: {
                                 pln: "B192",
-                                vesselName: "GOLDEN BELLS 11",
+                                vesselName: VESSEL_NAME_GOLDEN_BELLS,
                                 homePort: "ARDGLASS",
                                 registrationNumber: "A12186",
                                 licenceNumber: "10106",
-                                label: "GOLDEN BELLS 11 (B192)",
-                                licenceValidTo: "2030-12-31T00:00:00"
+                                label: VESSEL_LABEL_GOLDEN_BELLS,
+                                licenceValidTo: LICENCE_VALID_TO
                             },
-                            dateLanded: "2019-01-25T00:00:00.000Z",
+                            dateLanded: DATE_LANDED_25,
                             exportWeight: "20"
                         }
                     }
@@ -128,7 +169,7 @@ describe('pdfServiceExportCert: should run with no errors', () => {
                     },
                     species: {
                         "code": "FISH3",
-                        "label": "FISH3 (FISH3)"
+                        "label": FISH3_SPECIES_LABEL
                     }
                 },
                 landings: [
@@ -136,16 +177,16 @@ describe('pdfServiceExportCert: should run with no errors', () => {
                         addMode: false,
                         editMode: false,
                         model: {
-                            id: "ce1fe347-2825-4152-884b-e8bad5ccde61",
+                            id: LANDING_ID,
                             vessel: {
                                 pln: "B192",
-                                vesselName: "GOLDEN BELLS 11",
+                                vesselName: VESSEL_NAME_GOLDEN_BELLS,
                                 homePort: "ARDGLASS",
                                 registrationNumber: "A12186",
                                 licenceNumber: "10106",
-                                label: "GOLDEN BELLS 11 (B192)"
+                                label: VESSEL_LABEL_GOLDEN_BELLS
                             },
-                            dateLanded: "2019-01-24T00:00:00.000Z",
+                            dateLanded: DATE_LANDED_24,
                             exportWeight: "30",
                             faoArea: "FAO27"
                         }
@@ -154,7 +195,7 @@ describe('pdfServiceExportCert: should run with no errors', () => {
                       addMode: false,
                       editMode: false,
                       model: {
-                          id: "ce1fe347-2825-4152-884b-e8bad5ccde61",
+                          id: LANDING_ID,
                           vessel: {
                               pln: "H1100",
                               vesselName: "WIRON 5",
@@ -163,7 +204,7 @@ describe('pdfServiceExportCert: should run with no errors', () => {
                               licenceNumber: "12480",
                               label: "WIRON 5 (H1100)"
                           },
-                          dateLanded: "2019-01-24T00:00:00.000Z",
+                          dateLanded: DATE_LANDED_24,
                           exportWeight: "30",
                           faoArea: "FAO27"
                       }
@@ -173,9 +214,9 @@ describe('pdfServiceExportCert: should run with no errors', () => {
         ]
       },
       exporter: {
-        exporterFullName: 'Jim Jessop',
-        exporterCompanyName: 'FishByMail Ltd',
-        addressOne: '77 Coast Road',
+        exporterFullName: EXPORTER_FULL_NAME,
+        exporterCompanyName: EXPORTER_COMPANY,
+        addressOne: EXPORTER_ADDRESS_ONE,
         addressTwo: '',
         townCity: 'Jarrow',
         postcode: 'NE31 1YW',
@@ -189,7 +230,7 @@ describe('pdfServiceExportCert: should run with no errors', () => {
         }
       },
       conservation: {
-        conservationReference: 'Common fisheries policy'
+        conservationReference: CONSERVATION_REFERENCE
       },
     };
 
@@ -198,18 +239,18 @@ describe('pdfServiceExportCert: should run with no errors', () => {
 
   test('render transport pdf: TRUCK', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-      blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+      container: MOCK_CONTAINER_ID,
+      blobName: MOCK_BLOB_NAME,
+      uri: MOCK_BLOB_NAME,
+      qrUri: MOCK_QR_URI
     }
 
     const data = {
-      documentNumber: "GBR-2018-CC-1C89DE54F",
+      documentNumber: EXPORT_CERT_DOC_NUMBER,
       exporter: {
-        exporterFullName: 'Jim Jessop',
-        exporterCompanyName: 'FishByMail Ltd',
-        addressOne: '77 Coast Road',
+        exporterFullName: EXPORTER_FULL_NAME,
+        exporterCompanyName: EXPORTER_COMPANY,
+        addressOne: EXPORTER_ADDRESS_ONE,
         addressTwo: '',
         townCity: 'Jarrow',
         postcode: 'NE31 1YW',
@@ -229,7 +270,7 @@ describe('pdfServiceExportCert: should run with no errors', () => {
                     },
                     species: {
                         "code": "FISH1",
-                        "label": "FISH1 (FISH1)"
+                        "label": FISH1_SPECIES_LABEL
                     }
                 },
                 landings: [
@@ -237,16 +278,16 @@ describe('pdfServiceExportCert: should run with no errors', () => {
                         addMode: false,
                         editMode: false,
                         model: {
-                            id: "ce1fe347-2825-4152-884b-e8bad5ccde61",
+                            id: LANDING_ID,
                             vessel: {
                                 pln: "B192",
-                                vesselName: "GOLDEN BELLS 11",
+                                vesselName: VESSEL_NAME_GOLDEN_BELLS,
                                 homePort: "ARDGLASS",
                                 registrationNumber: "A12186",
                                 licenceNumber: "10106",
-                                label: "GOLDEN BELLS 11 (B192)"
+                                label: VESSEL_LABEL_GOLDEN_BELLS
                             },
-                            dateLanded: "2019-01-26T00:00:00.000Z",
+                            dateLanded: DATE_LANDED_26,
                             exportWeight: "10"
                         }
                     }
@@ -265,7 +306,7 @@ describe('pdfServiceExportCert: should run with no errors', () => {
                     },
                     species: {
                         "code": "FISH2",
-                        "label": "FISH2 (FISH2)"
+                        "label": FISH2_SPECIES_LABEL
                     }
                 },
                 landings: [
@@ -273,17 +314,17 @@ describe('pdfServiceExportCert: should run with no errors', () => {
                         addMode: false,
                         editMode: false,
                         model: {
-                            id: "ce1fe347-2825-4152-884b-e8bad5ccde61",
+                            id: LANDING_ID,
                             vessel: {
                                 pln: "B192",
-                                vesselName: "GOLDEN BELLS 11",
+                                vesselName: VESSEL_NAME_GOLDEN_BELLS,
                                 homePort: "ARDGLASS",
                                 registrationNumber: "A12186",
                                 licenceNumber: "10106",
-                                label: "GOLDEN BELLS 11 (B192)",
-                                licenceValidTo: "2030-12-31T00:00:00"
+                                label: VESSEL_LABEL_GOLDEN_BELLS,
+                                licenceValidTo: LICENCE_VALID_TO
                             },
-                            dateLanded: "2019-01-25T00:00:00.000Z",
+                            dateLanded: DATE_LANDED_25,
                             exportWeight: "20"
                         }
                     }
@@ -302,7 +343,7 @@ describe('pdfServiceExportCert: should run with no errors', () => {
                     },
                     species: {
                         "code": "FISH3",
-                        "label": "FISH3 (FISH3)"
+                        "label": FISH3_SPECIES_LABEL
                     }
                 },
                 landings: [
@@ -310,16 +351,16 @@ describe('pdfServiceExportCert: should run with no errors', () => {
                         addMode: false,
                         editMode: false,
                         model: {
-                            id: "ce1fe347-2825-4152-884b-e8bad5ccde61",
+                            id: LANDING_ID,
                             vessel: {
                                 pln: "B192",
-                                vesselName: "GOLDEN BELLS 11",
+                                vesselName: VESSEL_NAME_GOLDEN_BELLS,
                                 homePort: "ARDGLASS",
                                 registrationNumber: "A12186",
                                 licenceNumber: "10106",
-                                label: "GOLDEN BELLS 11 (B192)"
+                                label: VESSEL_LABEL_GOLDEN_BELLS
                             },
-                            dateLanded: "2019-01-24T00:00:00.000Z",
+                            dateLanded: DATE_LANDED_24,
                             exportWeight: "30",
                             faoArea: "FAO27"
                         }
@@ -332,7 +373,7 @@ describe('pdfServiceExportCert: should run with no errors', () => {
         vehicle: 'truck',
         cmr: 'true',
         departurePlace: 'hull',
-        user_id: 'a9602f38-f220-475a-991f-a19626bc51ae',
+        user_id: TEST_USER_ID,
         nationalityOfVehicle: 'UK',
         registrationNumber: '456',
         exportedTo: {
@@ -340,7 +381,7 @@ describe('pdfServiceExportCert: should run with no errors', () => {
         }
       },
       conservation: {
-        conservationReference: 'Common fisheries policy',
+        conservationReference: CONSERVATION_REFERENCE,
       },
   };
 
@@ -349,18 +390,18 @@ describe('pdfServiceExportCert: should run with no errors', () => {
 
   test('render transport pdf: CONTAINER VESSEL', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-      blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+      container: MOCK_CONTAINER_ID,
+      blobName: MOCK_BLOB_NAME,
+      uri: MOCK_BLOB_NAME,
+      qrUri: MOCK_QR_URI
     }
 
     const data = {
-      documentNumber: "GBR-2018-CC-1C89DE54F",
+      documentNumber: EXPORT_CERT_DOC_NUMBER,
       exporter: {
-        exporterFullName: 'Jim Jessop',
-        exporterCompanyName: 'FishByMail Ltd',
-        addressOne: '77 Coast Road',
+        exporterFullName: EXPORTER_FULL_NAME,
+        exporterCompanyName: EXPORTER_COMPANY,
+        addressOne: EXPORTER_ADDRESS_ONE,
         addressTwo: '',
         townCity: 'Jarrow',
         postcode: 'NE31 1YW',
@@ -380,7 +421,7 @@ describe('pdfServiceExportCert: should run with no errors', () => {
                     },
                     species: {
                         "code": "FISH2",
-                        "label": "FISH2 (FISH2)"
+                        "label": FISH2_SPECIES_LABEL
                     }
                 },
                 landings: [
@@ -388,18 +429,18 @@ describe('pdfServiceExportCert: should run with no errors', () => {
                         addMode: false,
                         editMode: false,
                         model: {
-                            id: "ce1fe347-2825-4152-884b-e8bad5ccde61",
+                            id: LANDING_ID,
                             vessel: {
                                 pln: "B192",
-                                vesselName: "GOLDEN BELLS 11",
+                                vesselName: VESSEL_NAME_GOLDEN_BELLS,
                                 homePort: "ARDGLASS",
                                 registrationNumber: "A12186",
                                 licenceNumber: "10106",
-                                label: "GOLDEN BELLS 11 (B192)",
-                                licenceValidTo: "2030-12-31T00:00:00",
+                                label: VESSEL_LABEL_GOLDEN_BELLS,
+                                licenceValidTo: LICENCE_VALID_TO,
                                 imoNumber: '1111'
                             },
-                            dateLanded: "2019-01-25T00:00:00.000Z",
+                            dateLanded: DATE_LANDED_25,
                             exportWeight: "20"
                         }
                     }
@@ -411,7 +452,7 @@ describe('pdfServiceExportCert: should run with no errors', () => {
         vehicle: 'CONTAINERVESSEL',
         flagState: 'UK',
         departurePlace: 'hull',
-        user_id: 'a9602f38-f220-475a-991f-a19626bc51ae',
+        user_id: TEST_USER_ID,
         vesselName: '123',
         containerNumber: '456',
         exportedFrom: 'France',
@@ -430,18 +471,18 @@ describe('pdfServiceExportCert: should run with no errors', () => {
 
   test('render transport pdf: DIRECTLANDING', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-      blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+      container: MOCK_CONTAINER_ID,
+      blobName: MOCK_BLOB_NAME,
+      uri: MOCK_BLOB_NAME,
+      qrUri: MOCK_QR_URI
     }
 
     const data = {
-      documentNumber: "GBR-2018-CC-1C89DE54F",
+      documentNumber: EXPORT_CERT_DOC_NUMBER,
       exporter: {
-        exporterFullName: 'Jim Jessop',
-        exporterCompanyName: 'FishByMail Ltd',
-        addressOne: '77 Coast Road',
+        exporterFullName: EXPORTER_FULL_NAME,
+        exporterCompanyName: EXPORTER_COMPANY,
+        addressOne: EXPORTER_ADDRESS_ONE,
         addressTwo: '',
         townCity: 'Jarrow',
         postcode: 'NE31 1YW',
@@ -461,7 +502,7 @@ describe('pdfServiceExportCert: should run with no errors', () => {
                     },
                     species: {
                         "code": "FISH1",
-                        "label": "FISH1 (FISH1)"
+                        "label": FISH1_SPECIES_LABEL
                     }
                 },
                 landings: [
@@ -469,16 +510,16 @@ describe('pdfServiceExportCert: should run with no errors', () => {
                         addMode: false,
                         editMode: false,
                         model: {
-                            id: "ce1fe347-2825-4152-884b-e8bad5ccde61",
+                            id: LANDING_ID,
                             vessel: {
                                 pln: "B192",
-                                vesselName: "GOLDEN BELLS 11",
+                                vesselName: VESSEL_NAME_GOLDEN_BELLS,
                                 homePort: "ARDGLASS",
                                 registrationNumber: "A12186",
                                 licenceNumber: "10106",
-                                label: "GOLDEN BELLS 11 (B192)"
+                                label: VESSEL_LABEL_GOLDEN_BELLS
                             },
-                            dateLanded: "2019-01-26T00:00:00.000Z",
+                            dateLanded: DATE_LANDED_26,
                             exportWeight: "10"
                         }
                     }
@@ -497,7 +538,7 @@ describe('pdfServiceExportCert: should run with no errors', () => {
                     },
                     species: {
                         "code": "FISH2",
-                        "label": "FISH2 (FISH2)"
+                        "label": FISH2_SPECIES_LABEL
                     }
                 },
                 landings: [
@@ -505,17 +546,17 @@ describe('pdfServiceExportCert: should run with no errors', () => {
                         addMode: false,
                         editMode: false,
                         model: {
-                            id: "ce1fe347-2825-4152-884b-e8bad5ccde61",
+                            id: LANDING_ID,
                             vessel: {
                                 pln: "B192",
-                                vesselName: "GOLDEN BELLS 11",
+                                vesselName: VESSEL_NAME_GOLDEN_BELLS,
                                 homePort: "ARDGLASS",
                                 registrationNumber: "A12186",
                                 licenceNumber: "10106",
-                                label: "GOLDEN BELLS 11 (B192)",
-                                licenceValidTo: "2030-12-31T00:00:00"
+                                label: VESSEL_LABEL_GOLDEN_BELLS,
+                                licenceValidTo: LICENCE_VALID_TO
                             },
-                            dateLanded: "2019-01-25T00:00:00.000Z",
+                            dateLanded: DATE_LANDED_25,
                             exportWeight: "20"
                         }
                     }
@@ -534,7 +575,7 @@ describe('pdfServiceExportCert: should run with no errors', () => {
                     },
                     species: {
                         "code": "FISH3",
-                        "label": "FISH3 (FISH3)"
+                        "label": FISH3_SPECIES_LABEL
                     }
                 },
                 landings: [
@@ -542,16 +583,16 @@ describe('pdfServiceExportCert: should run with no errors', () => {
                         addMode: false,
                         editMode: false,
                         model: {
-                            id: "ce1fe347-2825-4152-884b-e8bad5ccde61",
+                            id: LANDING_ID,
                             vessel: {
                                 pln: "B192",
-                                vesselName: "GOLDEN BELLS 11",
+                                vesselName: VESSEL_NAME_GOLDEN_BELLS,
                                 homePort: "ARDGLASS",
                                 registrationNumber: "A12186",
                                 licenceNumber: "10106",
-                                label: "GOLDEN BELLS 11 (B192)"
+                                label: VESSEL_LABEL_GOLDEN_BELLS
                             },
-                            dateLanded: "2019-01-24T00:00:00.000Z",
+                            dateLanded: DATE_LANDED_24,
                             exportWeight: "30",
                             faoArea: "FAO27"
                         }
@@ -564,13 +605,13 @@ describe('pdfServiceExportCert: should run with no errors', () => {
         vehicle: 'DIRECTLANDING',
         flagState: 'UK',
         departurePlace: 'hull',
-        user_id: 'a9602f38-f220-475a-991f-a19626bc51ae',
+        user_id: TEST_USER_ID,
         exportedTo: {
           officialCountryName: 'France',
         }
       },
       conservation: {
-        conservationReference: 'Common fisheries policy',
+        conservationReference: CONSERVATION_REFERENCE,
       },
   };
 
@@ -579,18 +620,18 @@ describe('pdfServiceExportCert: should run with no errors', () => {
 
   test('render transport pdf: TRUCK: (no details)', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-      blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+      container: MOCK_CONTAINER_ID,
+      blobName: MOCK_BLOB_NAME,
+      uri: MOCK_BLOB_NAME,
+      qrUri: MOCK_QR_URI
     }
 
     const data = {
-      documentNumber: "GBR-2018-CC-1C89DE54F",
+      documentNumber: EXPORT_CERT_DOC_NUMBER,
       exporter: {
-        exporterFullName: 'Jim Jessop',
-        exporterCompanyName: 'FishByMail Ltd',
-        addressOne: '77 Coast Road',
+        exporterFullName: EXPORTER_FULL_NAME,
+        exporterCompanyName: EXPORTER_COMPANY,
+        addressOne: EXPORTER_ADDRESS_ONE,
         addressTwo: '',
         townCity: 'Jarrow',
         postcode: 'NE31 1YW',
@@ -610,7 +651,7 @@ describe('pdfServiceExportCert: should run with no errors', () => {
                     },
                     species: {
                         "code": "FISH1",
-                        "label": "FISH1 (FISH1)"
+                        "label": FISH1_SPECIES_LABEL
                     }
                 },
                 landings: [
@@ -618,15 +659,15 @@ describe('pdfServiceExportCert: should run with no errors', () => {
                         addMode: false,
                         editMode: false,
                         model: {
-                            id: "ce1fe347-2825-4152-884b-e8bad5ccde61",
+                            id: LANDING_ID,
                             vessel: {
                                 pln: "B192",
-                                vesselName: "GOLDEN BELLS 11",
+                                vesselName: VESSEL_NAME_GOLDEN_BELLS,
                                 homePort: "ARDGLASS",
                                 registrationNumber: "A12186",
-                                label: "GOLDEN BELLS 11 (B192)"
+                                label: VESSEL_LABEL_GOLDEN_BELLS
                             },
-                            dateLanded: "2019-01-26T00:00:00.000Z",
+                            dateLanded: DATE_LANDED_26,
                             exportWeight: "10"
                         }
                     }
@@ -645,7 +686,7 @@ describe('pdfServiceExportCert: should run with no errors', () => {
                     },
                     species: {
                         "code": "FISH2",
-                        "label": "FISH2 (FISH2)"
+                        "label": FISH2_SPECIES_LABEL
                     }
                 },
                 landings: [
@@ -653,17 +694,17 @@ describe('pdfServiceExportCert: should run with no errors', () => {
                         addMode: false,
                         editMode: false,
                         model: {
-                            id: "ce1fe347-2825-4152-884b-e8bad5ccde61",
+                            id: LANDING_ID,
                             vessel: {
                                 pln: "B192",
-                                vesselName: "GOLDEN BELLS 11",
+                                vesselName: VESSEL_NAME_GOLDEN_BELLS,
                                 homePort: "ARDGLASS",
                                 registrationNumber: "A12186",
                                 licenceNumber: "10106",
-                                label: "GOLDEN BELLS 11 (B192)",
-                                licenceValidTo: "2030-12-31T00:00:00"
+                                label: VESSEL_LABEL_GOLDEN_BELLS,
+                                licenceValidTo: LICENCE_VALID_TO
                             },
-                            dateLanded: "2019-01-25T00:00:00.000Z",
+                            dateLanded: DATE_LANDED_25,
                             exportWeight: "20"
                         }
                     }
@@ -682,7 +723,7 @@ describe('pdfServiceExportCert: should run with no errors', () => {
                     },
                     species: {
                         "code": "FISH3",
-                        "label": "FISH3 (FISH3)"
+                        "label": FISH3_SPECIES_LABEL
                     }
                 },
                 landings: [
@@ -690,16 +731,16 @@ describe('pdfServiceExportCert: should run with no errors', () => {
                         addMode: false,
                         editMode: false,
                         model: {
-                            id: "ce1fe347-2825-4152-884b-e8bad5ccde61",
+                            id: LANDING_ID,
                             vessel: {
                                 pln: "B192",
-                                vesselName: "GOLDEN BELLS 11",
+                                vesselName: VESSEL_NAME_GOLDEN_BELLS,
                                 homePort: "ARDGLASS",
                                 registrationNumber: "A12186",
                                 licenceNumber: "10106",
-                                label: "GOLDEN BELLS 11 (B192)"
+                                label: VESSEL_LABEL_GOLDEN_BELLS
                             },
-                            dateLanded: "2019-01-24T00:00:00.000Z",
+                            dateLanded: DATE_LANDED_24,
                             exportWeight: "30",
                             faoArea: "FAO27"
                         }
@@ -712,13 +753,13 @@ describe('pdfServiceExportCert: should run with no errors', () => {
         vehicle: 'truck',
         cmr: 'true',
         departurePlace: 'hull',
-        user_id: 'a9602f38-f220-475a-991f-a19626bc51ae',
+        user_id: TEST_USER_ID,
         exportedTo: {
           officialCountryName: 'France',
         }
       },
       conservation: {
-        conservationReference: 'Common fisheries policy',
+        conservationReference: CONSERVATION_REFERENCE,
       },
   };
 
@@ -727,18 +768,18 @@ describe('pdfServiceExportCert: should run with no errors', () => {
 
   test('render transport pdf: CONTAINER VESSEL (no details)', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-      blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+      container: MOCK_CONTAINER_ID,
+      blobName: MOCK_BLOB_NAME,
+      uri: MOCK_BLOB_NAME,
+      qrUri: MOCK_QR_URI
     }
 
     const data = {
-      documentNumber: "GBR-2018-CC-1C89DE54F",
+      documentNumber: EXPORT_CERT_DOC_NUMBER,
       exporter: {
-        exporterFullName: 'Jim Jessop',
-        exporterCompanyName: 'FishByMail Ltd',
-        addressOne: '77 Coast Road',
+        exporterFullName: EXPORTER_FULL_NAME,
+        exporterCompanyName: EXPORTER_COMPANY,
+        addressOne: EXPORTER_ADDRESS_ONE,
         addressTwo: '',
         townCity: 'Jarrow',
         postcode: 'NE31 1YW',
@@ -758,7 +799,7 @@ describe('pdfServiceExportCert: should run with no errors', () => {
                     },
                     species: {
                         "code": "FISH2",
-                        "label": "FISH2 (FISH2)"
+                        "label": FISH2_SPECIES_LABEL
                     }
                 },
                 landings: [
@@ -766,18 +807,18 @@ describe('pdfServiceExportCert: should run with no errors', () => {
                         addMode: false,
                         editMode: false,
                         model: {
-                            id: "ce1fe347-2825-4152-884b-e8bad5ccde61",
+                            id: LANDING_ID,
                             vessel: {
                                 pln: "B192",
-                                vesselName: "GOLDEN BELLS 11",
+                                vesselName: VESSEL_NAME_GOLDEN_BELLS,
                                 homePort: "ARDGLASS",
                                 registrationNumber: "A12186",
                                 licenceNumber: "10106",
-                                label: "GOLDEN BELLS 11 (B192)",
-                                licenceValidTo: "2030-12-31T00:00:00",
+                                label: VESSEL_LABEL_GOLDEN_BELLS,
+                                licenceValidTo: LICENCE_VALID_TO,
                                 imoNumber: '1111'
                             },
-                            dateLanded: "2019-01-25T00:00:00.000Z",
+                            dateLanded: DATE_LANDED_25,
                             exportWeight: "20"
                         }
                     }
@@ -787,7 +828,7 @@ describe('pdfServiceExportCert: should run with no errors', () => {
       },
       transport: {
         vehicle: 'CONTAINERVESSEL',
-        user_id: 'a9602f38-f220-475a-991f-a19626bc51ae',
+        user_id: TEST_USER_ID,
         exportedTo: {
           officialCountryName: 'France',
         }
@@ -803,18 +844,18 @@ describe('pdfServiceExportCert: should run with no errors', () => {
 
   test('render transport pdf: DIRECTLANDING (no details)', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-      blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+      container: MOCK_CONTAINER_ID,
+      blobName: MOCK_BLOB_NAME,
+      uri: MOCK_BLOB_NAME,
+      qrUri: MOCK_QR_URI
     }
 
     const data = {
-      documentNumber: "GBR-2018-CC-1C89DE54F",
+      documentNumber: EXPORT_CERT_DOC_NUMBER,
       exporter: {
-        exporterFullName: 'Jim Jessop',
-        exporterCompanyName: 'FishByMail Ltd',
-        addressOne: '77 Coast Road',
+        exporterFullName: EXPORTER_FULL_NAME,
+        exporterCompanyName: EXPORTER_COMPANY,
+        addressOne: EXPORTER_ADDRESS_ONE,
         addressTwo: '',
         townCity: 'Jarrow',
         postcode: 'NE31 1YW',
@@ -834,7 +875,7 @@ describe('pdfServiceExportCert: should run with no errors', () => {
                     },
                     species: {
                         "code": "FISH1",
-                        "label": "FISH1 (FISH1)"
+                        "label": FISH1_SPECIES_LABEL
                     }
                 },
                 landings: [
@@ -842,16 +883,16 @@ describe('pdfServiceExportCert: should run with no errors', () => {
                         addMode: false,
                         editMode: false,
                         model: {
-                            id: "ce1fe347-2825-4152-884b-e8bad5ccde61",
+                            id: LANDING_ID,
                             vessel: {
                                 pln: "B192",
-                                vesselName: "GOLDEN BELLS 11",
+                                vesselName: VESSEL_NAME_GOLDEN_BELLS,
                                 homePort: "ARDGLASS",
                                 registrationNumber: "A12186",
                                 licenceNumber: "10106",
-                                label: "GOLDEN BELLS 11 (B192)"
+                                label: VESSEL_LABEL_GOLDEN_BELLS
                             },
-                            dateLanded: "2019-01-26T00:00:00.000Z",
+                            dateLanded: DATE_LANDED_26,
                             exportWeight: "10"
                         }
                     }
@@ -870,7 +911,7 @@ describe('pdfServiceExportCert: should run with no errors', () => {
                     },
                     species: {
                         "code": "FISH2",
-                        "label": "FISH2 (FISH2)"
+                        "label": FISH2_SPECIES_LABEL
                     }
                 },
                 landings: [
@@ -878,17 +919,17 @@ describe('pdfServiceExportCert: should run with no errors', () => {
                         addMode: false,
                         editMode: false,
                         model: {
-                            id: "ce1fe347-2825-4152-884b-e8bad5ccde61",
+                            id: LANDING_ID,
                             vessel: {
                                 pln: "B192",
-                                vesselName: "GOLDEN BELLS 11",
+                                vesselName: VESSEL_NAME_GOLDEN_BELLS,
                                 homePort: "ARDGLASS",
                                 registrationNumber: "A12186",
                                 licenceNumber: "10106",
-                                label: "GOLDEN BELLS 11 (B192)",
-                                licenceValidTo: "2030-12-31T00:00:00"
+                                label: VESSEL_LABEL_GOLDEN_BELLS,
+                                licenceValidTo: LICENCE_VALID_TO
                             },
-                            dateLanded: "2019-01-25T00:00:00.000Z",
+                            dateLanded: DATE_LANDED_25,
                             exportWeight: "20"
                         }
                     }
@@ -907,7 +948,7 @@ describe('pdfServiceExportCert: should run with no errors', () => {
                     },
                     species: {
                         "code": "FISH3",
-                        "label": "FISH3 (FISH3)"
+                        "label": FISH3_SPECIES_LABEL
                     }
                 },
                 landings: [
@@ -915,16 +956,16 @@ describe('pdfServiceExportCert: should run with no errors', () => {
                         addMode: false,
                         editMode: false,
                         model: {
-                            id: "ce1fe347-2825-4152-884b-e8bad5ccde61",
+                            id: LANDING_ID,
                             vessel: {
                                 pln: "B192",
-                                vesselName: "GOLDEN BELLS 11",
+                                vesselName: VESSEL_NAME_GOLDEN_BELLS,
                                 homePort: "ARDGLASS",
                                 registrationNumber: "A12186",
                                 licenceNumber: "10106",
-                                label: "GOLDEN BELLS 11 (B192)"
+                                label: VESSEL_LABEL_GOLDEN_BELLS
                             },
-                            dateLanded: "2019-01-24T00:00:00.000Z",
+                            dateLanded: DATE_LANDED_24,
                             exportWeight: "30",
                             faoArea: "FAO27"
                         }
@@ -935,13 +976,13 @@ describe('pdfServiceExportCert: should run with no errors', () => {
       },
       transport: {
         vehicle: 'DIRECTLANDING',
-        user_id: 'a9602f38-f220-475a-991f-a19626bc51ae',
+        user_id: TEST_USER_ID,
         exportedTo: {
           officialCountryName: 'France',
         }
       },
       conservation: {
-        conservationReference: 'Common fisheries policy',
+        conservationReference: CONSERVATION_REFERENCE,
       },
   };
 
@@ -950,51 +991,51 @@ describe('pdfServiceExportCert: should run with no errors', () => {
 
   test('render processing statement', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-      blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+      container: MOCK_CONTAINER_ID,
+      blobName: MOCK_BLOB_NAME,
+      uri: MOCK_BLOB_NAME,
+      qrUri: MOCK_QR_URI
     }
 
     const data = {
       "products": [{
         "commodityCode": '03023190',
-        "description": 'Fresh or chilled albacore',
-        "id": 'GBR-2020-PS-3CA09BE17-'
+        "description": PS_ALBACORE_DESCRIPTION,
+        "id": PS_PRODUCT_ID
       },{
         "commodityCode": '03023190',
-        "description": 'Fresh or chilled albacore',
-        "id": 'GBR-2020-PS-3CA09BE17-'
+        "description": PS_ALBACORE_DESCRIPTION,
+        "id": PS_PRODUCT_ID
       }],
       "catches": [
           {
-              "species": "Atlantic Cod",
-              "catchCertificateNumber": "GBR-2019-PS-3EF51C999",
+              "species": PS_SPECIES_COD,
+              "catchCertificateNumber": PS_CATCH_CERT_NUMBER,
               "totalWeightLanded": "100",
               "exportWeightBeforeProcessing": "100",
               "exportWeightAfterProcessing": "100"
           }
       ],
       "healthCertificateNumber": "HC1232323",
-      "healthCertificateDate": "31/03/2018",
+      "healthCertificateDate": PS_HEALTH_CERT_DATE,
       "addAnotherCatch": "notset",
       "personResponsibleForConsignment": "Mark Ford",
       "plantApprovalNumber": "CQ 613",
-      "plantAddressOne": "Trevol Business Park",
+      "plantAddressOne": PS_PLANT_ADDRESS_ONE,
       "plantAddressTwo": "Trevol Road",
       "plantTownCity": "Torpoint",
       "plantPostcode": "PL11 2TB",
-      "dateOfAcceptance": "30/01/2019",
-      "plantName": "Iceberg Ltd",
+      "dateOfAcceptance": PS_DATE_OF_ACCEPTANCE,
+      "plantName": PS_PLANT_NAME,
       "exporter": {
-          'exporterFullName': 'Jim Jessop',
-          'exporterCompanyName': 'FishByMail Ltd',
-          'addressOne': '77 Coast Road',
+          'exporterFullName': EXPORTER_FULL_NAME,
+          'exporterCompanyName': EXPORTER_COMPANY,
+          'addressOne': EXPORTER_ADDRESS_ONE,
           'addressTwo': 'My address is extra specially particularly long',
           'townCity': 'Jarrow',
           'postcode': 'NE31 1YW'
       },
-      "documentNumber": "GBR-2019-PS-3EF51C6D8"
+      "documentNumber": PS_DOC_NUMBER
   };
 
     await renderPdf(pdfType.PROCESSING_STATEMENT, data, false, sasJson.qrUri, mockedStream);
@@ -1002,22 +1043,22 @@ describe('pdfServiceExportCert: should run with no errors', () => {
 
   test('render processing statement - text positioning after moving confirmation text', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-      blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+      container: MOCK_CONTAINER_ID,
+      blobName: MOCK_BLOB_NAME,
+      uri: MOCK_BLOB_NAME,
+      qrUri: MOCK_QR_URI
     }
 
     const data = {
       "products": [{
         "commodityCode": '03023190',
-        "description": 'Fresh or chilled albacore',
-        "id": 'GBR-2020-PS-3CA09BE17-'
+        "description": PS_ALBACORE_DESCRIPTION,
+        "id": PS_PRODUCT_ID
       }],
       "catches": [
           {
-              "species": "Atlantic Cod",
-              "catchCertificateNumber": "GBR-2019-PS-3EF51C999",
+              "species": PS_SPECIES_COD,
+              "catchCertificateNumber": PS_CATCH_CERT_NUMBER,
               "totalWeightLanded": "100",
               "exportWeightBeforeProcessing": "100",
               "exportWeightAfterProcessing": "100"
@@ -1025,24 +1066,24 @@ describe('pdfServiceExportCert: should run with no errors', () => {
       ],
       "consignmentDescription": "Fresh fish products",
       "healthCertificateNumber": "HC1232323",
-      "healthCertificateDate": "31/03/2018",
+      "healthCertificateDate": PS_HEALTH_CERT_DATE,
       "personResponsibleForConsignment": "Mark Ford",
       "plantApprovalNumber": "CQ 613",
-      "plantAddressOne": "Trevol Business Park",
+      "plantAddressOne": PS_PLANT_ADDRESS_ONE,
       "plantAddressTwo": "Trevol Road",
       "plantTownCity": "Torpoint",
       "plantPostcode": "PL11 2TB",
-      "dateOfAcceptance": "30/01/2019",
-      "plantName": "Iceberg Ltd",
+      "dateOfAcceptance": PS_DATE_OF_ACCEPTANCE,
+      "plantName": PS_PLANT_NAME,
       "exporter": {
-          'exporterFullName': 'Jim Jessop',
-          'exporterCompanyName': 'FishByMail Ltd',
-          'addressOne': '77 Coast Road',
+          'exporterFullName': EXPORTER_FULL_NAME,
+          'exporterCompanyName': EXPORTER_COMPANY,
+          'addressOne': EXPORTER_ADDRESS_ONE,
           'addressTwo': '',
           'townCity': 'Jarrow',
           'postcode': 'NE31 1YW'
       },
-      "documentNumber": "GBR-2019-PS-3EF51C6D8"
+      "documentNumber": PS_DOC_NUMBER
     };
 
     await renderPdf(pdfType.PROCESSING_STATEMENT, data, false, sasJson.qrUri, mockedStream);
@@ -1050,40 +1091,40 @@ describe('pdfServiceExportCert: should run with no errors', () => {
 
   test('render processing statement - without products array (uses consignmentDescription)', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-      blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+      container: MOCK_CONTAINER_ID,
+      blobName: MOCK_BLOB_NAME,
+      uri: MOCK_BLOB_NAME,
+      qrUri: MOCK_QR_URI
     }
 
     const data = {
       "consignmentDescription": "Mixed seafood products for export",
       "catches": [
           {
-              "species": "Atlantic Cod",
-              "catchCertificateNumber": "GBR-2019-PS-3EF51C999",
+              "species": PS_SPECIES_COD,
+              "catchCertificateNumber": PS_CATCH_CERT_NUMBER,
               "totalWeightLanded": "100",
               "exportWeightBeforeProcessing": "100",
               "exportWeightAfterProcessing": "100"
           }
       ],
       "healthCertificateNumber": "HC1232323",
-      "healthCertificateDate": "31/03/2018",
+      "healthCertificateDate": PS_HEALTH_CERT_DATE,
       "personResponsibleForConsignment": "Mark Ford",
       "plantApprovalNumber": "CQ 613",
-      "plantAddressOne": "Trevol Business Park",
+      "plantAddressOne": PS_PLANT_ADDRESS_ONE,
       "plantTownCity": "Torpoint",
       "plantPostcode": "PL11 2TB",
-      "dateOfAcceptance": "30/01/2019",
-      "plantName": "Iceberg Ltd",
+      "dateOfAcceptance": PS_DATE_OF_ACCEPTANCE,
+      "plantName": PS_PLANT_NAME,
       "exporter": {
-          'exporterFullName': 'Jim Jessop',
-          'exporterCompanyName': 'FishByMail Ltd',
-          'addressOne': '77 Coast Road',
+          'exporterFullName': EXPORTER_FULL_NAME,
+          'exporterCompanyName': EXPORTER_COMPANY,
+          'addressOne': EXPORTER_ADDRESS_ONE,
           'townCity': 'Jarrow',
           'postcode': 'NE31 1YW'
       },
-      "documentNumber": "GBR-2019-PS-3EF51C6D8"
+      "documentNumber": PS_DOC_NUMBER
     };
 
     await renderPdf(pdfType.PROCESSING_STATEMENT, data, false, sasJson.qrUri, mockedStream);
@@ -1091,10 +1132,10 @@ describe('pdfServiceExportCert: should run with no errors', () => {
 
   test('render processing statement - empty products array', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-      blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+      container: MOCK_CONTAINER_ID,
+      blobName: MOCK_BLOB_NAME,
+      uri: MOCK_BLOB_NAME,
+      qrUri: MOCK_QR_URI
     }
 
     const data = {
@@ -1102,23 +1143,23 @@ describe('pdfServiceExportCert: should run with no errors', () => {
       "consignmentDescription": "Fallback description when no products",
       "catches": [
           {
-              "species": "Atlantic Cod",
-              "catchCertificateNumber": "GBR-2019-PS-3EF51C999",
+              "species": PS_SPECIES_COD,
+              "catchCertificateNumber": PS_CATCH_CERT_NUMBER,
               "totalWeightLanded": "100",
               "exportWeightBeforeProcessing": "100",
               "exportWeightAfterProcessing": "100"
           }
       ],
       "healthCertificateNumber": "HC1232323",
-      "healthCertificateDate": "31/03/2018",
+      "healthCertificateDate": PS_HEALTH_CERT_DATE,
       "personResponsibleForConsignment": "Mark Ford",
       "plantApprovalNumber": "CQ 613",
-      "plantName": "Iceberg Ltd",
+      "plantName": PS_PLANT_NAME,
       "exporter": {
-          'exporterFullName': 'Jim Jessop',
-          'exporterCompanyName': 'FishByMail Ltd'
+          'exporterFullName': EXPORTER_FULL_NAME,
+          'exporterCompanyName': EXPORTER_COMPANY
       },
-      "documentNumber": "GBR-2019-PS-3EF51C6D8"
+      "documentNumber": PS_DOC_NUMBER
     };
 
     await renderPdf(pdfType.PROCESSING_STATEMENT, data, false, sasJson.qrUri, mockedStream);
@@ -1126,10 +1167,10 @@ describe('pdfServiceExportCert: should run with no errors', () => {
 
   test('render processing statement - updated text validation ("has been obtained")', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-      blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+      container: MOCK_CONTAINER_ID,
+      blobName: MOCK_BLOB_NAME,
+      uri: MOCK_BLOB_NAME,
+      qrUri: MOCK_QR_URI
     }
 
     const data = {
@@ -1149,7 +1190,7 @@ describe('pdfServiceExportCert: should run with no errors', () => {
       ],
       "healthCertificateNumber": "HC9876543",
       "healthCertificateDate": "15/06/2023",
-      "personResponsibleForConsignment": "Sarah Johnson",
+      "personResponsibleForConsignment": PS_RESPONSIBLE_PERSON,
       "plantApprovalNumber": "CQ 999",
       "plantName": "Premium Fish Processing Ltd",
       "exporter": {
@@ -1164,19 +1205,19 @@ describe('pdfServiceExportCert: should run with no errors', () => {
 
   test('render processing statement - schedule page without "Catches in this consignment" heading', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-      blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+      container: MOCK_CONTAINER_ID,
+      blobName: MOCK_BLOB_NAME,
+      uri: MOCK_BLOB_NAME,
+      qrUri: MOCK_QR_URI
     }
 
     const catches = [];
     for (let i = 1; i <= 10; i++) {
       catches.push({
         "species": `Fish Species ${i}`,
-        "catchCertificateNumber": `GBR-2019-PS-${i.toString().padStart(9, '0')}`,
+        "catchCertificateNumber": `GBR-2019-PS-${i.toString().padStart(LONG_CERT_NUMBER_WIDTH, '0')}`,
         "totalWeightLanded": `${i * 10}`,
-        "exportWeightBeforeProcessing": `${i * 9}`,
+        "exportWeightBeforeProcessing": `${i * CATCH_WEIGHT_FACTOR}`,
         "exportWeightAfterProcessing": `${i * 8}`
       });
     }
@@ -1184,18 +1225,18 @@ describe('pdfServiceExportCert: should run with no errors', () => {
     const data = {
       "products": [{
         "commodityCode": '03023190',
-        "description": 'Fresh or chilled albacore',
+        "description": PS_ALBACORE_DESCRIPTION,
         "id": 'GBR-2020-PS-SCHEDULE-TEST'
       }],
       "catches": catches,
       "healthCertificateNumber": "HC1232323",
-      "healthCertificateDate": "31/03/2018",
+      "healthCertificateDate": PS_HEALTH_CERT_DATE,
       "personResponsibleForConsignment": "Mark Ford",
       "plantApprovalNumber": "CQ 613",
-      "plantName": "Iceberg Ltd",
+      "plantName": PS_PLANT_NAME,
       "exporter": {
-          'exporterFullName': 'Jim Jessop',
-          'exporterCompanyName': 'FishByMail Ltd'
+          'exporterFullName': EXPORTER_FULL_NAME,
+          'exporterCompanyName': EXPORTER_COMPANY
       },
       "documentNumber": "GBR-2019-PS-SCHEDULE123"
     };
@@ -1205,10 +1246,10 @@ describe('pdfServiceExportCert: should run with no errors', () => {
 
   test('render processing statement - minimal data structure', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-      blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+      container: MOCK_CONTAINER_ID,
+      blobName: MOCK_BLOB_NAME,
+      uri: MOCK_BLOB_NAME,
+      qrUri: MOCK_QR_URI
     }
 
     const data = {
@@ -1222,16 +1263,16 @@ describe('pdfServiceExportCert: should run with no errors', () => {
 
   test('render processing statement - updated column header text', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-      blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+      container: MOCK_CONTAINER_ID,
+      blobName: MOCK_BLOB_NAME,
+      uri: MOCK_BLOB_NAME,
+      qrUri: MOCK_QR_URI
     }
 
     const data = {
       "products": [{
         "commodityCode": '160432',
-        "description": 'Caviar substitutes'
+        "description": CAVIAR_DESCRIPTION
       }],
       "catches": [
           {
@@ -1255,17 +1296,17 @@ describe('pdfServiceExportCert: should run with no errors', () => {
 
     test('render processing statement - multiple products with individual tables', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-      blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+      container: MOCK_CONTAINER_ID,
+      blobName: MOCK_BLOB_NAME,
+      uri: MOCK_BLOB_NAME,
+      qrUri: MOCK_QR_URI
     }
 
     const data = {
       "products": [
         {
           "commodityCode": '160432',
-          "description": 'Caviar substitutes',
+          "description": CAVIAR_DESCRIPTION,
           "id": 'GBR-2020-PS-PRODUCT1-'
         },
         {
@@ -1275,7 +1316,7 @@ describe('pdfServiceExportCert: should run with no errors', () => {
         },
         {
           "commodityCode": '030231',
-          "description": 'Fresh or chilled albacore',
+          "description": PS_ALBACORE_DESCRIPTION,
           "id": 'GBR-2020-PS-PRODUCT3-'
         }
       ],
@@ -1333,17 +1374,17 @@ describe('pdfServiceExportCert: should run with no errors', () => {
 
   test('render processing statement - commodity code formatting validation', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-      blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+      container: MOCK_CONTAINER_ID,
+      blobName: MOCK_BLOB_NAME,
+      uri: MOCK_BLOB_NAME,
+      qrUri: MOCK_QR_URI
     }
 
     const data = {
       "products": [
         {
           "commodityCode": '160432',
-          "description": 'Caviar substitutes'
+          "description": CAVIAR_DESCRIPTION
         },
         {
           "commodityCode": '030623',
@@ -1381,10 +1422,10 @@ describe('pdfServiceExportCert: should run with no errors', () => {
 
   test('render processing statement - multiple products with mixed catch counts', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-      blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+      container: MOCK_CONTAINER_ID,
+      blobName: MOCK_BLOB_NAME,
+      uri: MOCK_BLOB_NAME,
+      qrUri: MOCK_QR_URI
     }
 
     const catches = [];
@@ -1393,29 +1434,29 @@ describe('pdfServiceExportCert: should run with no errors', () => {
       catches.push({
         "productIndex": 0,
         "species": `Product1 Fish ${i}`,
-        "catchCertificateNumber": `GBR-2023-PS-P1-${i.toString().padStart(3, '0')}`,
-        "totalWeightLanded": `${20 + i}`,
-        "exportWeightBeforeProcessing": `${18 + i}`,
+        "catchCertificateNumber": `GBR-2023-PS-P1-${i.toString().padStart(SHORT_CERT_NUMBER_WIDTH, '0')}`,
+        "totalWeightLanded": `${P1_TOTAL_WEIGHT_BASE + i}`,
+        "exportWeightBeforeProcessing": `${P1_BEFORE_PROC_WEIGHT_BASE + i}`,
         "exportWeightAfterProcessing": `${16 + i}`
       });
     }
 
-    for (let i = 1; i <= 7; i++) {
+    for (let i = 1; i <= PRODUCT_2_CATCH_COUNT; i++) {
       catches.push({
         "productIndex": 1,
         "species": `Product2 Fish ${i}`,
-        "catchCertificateNumber": `GBR-2023-PS-P2-${i.toString().padStart(3, '0')}`,
-        "totalWeightLanded": `${30 + i}`,
-        "exportWeightBeforeProcessing": `${28 + i}`,
-        "exportWeightAfterProcessing": `${26 + i}`
+        "catchCertificateNumber": `GBR-2023-PS-P2-${i.toString().padStart(SHORT_CERT_NUMBER_WIDTH, '0')}`,
+        "totalWeightLanded": `${P2_TOTAL_WEIGHT_BASE + i}`,
+        "exportWeightBeforeProcessing": `${P2_BEFORE_PROC_WEIGHT_BASE + i}`,
+        "exportWeightAfterProcessing": `${P2_AFTER_PROC_WEIGHT_BASE + i}`
       });
     }
 
-    for (let i = 1; i <= 3; i++) {
+    for (let i = 1; i <= PRODUCT_3_CATCH_COUNT; i++) {
       catches.push({
         "productIndex": 2,
         "species": `Product3 Fish ${i}`,
-        "catchCertificateNumber": `GBR-2023-PS-P3-${i.toString().padStart(3, '0')}`,
+        "catchCertificateNumber": `GBR-2023-PS-P3-${i.toString().padStart(SHORT_CERT_NUMBER_WIDTH, '0')}`,
         "totalWeightLanded": `${40 + i}`,
         "exportWeightBeforeProcessing": `${38 + i}`,
         "exportWeightAfterProcessing": `${36 + i}`
@@ -1451,10 +1492,10 @@ describe('pdfServiceExportCert: should run with no errors', () => {
 
   test('render processing statement - edge case: empty catches for specific product', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-      blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+      container: MOCK_CONTAINER_ID,
+      blobName: MOCK_BLOB_NAME,
+      uri: MOCK_BLOB_NAME,
+      qrUri: MOCK_QR_URI
     }
 
     const data = {
@@ -1490,10 +1531,10 @@ describe('pdfServiceExportCert: should run with no errors', () => {
 
   test('render processing statement - catches without productIndex (fallback to product 0)', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-      blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+      container: MOCK_CONTAINER_ID,
+      blobName: MOCK_BLOB_NAME,
+      uri: MOCK_BLOB_NAME,
+      qrUri: MOCK_QR_URI
     }
 
     const data = {
@@ -1529,16 +1570,16 @@ describe('pdfServiceExportCert: should run with no errors', () => {
 
     test('render processing statement - validate updated column header "Vessel name(s) and flag(s) and Validation date(s)"', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-      blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+      container: MOCK_CONTAINER_ID,
+      blobName: MOCK_BLOB_NAME,
+      uri: MOCK_BLOB_NAME,
+      qrUri: MOCK_QR_URI
     }
 
     const data = {
       "products": [{
         "commodityCode": '160432',
-        "description": 'Caviar substitutes'
+        "description": CAVIAR_DESCRIPTION
       }],
       "catches": [
         {
@@ -1563,10 +1604,10 @@ describe('pdfServiceExportCert: should run with no errors', () => {
 
   test('render processing statement - column header validation with schedule pages', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-      blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+      container: MOCK_CONTAINER_ID,
+      blobName: MOCK_BLOB_NAME,
+      uri: MOCK_BLOB_NAME,
+      qrUri: MOCK_QR_URI
     }
 
     const catches = [];
@@ -1574,7 +1615,7 @@ describe('pdfServiceExportCert: should run with no errors', () => {
       catches.push({
         "productIndex": 0,
         "species": `Schedule Column Test Fish ${i}`,
-        "catchCertificateNumber": `GBR-2023-PS-SCH${i.toString().padStart(3, '0')}`,
+        "catchCertificateNumber": `GBR-2023-PS-SCH${i.toString().padStart(SHORT_CERT_NUMBER_WIDTH, '0')}`,
         "totalWeightLanded": `${10 + i}`,
         "exportWeightBeforeProcessing": `${9 + i}`,
         "exportWeightAfterProcessing": `${8 + i}`
@@ -1599,10 +1640,10 @@ describe('pdfServiceExportCert: should run with no errors', () => {
 
   test('render processing statement - multiple products column header consistency', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-      blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+      container: MOCK_CONTAINER_ID,
+      blobName: MOCK_BLOB_NAME,
+      uri: MOCK_BLOB_NAME,
+      qrUri: MOCK_QR_URI
     }
 
     const data = {
@@ -1646,10 +1687,10 @@ describe('pdfServiceExportCert: should run with no errors', () => {
 
 test('render processing statement - pagination with many catches (sample=true)', async () => {
   const sasJson = {
-    container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-    blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-    uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-    qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+    container: MOCK_CONTAINER_ID,
+    blobName: MOCK_BLOB_NAME,
+    uri: MOCK_BLOB_NAME,
+    qrUri: MOCK_QR_URI
   }
 
   const catches = [];
@@ -1657,9 +1698,9 @@ test('render processing statement - pagination with many catches (sample=true)',
     catches.push({
       "productIndex": 0,
       "species": `Test Species ${i}`,
-      "catchCertificateNumber": `GBR-2023-PS-PAGINATION-${i.toString().padStart(3, '0')}`,
+      "catchCertificateNumber": `GBR-2023-PS-PAGINATION-${i.toString().padStart(SHORT_CERT_NUMBER_WIDTH, '0')}`,
       "totalWeightLanded": `${i * 10}`,
-      "exportWeightBeforeProcessing": `${i * 9}`,
+      "exportWeightBeforeProcessing": `${i * CATCH_WEIGHT_FACTOR}`,
       "exportWeightAfterProcessing": `${i * 8}`
     });
   }
@@ -1695,10 +1736,10 @@ test('render processing statement - pagination with many catches (sample=true)',
 
 test('render processing statement - pagination with many catches (sample=false)', async () => {
   const sasJson = {
-    container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-    blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-    uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-    qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+    container: MOCK_CONTAINER_ID,
+    blobName: MOCK_BLOB_NAME,
+    uri: MOCK_BLOB_NAME,
+    qrUri: MOCK_QR_URI
   }
 
   const catches = [];
@@ -1706,7 +1747,7 @@ test('render processing statement - pagination with many catches (sample=false)'
     catches.push({
       "productIndex": 0,
       "species": `Production Species ${i}`,
-      "catchCertificateNumber": `GBR-2023-PS-PROD-${i.toString().padStart(3, '0')}`,
+      "catchCertificateNumber": `GBR-2023-PS-PROD-${i.toString().padStart(SHORT_CERT_NUMBER_WIDTH, '0')}`,
       "totalWeightLanded": `${i * 15}`,
       "exportWeightBeforeProcessing": `${i * 14}`,
       "exportWeightAfterProcessing": `${i * 13}`
@@ -1736,10 +1777,10 @@ test('render processing statement - pagination with many catches (sample=false)'
 
 test('render processing statement - multiple products with pagination', async () => {
   const sasJson = {
-    container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-    blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-    uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-    qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+    container: MOCK_CONTAINER_ID,
+    blobName: MOCK_BLOB_NAME,
+    uri: MOCK_BLOB_NAME,
+    qrUri: MOCK_QR_URI
   }
 
   const catches = [];
@@ -1748,7 +1789,7 @@ test('render processing statement - multiple products with pagination', async ()
     catches.push({
       "productIndex": 0,
       "species": `Product1 Species ${i}`,
-      "catchCertificateNumber": `GBR-2023-PS-P1-${i.toString().padStart(3, '0')}`,
+      "catchCertificateNumber": `GBR-2023-PS-P1-${i.toString().padStart(SHORT_CERT_NUMBER_WIDTH, '0')}`,
       "totalWeightLanded": `${i * 20}`,
       "exportWeightBeforeProcessing": `${i * 18}`,
       "exportWeightAfterProcessing": `${i * 16}`
@@ -1759,7 +1800,7 @@ test('render processing statement - multiple products with pagination', async ()
     catches.push({
       "productIndex": 1,
       "species": `Product2 Species ${i}`,
-      "catchCertificateNumber": `GBR-2023-PS-P2-${i.toString().padStart(3, '0')}`,
+      "catchCertificateNumber": `GBR-2023-PS-P2-${i.toString().padStart(SHORT_CERT_NUMBER_WIDTH, '0')}`,
       "totalWeightLanded": `${i * 25}`,
       "exportWeightBeforeProcessing": `${i * 23}`,
       "exportWeightAfterProcessing": `${i * 21}`
@@ -1795,10 +1836,10 @@ test('render processing statement - multiple products with pagination', async ()
 
 test('render processing statement - extreme pagination test', async () => {
   const sasJson = {
-    container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-    blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-    uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-    qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+    container: MOCK_CONTAINER_ID,
+    blobName: MOCK_BLOB_NAME,
+    uri: MOCK_BLOB_NAME,
+    qrUri: MOCK_QR_URI
   }
 
   const catches = [];
@@ -1806,7 +1847,7 @@ test('render processing statement - extreme pagination test', async () => {
     catches.push({
       "productIndex": 0,
       "species": `Extreme Test Species ${i}`,
-      "catchCertificateNumber": `GBR-2023-PS-EXTREME-${i.toString().padStart(3, '0')}`,
+      "catchCertificateNumber": `GBR-2023-PS-EXTREME-${i.toString().padStart(SHORT_CERT_NUMBER_WIDTH, '0')}`,
       "totalWeightLanded": `${i * 5}`,
       "exportWeightBeforeProcessing": `${i * 4}`,
       "exportWeightAfterProcessing": `${i * 3}`
@@ -1836,10 +1877,10 @@ test('render processing statement - extreme pagination test', async () => {
 
 test('render processing statement - page break edge case', async () => {
   const sasJson = {
-    container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-    blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-    uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-    qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+    container: MOCK_CONTAINER_ID,
+    blobName: MOCK_BLOB_NAME,
+    uri: MOCK_BLOB_NAME,
+    qrUri: MOCK_QR_URI
   }
 
   const manyProducts = [];
@@ -1858,7 +1899,7 @@ test('render processing statement - page break edge case', async () => {
     manyCatches.push({
       productIndex: i % 5, // Distribute across first 5 products
       species: `Test Species ${i}`,
-      catchCertificateNumber: `GBR-2023-CC-${String(i).padStart(3, '0')}`,
+      catchCertificateNumber: `GBR-2023-CC-${String(i).padStart(SHORT_CERT_NUMBER_WIDTH, '0')}`,
       totalWeightLanded: "100",
       exportWeightBeforeProcessing: "90",
       exportWeightAfterProcessing: "80"
@@ -1907,10 +1948,10 @@ test('render processing statement - page break edge case', async () => {
 
 test('render processing statement - QR code rendered when not sample', async () => {
   const sasJson = {
-    container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-    blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-    uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-    qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+    container: MOCK_CONTAINER_ID,
+    blobName: MOCK_BLOB_NAME,
+    uri: MOCK_BLOB_NAME,
+    qrUri: MOCK_QR_URI
   }
 
   const data = {
@@ -1957,10 +1998,10 @@ test('render processing statement - QR code rendered when not sample', async () 
 
 test('render processing statement - QR code NOT rendered when sample', async () => {
   const sasJson = {
-    container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-    blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-    uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-    qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+    container: MOCK_CONTAINER_ID,
+    blobName: MOCK_BLOB_NAME,
+    uri: MOCK_BLOB_NAME,
+    qrUri: MOCK_QR_URI
   }
 
   const data = {
@@ -2002,18 +2043,18 @@ test('render processing statement - QR code NOT rendered when sample', async () 
 
   test('render transport pdf: SD TRUCK', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-      blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+      container: MOCK_CONTAINER_ID,
+      blobName: MOCK_BLOB_NAME,
+      uri: MOCK_BLOB_NAME,
+      qrUri: MOCK_QR_URI
     }
 
     const data = {
       documentNumber: "GBR-2018-SD-1C89DE54F",
       exporter: {
-        exporterFullName: 'Jim Jessop',
-        exporterCompanyName: 'FishByMail Ltd',
-        addressOne: '77 Coast Road',
+        exporterFullName: EXPORTER_FULL_NAME,
+        exporterCompanyName: EXPORTER_COMPANY,
+        addressOne: EXPORTER_ADDRESS_ONE,
         addressTwo: '',
         townCity: 'Jarrow',
         postcode: 'NE31 1YW',
@@ -2033,7 +2074,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
         vehicle: 'truck',
         cmr: 'true',
         departurePlace: 'hull',
-        user_id: 'a9602f38-f220-475a-991f-a19626bc51ae',
+        user_id: TEST_USER_ID,
         nationalityOfVehicle: 'UK',
         registrationNumber: '456',
       },
@@ -2041,7 +2082,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
         vehicle: 'truck',
         cmr: 'true',
         departurePlace: 'hull',
-        user_id: 'a9602f38-f220-475a-991f-a19626bc51ae',
+        user_id: TEST_USER_ID,
         nationalityOfVehicle: 'UK',
         registrationNumber: '456',
       },
@@ -2062,18 +2103,18 @@ test('render processing statement - QR code NOT rendered when sample', async () 
 
   test('render transport pdf: SD CONTAINER VESSEL', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-      blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+      container: MOCK_CONTAINER_ID,
+      blobName: MOCK_BLOB_NAME,
+      uri: MOCK_BLOB_NAME,
+      qrUri: MOCK_QR_URI
     }
 
     const data = {
       documentNumber: "GBR-2018-SD-1C89DE54F",
       exporter: {
-        exporterFullName: 'Jim Jessop',
-        exporterCompanyName: 'FishByMail Ltd',
-        addressOne: '77 Coast Road',
+        exporterFullName: EXPORTER_FULL_NAME,
+        exporterCompanyName: EXPORTER_COMPANY,
+        addressOne: EXPORTER_ADDRESS_ONE,
         addressTwo: '',
         townCity: 'Jarrow',
         postcode: 'NE31 1YW',
@@ -2103,7 +2144,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
         vehicle: 'CONTAINERVESSEL',
         flagState: 'UK',
         departurePlace: 'hull',
-        user_id: 'a9602f38-f220-475a-991f-a19626bc51ae',
+        user_id: TEST_USER_ID,
         vesselName: '123',
         containerNumbers: [
             'ABCD1', 'ABCD2', 'ABCD3', 'ABCD4', 'ABCD5'
@@ -2114,7 +2155,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
         vehicle: 'CONTAINERVESSEL',
         flagState: 'UK',
         departurePlace: 'hull',
-        user_id: 'a9602f38-f220-475a-991f-a19626bc51ae',
+        user_id: TEST_USER_ID,
         vesselName: '123',
         containerNumbers: [
             'ABCD1', 'ABCD2', 'ABCD3', 'ABCD4', 'ABCD5'
@@ -2135,18 +2176,18 @@ test('render processing statement - QR code NOT rendered when sample', async () 
 
   test('render transport pdf: SD PLANE', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-      blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+      container: MOCK_CONTAINER_ID,
+      blobName: MOCK_BLOB_NAME,
+      uri: MOCK_BLOB_NAME,
+      qrUri: MOCK_QR_URI
     }
 
     const data = {
       documentNumber: "GBR-2018-SD-1C89DE54F",
       exporter: {
-        exporterFullName: 'Jim Jessop',
-        exporterCompanyName: 'FishByMail Ltd',
-        addressOne: '77 Coast Road',
+        exporterFullName: EXPORTER_FULL_NAME,
+        exporterCompanyName: EXPORTER_COMPANY,
+        addressOne: EXPORTER_ADDRESS_ONE,
         addressTwo: '',
         townCity: 'Jarrow',
         postcode: 'NE31 1YW',
@@ -2166,7 +2207,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
         vehicle: 'PLANE',
         flightNumber: 'BA078',
         departurePlace: 'hull',
-        user_id: 'a9602f38-f220-475a-991f-a19626bc51ae',
+        user_id: TEST_USER_ID,
         vesselName: '123',
         containerNumber: '456',
         exportedFrom: 'France'
@@ -2175,7 +2216,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
         vehicle: 'PLANE',
         flightNumber: 'BA078',
         departurePlace: 'hull',
-        user_id: 'a9602f38-f220-475a-991f-a19626bc51ae',
+        user_id: TEST_USER_ID,
         vesselName: '123',
         containerNumber: '456',
         exportedFrom: 'France'
@@ -2198,18 +2239,18 @@ test('render processing statement - QR code NOT rendered when sample', async () 
 
   test('render transport pdf: SD PLANE with empty catch details', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-      blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+      container: MOCK_CONTAINER_ID,
+      blobName: MOCK_BLOB_NAME,
+      uri: MOCK_BLOB_NAME,
+      qrUri: MOCK_QR_URI
     }
 
     const data = {
       documentNumber: "GBR-2018-SD-1C89DE54F",
       exporter: {
-        exporterFullName: 'Jim Jessop',
-        exporterCompanyName: 'FishByMail Ltd',
-        addressOne: '77 Coast Road',
+        exporterFullName: EXPORTER_FULL_NAME,
+        exporterCompanyName: EXPORTER_COMPANY,
+        addressOne: EXPORTER_ADDRESS_ONE,
         addressTwo: '',
         townCity: 'Jarrow',
         postcode: 'NE31 1YW',
@@ -2219,7 +2260,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
         vehicle: 'PLANE',
         flightNumber: 'BA078',
         departurePlace: 'hull',
-        user_id: 'a9602f38-f220-475a-991f-a19626bc51ae',
+        user_id: TEST_USER_ID,
         vesselName: '123',
         containerNumber: '456',
         exportedFrom: 'France'
@@ -2228,7 +2269,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
         vehicle: 'PLANE',
         flightNumber: 'BA078',
         departurePlace: 'hull',
-        user_id: 'a9602f38-f220-475a-991f-a19626bc51ae',
+        user_id: TEST_USER_ID,
         vesselName: '123',
         containerNumber: '456',
         exportedFrom: 'France'
@@ -2247,18 +2288,18 @@ test('render processing statement - QR code NOT rendered when sample', async () 
 
   test('render transport pdf: SD PLANE with one complete catch details', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-      blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+      container: MOCK_CONTAINER_ID,
+      blobName: MOCK_BLOB_NAME,
+      uri: MOCK_BLOB_NAME,
+      qrUri: MOCK_QR_URI
     }
 
     const data = {
       documentNumber: "GBR-2018-SD-1C89DE54F",
       exporter: {
-        exporterFullName: 'Jim Jessop',
-        exporterCompanyName: 'FishByMail Ltd',
-        addressOne: '77 Coast Road',
+        exporterFullName: EXPORTER_FULL_NAME,
+        exporterCompanyName: EXPORTER_COMPANY,
+        addressOne: EXPORTER_ADDRESS_ONE,
         addressTwo: '',
         townCity: 'Jarrow',
         postcode: 'NE31 1YW',
@@ -2288,7 +2329,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
         vehicle: 'PLANE',
         flightNumber: 'BA078',
         departurePlace: 'hull',
-        user_id: 'a9602f38-f220-475a-991f-a19626bc51ae',
+        user_id: TEST_USER_ID,
         vesselName: '123',
         containerNumber: '456',
         exportedFrom: 'France'
@@ -2297,7 +2338,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
         vehicle: 'PLANE',
         flightNumber: 'BA078',
         departurePlace: 'hull',
-        user_id: 'a9602f38-f220-475a-991f-a19626bc51ae',
+        user_id: TEST_USER_ID,
         vesselName: '123',
         containerNumber: '456',
         exportedFrom: 'France'
@@ -2316,18 +2357,18 @@ test('render processing statement - QR code NOT rendered when sample', async () 
   
   test('render transport pdf: SD DIRECT LANDING', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-      blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+      container: MOCK_CONTAINER_ID,
+      blobName: MOCK_BLOB_NAME,
+      uri: MOCK_BLOB_NAME,
+      qrUri: MOCK_QR_URI
     }
 
     const data = {
       documentNumber: "GBR-2018-SD-1C89DE54F",
       exporter: {
-        exporterFullName: 'Jim Jessop',
-        exporterCompanyName: 'FishByMail Ltd',
-        addressOne: '77 Coast Road',
+        exporterFullName: EXPORTER_FULL_NAME,
+        exporterCompanyName: EXPORTER_COMPANY,
+        addressOne: EXPORTER_ADDRESS_ONE,
         addressTwo: '',
         townCity: 'Jarrow',
         postcode: 'NE31 1YW',
@@ -2369,18 +2410,18 @@ test('render processing statement - QR code NOT rendered when sample', async () 
 
   test('render transport pdf: SD TRUCK (no details)', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-      blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+      container: MOCK_CONTAINER_ID,
+      blobName: MOCK_BLOB_NAME,
+      uri: MOCK_BLOB_NAME,
+      qrUri: MOCK_QR_URI
     }
 
     const data = {
       documentNumber: "GBR-2018-SD-1C89DE54F",
       exporter: {
-        exporterFullName: 'Jim Jessop',
-        exporterCompanyName: 'FishByMail Ltd',
-        addressOne: '77 Coast Road',
+        exporterFullName: EXPORTER_FULL_NAME,
+        exporterCompanyName: EXPORTER_COMPANY,
+        addressOne: EXPORTER_ADDRESS_ONE,
         addressTwo: '',
         townCity: 'Jarrow',
         postcode: 'NE31 1YW',
@@ -2416,18 +2457,18 @@ test('render processing statement - QR code NOT rendered when sample', async () 
 
   test('render transport pdf: SD CONTAINER VESSEL (no details)', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-      blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+      container: MOCK_CONTAINER_ID,
+      blobName: MOCK_BLOB_NAME,
+      uri: MOCK_BLOB_NAME,
+      qrUri: MOCK_QR_URI
     }
 
     const data = {
       documentNumber: "GBR-2018-SD-1C89DE54F",
       exporter: {
-        exporterFullName: 'Jim Jessop',
-        exporterCompanyName: 'FishByMail Ltd',
-        addressOne: '77 Coast Road',
+        exporterFullName: EXPORTER_FULL_NAME,
+        exporterCompanyName: EXPORTER_COMPANY,
+        addressOne: EXPORTER_ADDRESS_ONE,
         addressTwo: '',
         townCity: 'Jarrow',
         postcode: 'NE31 1YW',
@@ -2450,7 +2491,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
         vehicle: 'CONTAINERVESSEL',
         flagState: 'UK',
         departurePlace: 'hull',
-        user_id: 'a9602f38-f220-475a-991f-a19626bc51ae',
+        user_id: TEST_USER_ID,
         vesselName: '123',
         containerNumbers: [
             'ABCD1', 'ABCD2', 'ABCD3', 'ABCD4', 'ABCD5'
@@ -2471,18 +2512,18 @@ test('render processing statement - QR code NOT rendered when sample', async () 
 
   test('render transport pdf: SD DIRECT LANDING (no details)', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-      blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+      container: MOCK_CONTAINER_ID,
+      blobName: MOCK_BLOB_NAME,
+      uri: MOCK_BLOB_NAME,
+      qrUri: MOCK_QR_URI
     }
 
     const data = {
       documentNumber: "GBR-2018-SD-1C89DE54F",
       exporter: {
-        exporterFullName: 'Jim Jessop',
-        exporterCompanyName: 'FishByMail Ltd',
-        addressOne: '77 Coast Road',
+        exporterFullName: EXPORTER_FULL_NAME,
+        exporterCompanyName: EXPORTER_COMPANY,
+        addressOne: EXPORTER_ADDRESS_ONE,
         addressTwo: '',
         townCity: 'Jarrow',
         postcode: 'NE31 1YW',
@@ -2518,18 +2559,18 @@ test('render processing statement - QR code NOT rendered when sample', async () 
 
   test('render transport pdf: SD PLANE with missing arrival transportation and date of unloading', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-      blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+      container: MOCK_CONTAINER_ID,
+      blobName: MOCK_BLOB_NAME,
+      uri: MOCK_BLOB_NAME,
+      qrUri: MOCK_QR_URI
     }
 
     const data = {
       documentNumber: "GBR-2018-SD-1C89DE54F",
       exporter: {
-        exporterFullName: 'Jim Jessop',
-        exporterCompanyName: 'FishByMail Ltd',
-        addressOne: '77 Coast Road',
+        exporterFullName: EXPORTER_FULL_NAME,
+        exporterCompanyName: EXPORTER_COMPANY,
+        addressOne: EXPORTER_ADDRESS_ONE,
         addressTwo: '',
         townCity: 'Jarrow',
         postcode: 'NE31 1YW',
@@ -2549,7 +2590,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
         vehicle: 'PLANE',
         flightNumber: 'BA078',
         departurePlace: 'hull',
-        user_id: 'a9602f38-f220-475a-991f-a19626bc51ae',
+        user_id: TEST_USER_ID,
         vesselName: '123',
         containerNumber: '456',
         exportedFrom: 'France'
@@ -2567,7 +2608,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
 
   test('render storage note - storage facility with Chilled storage type', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
+      container: MOCK_CONTAINER_ID,
       blobName: '_storage_note_chilled.pdf',
       uri: '_storage_note_chilled.pdf',
       qrUri: 'http://localhost:3001/qr/storage-notes/_storage_note_chilled.pdf'
@@ -2622,7 +2663,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
 
   test('render storage note - storage facility with Frozen storage type', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
+      container: MOCK_CONTAINER_ID,
       blobName: '_storage_note_frozen.pdf',
       uri: '_storage_note_frozen.pdf',
       qrUri: 'http://localhost:3001/qr/storage-notes/_storage_note_frozen.pdf'
@@ -2677,7 +2718,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
 
   test('render storage note - storage facility with Other storage type', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
+      container: MOCK_CONTAINER_ID,
       blobName: '_storage_note_other.pdf',
       uri: '_storage_note_other.pdf',
       qrUri: 'http://localhost:3001/qr/storage-notes/_storage_note_other.pdf'
@@ -2733,18 +2774,18 @@ test('render processing statement - QR code NOT rendered when sample', async () 
 
   test('should add document structure with language tag', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-      blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+      container: MOCK_CONTAINER_ID,
+      blobName: MOCK_BLOB_NAME,
+      uri: MOCK_BLOB_NAME,
+      qrUri: MOCK_QR_URI
     };
 
     const data = {
-      documentNumber: "GBR-2018-CC-1C89DE54F",
+      documentNumber: EXPORT_CERT_DOC_NUMBER,
       exporter: {
-        exporterFullName: 'Jim Jessop',
-        exporterCompanyName: 'FishByMail Ltd',
-        addressOne: '77 Coast Road',
+        exporterFullName: EXPORTER_FULL_NAME,
+        exporterCompanyName: EXPORTER_COMPANY,
+        addressOne: EXPORTER_ADDRESS_ONE,
         townCity: 'Jarrow',
         postcode: 'NE31 1YW',
       },
@@ -2754,21 +2795,21 @@ test('render processing statement - QR code NOT rendered when sample', async () 
             commodityCode: "30000001",
             presentation: { code: "FIL", label: "Filleted" },
             state: { code: "FRO", label: "Frozen" },
-            species: { code: "FISH1", label: "FISH1 (FISH1)" }
+            species: { code: "FISH1", label: FISH1_SPECIES_LABEL }
           },
           landings: [{
             addMode: false,
             editMode: false,
             model: {
-              id: "ce1fe347-2825-4152-884b-e8bad5ccde61",
+              id: LANDING_ID,
               vessel: {
                 pln: "B192",
-                vesselName: "GOLDEN BELLS 11",
+                vesselName: VESSEL_NAME_GOLDEN_BELLS,
                 homePort: "ARDGLASS",
                 registrationNumber: "A12186",
-                label: "GOLDEN BELLS 11 (B192)"
+                label: VESSEL_LABEL_GOLDEN_BELLS
               },
-              dateLanded: "2019-01-26T00:00:00.000Z",
+              dateLanded: DATE_LANDED_26,
               exportWeight: "10"
             }
           }]
@@ -2783,7 +2824,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
         }
       },
       conservation: {
-        conservationReference: 'Common fisheries policy'
+        conservationReference: CONSERVATION_REFERENCE
       }
     };
 
@@ -2794,10 +2835,10 @@ test('render processing statement - QR code NOT rendered when sample', async () 
 
   test('should render QR code in Section 9 positioned to the right of Date Issued field - FI0-10471', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-      blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+      container: MOCK_CONTAINER_ID,
+      blobName: MOCK_BLOB_NAME,
+      uri: MOCK_BLOB_NAME,
+      qrUri: MOCK_QR_URI
     };
 
     const data = {
@@ -2860,10 +2901,10 @@ test('render processing statement - QR code NOT rendered when sample', async () 
 
   test('should not render QR code in Section 8 - FI0-10471', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
-      blobName: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      uri: '_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf',
-      qrUri: 'http://localhost:3001/qr/export-certificates/_d5cd0fb0-bd41-4dc0-a265-c3a438ebd782.pdf'
+      container: MOCK_CONTAINER_ID,
+      blobName: MOCK_BLOB_NAME,
+      uri: MOCK_BLOB_NAME,
+      qrUri: MOCK_QR_URI
     };
 
     const data = {
@@ -2918,7 +2959,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
 
   test('should handle long licence holder names with dynamic pagination', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
+      container: MOCK_CONTAINER_ID,
       blobName: '_long-licence-holder.pdf',
       uri: '_long-licence-holder.pdf',
       qrUri: 'http://localhost:3001/qr/export-certificates/_long-licence-holder.pdf'
@@ -2989,7 +3030,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
 
   test('should handle multi-vessel schedule with pagination', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
+      container: MOCK_CONTAINER_ID,
       blobName: '_multi-vessel-pagination.pdf',
       uri: '_multi-vessel-pagination.pdf',
       qrUri: 'http://localhost:3001/qr/export-certificates/_multi-vessel-pagination.pdf'
@@ -3050,7 +3091,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
 
   test('should render blank template with multi-vessel schedule', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
+      container: MOCK_CONTAINER_ID,
       blobName: '_blank-template.pdf',
       uri: '_blank-template.pdf',
       qrUri: 'http://localhost:3001/qr/export-certificates/_blank-template.pdf'
@@ -3070,7 +3111,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
 
   test('should handle vessel with long licence detail and homePort', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
+      container: MOCK_CONTAINER_ID,
       blobName: '_long-details.pdf',
       uri: '_long-details.pdf',
       qrUri: 'http://localhost:3001/qr/export-certificates/_long-details.pdf'
@@ -3126,7 +3167,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
 
   test('should handle mixed vessel names - some with long holders, some without', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
+      container: MOCK_CONTAINER_ID,
       blobName: '_mixed-vessels.pdf',
       uri: '_mixed-vessels.pdf',
       qrUri: 'http://localhost:3001/qr/export-certificates/_mixed-vessels.pdf'
@@ -3211,7 +3252,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
 
   test('should handle vessels with empty/null licence holders', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
+      container: MOCK_CONTAINER_ID,
       blobName: '_empty-holders.pdf',
       uri: '_empty-holders.pdf',
       qrUri: 'http://localhost:3001/qr/export-certificates/_empty-holders.pdf'
@@ -3281,7 +3322,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
 
   test('should handle edge case - exactly 7 rows per page', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
+      container: MOCK_CONTAINER_ID,
       blobName: '_seven-rows.pdf',
       uri: '_seven-rows.pdf',
       qrUri: 'http://localhost:3001/qr/export-certificates/_seven-rows.pdf'
@@ -3341,7 +3382,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
 
   test('should handle sample mode with multi-vessel schedule', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
+      container: MOCK_CONTAINER_ID,
       blobName: '_sample-multi.pdf',
       uri: '_sample-multi.pdf',
       qrUri: 'http://localhost:3001/qr/export-certificates/_sample-multi.pdf'
@@ -3412,7 +3453,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
 
   test('should handle vessels with special characters in names', async () => {
     const sasJson = {
-      container: '527fb0dd-b1d7-46c8-bfed-e06b373d041c',
+      container: MOCK_CONTAINER_ID,
       blobName: '_special-chars.pdf',
       uri: '_special-chars.pdf',
       qrUri: 'http://localhost:3001/qr/export-certificates/_special-chars.pdf'
