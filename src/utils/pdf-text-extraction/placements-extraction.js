@@ -3,6 +3,30 @@ const _ = require('lodash');
 const PDFInterpreter = require('./pdf-interpreter');
 const MultiDictHelper = require('./multi-dict-helper');
 
+function collectXObjectForm(forms, xobjectName, xobjectObjectId, xobject, pdfReader) {
+    if(xobject.getType() !== muhammara.ePDFObjectStream) {
+        return;
+    }
+    const xobjectStream = xobject.toPDFStream();
+    const xobjectDict = xobjectStream.getDictionary();
+    if(xobjectDict.queryObject('Subtype').value === 'Form') {
+        forms[xobjectName] = {
+            id: xobjectObjectId,
+            xobject: xobjectStream,
+            matrix: xobjectDict.exists('Matrix') ? _.map(pdfReader.queryDictionaryObject(xobjectDict,'Matrix').toPDFArray().toJSArray(),item=>item.value):null
+        };
+    }
+}
+
+function collectXObjects(forms, xobjects, pdfReader) {
+    const xobjectsJS = xobjects.toJSObject();
+    _.forOwn(xobjectsJS,(xobjectReference,xobjectName)=>{
+        const xobjectObjectId = xobjectReference.toPDFIndirectObjectReference().getObjectID();
+        const xobject = pdfReader.parseNewObject(xobjectObjectId);
+        collectXObjectForm(forms, xobjectName, xobjectObjectId, xobject, pdfReader);
+    });
+}
+
 function parseInterestingResources(resourcesDicts,pdfReader,readResources) {
     const forms = {};
     const result = {forms};
@@ -11,23 +35,7 @@ function parseInterestingResources(resourcesDicts,pdfReader,readResources) {
         if(resourcesDicts.exists('XObject')) {
             const xobjects = resourcesDicts.queryDictionaryObject('XObject',pdfReader);
             if(xobjects) {
-                const xobjectsJS = xobjects.toJSObject();
-                _.forOwn(xobjectsJS,(xobjectReference,xobjectName)=>{
-                    const xobjectObjectId = xobjectReference.toPDFIndirectObjectReference().getObjectID();
-                    const xobject = pdfReader.parseNewObject(xobjectObjectId);
-                    if(xobject.getType() === muhammara.ePDFObjectStream) {
-                        const xobjectStream = xobject.toPDFStream();
-                        const xobjectDict = xobjectStream.getDictionary();
-                        if(xobjectDict.queryObject('Subtype').value === 'Form') {
-                            // got a form!
-                            forms[xobjectName] = {
-                                id:  xobjectObjectId,
-                                xobject: xobjectStream,
-                                matrix: xobjectDict.exists('Matrix') ? _.map(pdfReader.queryDictionaryObject(xobjectDict,'Matrix').toPDFArray().toJSArray(),item=>item.value):null
-                            }
-                        }
-                    }            
-                });
+                collectXObjects(forms, xobjects, pdfReader);
             }
         }
 
