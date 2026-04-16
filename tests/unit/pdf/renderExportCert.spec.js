@@ -55,6 +55,41 @@ const P2_TOTAL_WEIGHT_BASE = 30;
 const P2_BEFORE_PROC_WEIGHT_BASE = 28;
 const P2_AFTER_PROC_WEIGHT_BASE = 26;
 
+const P1_AFTER_PROC_WEIGHT_BASE = 16;
+const P3_TOTAL_WEIGHT_BASE = 40;
+const P3_BEFORE_PROC_WEIGHT_BASE = 38;
+const P3_AFTER_PROC_WEIGHT_BASE = 36;
+const SCHEDULE_COL_BEFORE_PROC_BASE = 9;
+const PAGINATION_COUNT_LARGE = 25;
+const PAGINATION_HEALTH_CERT_DATE = '31/03/2023';
+const PAGINATION_TEST_USER = 'Pagination Test User';
+const PROD_PAGINATION_COUNT = 30;
+const PROD_PAGINATION_WEIGHT_FACTOR = 15;
+const PROD_PAGINATION_BEFORE_PROC_FACTOR = 14;
+const PROD_PAGINATION_AFTER_PROC_FACTOR = 13;
+const MULTI_PAGINATION_P1_WEIGHT_FACTOR = 20;
+const MULTI_PAGINATION_P1_BEFORE_PROC_FACTOR = 18;
+const MULTI_PAGINATION_P2_WEIGHT_FACTOR = 25;
+const MULTI_PAGINATION_P2_BEFORE_PROC_FACTOR = 23;
+const MULTI_PAGINATION_P2_AFTER_PROC_FACTOR = 21;
+const EXTREME_PAGINATION_COUNT = 50;
+const EXTREME_WEIGHT_FACTOR = 5;
+const EXTREME_AFTER_PROC_FACTOR = 3;
+const PAGE_BREAK_PRODUCT_COUNT = 15;
+const PAGE_BREAK_CATCH_COUNT = 20;
+const PAGE_BREAK_PRODUCT_SPREAD = 5;
+const SD_DOC_NUMBER = 'GBR-2018-SD-1C89DE54F';
+const SD_CERT_NUMBER = 'GBR-2018-SD-3456789012345678901234567890123456789001';
+const SD_DATE_OF_UNLOADING = '01/02/2018';
+const SD_TRANSPORT_UNLOADED_FROM = 'MK-0547, Saami';
+const SD_FACILITY_NAME = 'Test Processor 1';
+const SD_FACILITY_ARRIVAL_DATE = '20/10/2025';
+const CONSERVATION_REFERENCE_CFP = 'Common Fisheries Policy';
+const MULTI_VESSEL_PAGINATION_COUNT = 15;
+const MULTI_VESSEL_WEIGHT_BASE = 50;
+const SEVEN_ROWS_COUNT = 7;
+const SEVEN_ROWS_WEIGHT_BASE = 20;
+
 describe('pdfServiceExportCert: should run with no errors', () => {
   test('render multischedule pdf', async () => {
     const sasJson = {
@@ -1194,7 +1229,7 @@ describe('pdfServiceExportCert: should run with no errors', () => {
       "plantApprovalNumber": "CQ 999",
       "plantName": "Premium Fish Processing Ltd",
       "exporter": {
-          'exporterFullName': 'Sarah Johnson',
+          'exporterFullName': PS_RESPONSIBLE_PERSON,
           'exporterCompanyName': 'Premium Fish Processing Ltd'
       },
       "documentNumber": "GBR-2023-PS-UPDATED123"
@@ -1437,7 +1472,7 @@ describe('pdfServiceExportCert: should run with no errors', () => {
         "catchCertificateNumber": `GBR-2023-PS-P1-${i.toString().padStart(SHORT_CERT_NUMBER_WIDTH, '0')}`,
         "totalWeightLanded": `${P1_TOTAL_WEIGHT_BASE + i}`,
         "exportWeightBeforeProcessing": `${P1_BEFORE_PROC_WEIGHT_BASE + i}`,
-        "exportWeightAfterProcessing": `${16 + i}`
+        "exportWeightAfterProcessing": `${P1_AFTER_PROC_WEIGHT_BASE + i}`
       });
     }
 
@@ -1457,9 +1492,9 @@ describe('pdfServiceExportCert: should run with no errors', () => {
         "productIndex": 2,
         "species": `Product3 Fish ${i}`,
         "catchCertificateNumber": `GBR-2023-PS-P3-${i.toString().padStart(SHORT_CERT_NUMBER_WIDTH, '0')}`,
-        "totalWeightLanded": `${40 + i}`,
-        "exportWeightBeforeProcessing": `${38 + i}`,
-        "exportWeightAfterProcessing": `${36 + i}`
+        "totalWeightLanded": `${P3_TOTAL_WEIGHT_BASE + i}`,
+        "exportWeightBeforeProcessing": `${P3_BEFORE_PROC_WEIGHT_BASE + i}`,
+        "exportWeightAfterProcessing": `${P3_AFTER_PROC_WEIGHT_BASE + i}`
       });
     }
 
@@ -1617,7 +1652,7 @@ describe('pdfServiceExportCert: should run with no errors', () => {
         "species": `Schedule Column Test Fish ${i}`,
         "catchCertificateNumber": `GBR-2023-PS-SCH${i.toString().padStart(SHORT_CERT_NUMBER_WIDTH, '0')}`,
         "totalWeightLanded": `${10 + i}`,
-        "exportWeightBeforeProcessing": `${9 + i}`,
+        "exportWeightBeforeProcessing": `${SCHEDULE_COL_BEFORE_PROC_BASE + i}`,
         "exportWeightAfterProcessing": `${8 + i}`
       });
     }
@@ -1694,7 +1729,7 @@ test('render processing statement - pagination with many catches (sample=true)',
   }
 
   const catches = [];
-  for (let i = 1; i <= 25; i++) {
+  for (let i = 1; i <= PAGINATION_COUNT_LARGE; i++) {
     catches.push({
       "productIndex": 0,
       "species": `Test Species ${i}`,
@@ -1713,8 +1748,8 @@ test('render processing statement - pagination with many catches (sample=true)',
     }],
     "catches": catches,
     "healthCertificateNumber": "HC_PAGINATION_TEST",
-    "healthCertificateDate": "31/03/2023",
-    "personResponsibleForConsignment": "Pagination Test User",
+    "healthCertificateDate": PAGINATION_HEALTH_CERT_DATE,
+    "personResponsibleForConsignment": PAGINATION_TEST_USER,
     "plantApprovalNumber": "CQ 999",
     "plantAddressOne": "Test Address",
     "plantTownCity": "Test City",
@@ -1743,14 +1778,14 @@ test('render processing statement - pagination with many catches (sample=false)'
   }
 
   const catches = [];
-  for (let i = 1; i <= 30; i++) {
+  for (let i = 1; i <= PROD_PAGINATION_COUNT; i++) {
     catches.push({
       "productIndex": 0,
       "species": `Production Species ${i}`,
       "catchCertificateNumber": `GBR-2023-PS-PROD-${i.toString().padStart(SHORT_CERT_NUMBER_WIDTH, '0')}`,
-      "totalWeightLanded": `${i * 15}`,
-      "exportWeightBeforeProcessing": `${i * 14}`,
-      "exportWeightAfterProcessing": `${i * 13}`
+      "totalWeightLanded": `${i * PROD_PAGINATION_WEIGHT_FACTOR}`,
+      "exportWeightBeforeProcessing": `${i * PROD_PAGINATION_BEFORE_PROC_FACTOR}`,
+      "exportWeightAfterProcessing": `${i * PROD_PAGINATION_AFTER_PROC_FACTOR}`
     });
   }
 
@@ -1790,8 +1825,8 @@ test('render processing statement - multiple products with pagination', async ()
       "productIndex": 0,
       "species": `Product1 Species ${i}`,
       "catchCertificateNumber": `GBR-2023-PS-P1-${i.toString().padStart(SHORT_CERT_NUMBER_WIDTH, '0')}`,
-      "totalWeightLanded": `${i * 20}`,
-      "exportWeightBeforeProcessing": `${i * 18}`,
+      "totalWeightLanded": `${i * MULTI_PAGINATION_P1_WEIGHT_FACTOR}`,
+      "exportWeightBeforeProcessing": `${i * MULTI_PAGINATION_P1_BEFORE_PROC_FACTOR}`,
       "exportWeightAfterProcessing": `${i * 16}`
     });
   }
@@ -1801,9 +1836,9 @@ test('render processing statement - multiple products with pagination', async ()
       "productIndex": 1,
       "species": `Product2 Species ${i}`,
       "catchCertificateNumber": `GBR-2023-PS-P2-${i.toString().padStart(SHORT_CERT_NUMBER_WIDTH, '0')}`,
-      "totalWeightLanded": `${i * 25}`,
-      "exportWeightBeforeProcessing": `${i * 23}`,
-      "exportWeightAfterProcessing": `${i * 21}`
+      "totalWeightLanded": `${i * MULTI_PAGINATION_P2_WEIGHT_FACTOR}`,
+      "exportWeightBeforeProcessing": `${i * MULTI_PAGINATION_P2_BEFORE_PROC_FACTOR}`,
+      "exportWeightAfterProcessing": `${i * MULTI_PAGINATION_P2_AFTER_PROC_FACTOR}`
     });
   }
 
@@ -1843,14 +1878,14 @@ test('render processing statement - extreme pagination test', async () => {
   }
 
   const catches = [];
-  for (let i = 1; i <= 50; i++) {
+  for (let i = 1; i <= EXTREME_PAGINATION_COUNT; i++) {
     catches.push({
       "productIndex": 0,
       "species": `Extreme Test Species ${i}`,
       "catchCertificateNumber": `GBR-2023-PS-EXTREME-${i.toString().padStart(SHORT_CERT_NUMBER_WIDTH, '0')}`,
-      "totalWeightLanded": `${i * 5}`,
+      "totalWeightLanded": `${i * EXTREME_WEIGHT_FACTOR}`,
       "exportWeightBeforeProcessing": `${i * 4}`,
-      "exportWeightAfterProcessing": `${i * 3}`
+      "exportWeightAfterProcessing": `${i * EXTREME_AFTER_PROC_FACTOR}`
     });
   }
 
@@ -1887,7 +1922,7 @@ test('render processing statement - page break edge case', async () => {
   const manyCatches = [];
   
   // Create 15 products to make section1 extremely tall and force pagination
-  for (let i = 0; i < 15; i++) {
+  for (let i = 0; i < PAGE_BREAK_PRODUCT_COUNT; i++) {
     manyProducts.push({
       commodityCode: `0302319${i}`,
       description: `Test Product ${i} - Very Long Description That Takes Up Significant Space On The Page And Forces Content To Be Very Tall`
@@ -1895,9 +1930,9 @@ test('render processing statement - page break edge case', async () => {
   }
   
   // Create many catches for the first few products
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < PAGE_BREAK_CATCH_COUNT; i++) {
     manyCatches.push({
-      productIndex: i % 5, // Distribute across first 5 products
+      productIndex: i % PAGE_BREAK_PRODUCT_SPREAD, // Distribute across first 5 products
       species: `Test Species ${i}`,
       catchCertificateNumber: `GBR-2023-CC-${String(i).padStart(SHORT_CERT_NUMBER_WIDTH, '0')}`,
       totalWeightLanded: "100",
@@ -1910,8 +1945,8 @@ test('render processing statement - page break edge case', async () => {
     "products": manyProducts,
     "catches": manyCatches,
     "healthCertificateNumber": "HC_PAGINATION_TEST",
-    "healthCertificateDate": "31/03/2023",
-    "personResponsibleForConsignment": "Pagination Test User",
+    "healthCertificateDate": PAGINATION_HEALTH_CERT_DATE,
+    "personResponsibleForConsignment": PAGINATION_TEST_USER,
     "plantApprovalNumber": "CQ 789",
     "plantName": "Pagination Test Plant",
     "plantAddressOne": "Test Address Line One That Is Quite Long",
@@ -1970,7 +2005,7 @@ test('render processing statement - QR code rendered when not sample', async () 
       }
     ],
     "healthCertificateNumber": "HC_QR_TEST",
-    "healthCertificateDate": "31/03/2023",
+    "healthCertificateDate": PAGINATION_HEALTH_CERT_DATE,
     "personResponsibleForConsignment": "QR Test User",
     "plantApprovalNumber": "CQ 123",
     "plantName": "QR Test Plant",
@@ -2020,7 +2055,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
       }
     ],
     "healthCertificateNumber": "HC_NO_QR_TEST",
-    "healthCertificateDate": "31/03/2023",
+    "healthCertificateDate": PAGINATION_HEALTH_CERT_DATE,
     "personResponsibleForConsignment": "No QR Test User",
     "plantApprovalNumber": "CQ 456",
     "plantName": "No QR Test Plant",
@@ -2050,7 +2085,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
     }
 
     const data = {
-      documentNumber: "GBR-2018-SD-1C89DE54F",
+      documentNumber: SD_DOC_NUMBER,
       exporter: {
         exporterFullName: EXPORTER_FULL_NAME,
         exporterCompanyName: EXPORTER_COMPANY,
@@ -2063,11 +2098,11 @@ test('render processing statement - QR code NOT rendered when sample', async () 
           {
               product: 'cod',
               commodityCode: '0123456',
-              certificateNumber: 'GBR-2018-SD-3456789012345678901234567890123456789001',
+              certificateNumber: SD_CERT_NUMBER,
               productWeight: 200,
-              dateOfUnloading: '01/02/2018',
+              dateOfUnloading: SD_DATE_OF_UNLOADING,
               placeOfUnloading: 'Jarrow',
-              transportUnloadedFrom: 'MK-0547, Saami'
+              transportUnloadedFrom: SD_TRANSPORT_UNLOADED_FROM
           }
       ],
       transport: {
@@ -2086,13 +2121,13 @@ test('render processing statement - QR code NOT rendered when sample', async () 
         nationalityOfVehicle: 'UK',
         registrationNumber: '456',
       },
-      facilityName: 'Test Processor 1',
+      facilityName: SD_FACILITY_NAME,
       facilityAddressOne: '20',
       facilityAddressTwo: '',
       facilityTownCity: 'Town',
       facilityPostcode: 'test',
       storedAs: "chilled",
-      facilityArrivalDate: '20/10/2025',
+      facilityArrivalDate: SD_FACILITY_ARRIVAL_DATE,
       exportedTo: {
         officialCountryName: 'France',
       }
@@ -2110,7 +2145,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
     }
 
     const data = {
-      documentNumber: "GBR-2018-SD-1C89DE54F",
+      documentNumber: SD_DOC_NUMBER,
       exporter: {
         exporterFullName: EXPORTER_FULL_NAME,
         exporterCompanyName: EXPORTER_COMPANY,
@@ -2123,16 +2158,16 @@ test('render processing statement - QR code NOT rendered when sample', async () 
           {
               product: 'cod',
               commodityCode: '0123456',
-              certificateNumber: 'GBR-2018-SD-3456789012345678901234567890123456789001',
+              certificateNumber: SD_CERT_NUMBER,
               productWeight: 200,
-              dateOfUnloading: '01/02/2018',
+              dateOfUnloading: SD_DATE_OF_UNLOADING,
               placeOfUnloading: 'Jarrow',
-              transportUnloadedFrom: 'MK-0547, Saami'
+              transportUnloadedFrom: SD_TRANSPORT_UNLOADED_FROM
           }
       ],
       storageFacilities: [
           {
-              facilityName: 'Test Processor 1',
+              facilityName: SD_FACILITY_NAME,
               facilityAddressOne: '20',
               facilityAddressTwo: '',
               facilityTownCity: 'Town',
@@ -2162,13 +2197,13 @@ test('render processing statement - QR code NOT rendered when sample', async () 
         ],
         exportedFrom: 'France'
       },
-        facilityName: 'Test Processor 1',
+        facilityName: SD_FACILITY_NAME,
         facilityAddressOne: '20',
         facilityAddressTwo: '',
         facilityTownCity: 'Town',
         facilityPostcode: 'test',
         storedAs: "chilled",
-        facilityArrivalDate: '20/10/2025'
+        facilityArrivalDate: SD_FACILITY_ARRIVAL_DATE
     };
 
     await renderPdf(pdfType.STORAGE_NOTE, data, false, sasJson.qrUri, mockedStream);
@@ -2183,7 +2218,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
     }
 
     const data = {
-      documentNumber: "GBR-2018-SD-1C89DE54F",
+      documentNumber: SD_DOC_NUMBER,
       exporter: {
         exporterFullName: EXPORTER_FULL_NAME,
         exporterCompanyName: EXPORTER_COMPANY,
@@ -2196,11 +2231,11 @@ test('render processing statement - QR code NOT rendered when sample', async () 
           {
               product: 'cod',
               commodityCode: '0123456',
-              certificateNumber: 'GBR-2018-SD-3456789012345678901234567890123456789001',
+              certificateNumber: SD_CERT_NUMBER,
               productWeight: 200,
-              dateOfUnloading: '01/02/2018',
+              dateOfUnloading: SD_DATE_OF_UNLOADING,
               placeOfUnloading: 'Jarrow',
-              transportUnloadedFrom: 'MK-0547, Saami'
+              transportUnloadedFrom: SD_TRANSPORT_UNLOADED_FROM
           }
       ],
       transport: {
@@ -2221,13 +2256,13 @@ test('render processing statement - QR code NOT rendered when sample', async () 
         containerNumber: '456',
         exportedFrom: 'France'
       },
-      facilityName: 'Test Processor 1',
+      facilityName: SD_FACILITY_NAME,
       facilityAddressOne: '20',
       facilityAddressTwo: '',
       facilityTownCity: 'Town',
       facilityPostcode: 'test',
       storedAs: "chilled",
-      facilityArrivalDate: '20/10/2025',
+      facilityArrivalDate: SD_FACILITY_ARRIVAL_DATE,
       exportedFrom: 'France',
       exportedTo: {
         officialCountryName: 'Ireland',
@@ -2246,7 +2281,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
     }
 
     const data = {
-      documentNumber: "GBR-2018-SD-1C89DE54F",
+      documentNumber: SD_DOC_NUMBER,
       exporter: {
         exporterFullName: EXPORTER_FULL_NAME,
         exporterCompanyName: EXPORTER_COMPANY,
@@ -2274,13 +2309,13 @@ test('render processing statement - QR code NOT rendered when sample', async () 
         containerNumber: '456',
         exportedFrom: 'France'
       },
-        facilityName: 'Test Processor 1',
+        facilityName: SD_FACILITY_NAME,
         facilityAddressOne: '20',
         facilityAddressTwo: '',
         facilityTownCity: 'Town',
         facilityPostcode: 'test',
         storedAs: "chilled",
-        facilityArrivalDate: '20/10/2025'
+        facilityArrivalDate: SD_FACILITY_ARRIVAL_DATE
     };
 
     await renderPdf(pdfType.STORAGE_NOTE, data, false, sasJson.qrUri, mockedStream);
@@ -2295,7 +2330,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
     }
 
     const data = {
-      documentNumber: "GBR-2018-SD-1C89DE54F",
+      documentNumber: SD_DOC_NUMBER,
       exporter: {
         exporterFullName: EXPORTER_FULL_NAME,
         exporterCompanyName: EXPORTER_COMPANY,
@@ -2343,13 +2378,13 @@ test('render processing statement - QR code NOT rendered when sample', async () 
         containerNumber: '456',
         exportedFrom: 'France'
       },
-        facilityName: 'Test Processor 1',
+        facilityName: SD_FACILITY_NAME,
         facilityAddressOne: '20',
         facilityAddressTwo: '',
         facilityTownCity: 'Town',
         facilityPostcode: 'test',
         storedAs: "chilled",
-        facilityArrivalDate: '20/10/2025'
+        facilityArrivalDate: SD_FACILITY_ARRIVAL_DATE
     };
 
     await renderPdf(pdfType.STORAGE_NOTE, data, false, sasJson.qrUri, mockedStream);
@@ -2364,7 +2399,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
     }
 
     const data = {
-      documentNumber: "GBR-2018-SD-1C89DE54F",
+      documentNumber: SD_DOC_NUMBER,
       exporter: {
         exporterFullName: EXPORTER_FULL_NAME,
         exporterCompanyName: EXPORTER_COMPANY,
@@ -2377,11 +2412,11 @@ test('render processing statement - QR code NOT rendered when sample', async () 
           {
               product: 'cod',
               commodityCode: '0123456',
-              certificateNumber: 'GBR-2018-SD-3456789012345678901234567890123456789001',
+              certificateNumber: SD_CERT_NUMBER,
               productWeight: 200,
-              dateOfUnloading: '01/02/2018',
+              dateOfUnloading: SD_DATE_OF_UNLOADING,
               placeOfUnloading: 'Jarrow',
-              transportUnloadedFrom: 'MK-0547, Saami',
+              transportUnloadedFrom: SD_TRANSPORT_UNLOADED_FROM,
               vessel: 'WIRON 5',
               pln: 'H110'
           }
@@ -2396,13 +2431,13 @@ test('render processing statement - QR code NOT rendered when sample', async () 
         flagState: 'UK',
         departurePlace: 'hull',
       },
-        facilityName: 'Test Processor 1',
+        facilityName: SD_FACILITY_NAME,
         facilityAddressOne: '20',
         facilityAddressTwo: '',
         facilityTownCity: 'Town',
         facilityPostcode: 'test',
         storedAs: "chilled",
-        facilityArrivalDate: '20/10/2025'
+        facilityArrivalDate: SD_FACILITY_ARRIVAL_DATE
     };
 
     await renderPdf(pdfType.STORAGE_NOTE, data, false, sasJson.qrUri, mockedStream);
@@ -2417,7 +2452,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
     }
 
     const data = {
-      documentNumber: "GBR-2018-SD-1C89DE54F",
+      documentNumber: SD_DOC_NUMBER,
       exporter: {
         exporterFullName: EXPORTER_FULL_NAME,
         exporterCompanyName: EXPORTER_COMPANY,
@@ -2430,11 +2465,11 @@ test('render processing statement - QR code NOT rendered when sample', async () 
           {
               product: 'cod',
               commodityCode: '0123456',
-              certificateNumber: 'GBR-2018-SD-3456789012345678901234567890123456789001',
+              certificateNumber: SD_CERT_NUMBER,
               productWeight: 200,
-              dateOfUnloading: '01/02/2018',
+              dateOfUnloading: SD_DATE_OF_UNLOADING,
               placeOfUnloading: 'Jarrow',
-              transportUnloadedFrom: 'MK-0547, Saami'
+              transportUnloadedFrom: SD_TRANSPORT_UNLOADED_FROM
           }
       ],
       transport: {
@@ -2443,13 +2478,13 @@ test('render processing statement - QR code NOT rendered when sample', async () 
       arrivalTransport: {
         vehicle: 'truck'
       },
-        facilityName: 'Test Processor 1',
+        facilityName: SD_FACILITY_NAME,
         facilityAddressOne: '20',
         facilityAddressTwo: '',
         facilityTownCity: 'Town',
         facilityPostcode: 'test',
         storedAs: "chilled",
-        facilityArrivalDate: '20/10/2025'
+        facilityArrivalDate: SD_FACILITY_ARRIVAL_DATE
     };
 
     await renderPdf(pdfType.STORAGE_NOTE, data, false, sasJson.qrUri, mockedStream);
@@ -2464,7 +2499,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
     }
 
     const data = {
-      documentNumber: "GBR-2018-SD-1C89DE54F",
+      documentNumber: SD_DOC_NUMBER,
       exporter: {
         exporterFullName: EXPORTER_FULL_NAME,
         exporterCompanyName: EXPORTER_COMPANY,
@@ -2477,11 +2512,11 @@ test('render processing statement - QR code NOT rendered when sample', async () 
           {
               product: 'cod',
               commodityCode: '0123456',
-              certificateNumber: 'GBR-2018-SD-3456789012345678901234567890123456789001',
+              certificateNumber: SD_CERT_NUMBER,
               productWeight: 200,
-              dateOfUnloading: '01/02/2018',
+              dateOfUnloading: SD_DATE_OF_UNLOADING,
               placeOfUnloading: 'Jarrow',
-              transportUnloadedFrom: 'MK-0547, Saami'
+              transportUnloadedFrom: SD_TRANSPORT_UNLOADED_FROM
           }
       ],
       transport: {
@@ -2498,13 +2533,13 @@ test('render processing statement - QR code NOT rendered when sample', async () 
         ],
         exportedFrom: 'France'
       },
-        facilityName: 'Test Processor 1',
+        facilityName: SD_FACILITY_NAME,
         facilityAddressOne: '20',
         facilityAddressTwo: '',
         facilityTownCity: 'Town',
         facilityPostcode: 'test',
         storedAs: "chilled",
-        facilityArrivalDate: '20/10/2025'
+        facilityArrivalDate: SD_FACILITY_ARRIVAL_DATE
     };
 
     await renderPdf(pdfType.STORAGE_NOTE, data, false, sasJson.qrUri, mockedStream);
@@ -2519,7 +2554,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
     }
 
     const data = {
-      documentNumber: "GBR-2018-SD-1C89DE54F",
+      documentNumber: SD_DOC_NUMBER,
       exporter: {
         exporterFullName: EXPORTER_FULL_NAME,
         exporterCompanyName: EXPORTER_COMPANY,
@@ -2532,11 +2567,11 @@ test('render processing statement - QR code NOT rendered when sample', async () 
           {
               product: 'cod',
               commodityCode: '0123456',
-              certificateNumber: 'GBR-2018-SD-3456789012345678901234567890123456789001',
+              certificateNumber: SD_CERT_NUMBER,
               productWeight: 200,
-              dateOfUnloading: '01/02/2018',
+              dateOfUnloading: SD_DATE_OF_UNLOADING,
               placeOfUnloading: 'Jarrow',
-              transportUnloadedFrom: 'MK-0547, Saami'
+              transportUnloadedFrom: SD_TRANSPORT_UNLOADED_FROM
           }
       ],
       transport: {
@@ -2545,13 +2580,13 @@ test('render processing statement - QR code NOT rendered when sample', async () 
       arrivalTransport: {
         vehicle: 'DIRECTLANDING'
       },
-        facilityName: 'Test Processor 1',
+        facilityName: SD_FACILITY_NAME,
         facilityAddressOne: '20',
         facilityAddressTwo: '',
         facilityTownCity: 'Town',
         facilityPostcode: 'test',
         storedAs: "chilled",
-        facilityArrivalDate: '20/10/2025'
+        facilityArrivalDate: SD_FACILITY_ARRIVAL_DATE
     };
 
     await renderPdf(pdfType.STORAGE_NOTE, data, false, sasJson.qrUri, mockedStream);
@@ -2566,7 +2601,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
     }
 
     const data = {
-      documentNumber: "GBR-2018-SD-1C89DE54F",
+      documentNumber: SD_DOC_NUMBER,
       exporter: {
         exporterFullName: EXPORTER_FULL_NAME,
         exporterCompanyName: EXPORTER_COMPANY,
@@ -2579,11 +2614,11 @@ test('render processing statement - QR code NOT rendered when sample', async () 
           {
               product: 'cod',
               commodityCode: '0123456',
-              certificateNumber: 'GBR-2018-SD-3456789012345678901234567890123456789001',
+              certificateNumber: SD_CERT_NUMBER,
               productWeight: 200,
-              dateOfUnloading: '01/02/2018',
+              dateOfUnloading: SD_DATE_OF_UNLOADING,
               placeOfUnloading: 'Jarrow',
-              transportUnloadedFrom: 'MK-0547, Saami'
+              transportUnloadedFrom: SD_TRANSPORT_UNLOADED_FROM
           }
       ],
       transport: {
@@ -2595,7 +2630,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
         containerNumber: '456',
         exportedFrom: 'France'
       },
-        facilityName: 'Test Processor 1',
+        facilityName: SD_FACILITY_NAME,
         facilityAddressOne: '20',
         facilityAddressTwo: '',
         facilityTownCity: 'Town',
@@ -2672,7 +2707,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
     const data = {
       documentNumber: "GBR-2024-SN-DEF456GHI",
       exporter: {
-        exporterFullName: 'Sarah Johnson',
+        exporterFullName: PS_RESPONSIBLE_PERSON,
         exporterCompanyName: 'Frozen Seafood Solutions',
         addressOne: '789 Freezer Avenue',
         addressTwo: '',
@@ -2888,7 +2923,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
         }
       },
       conservation: {
-        conservationReference: 'Common Fisheries Policy'
+        conservationReference: CONSERVATION_REFERENCE_CFP
       }
     };
 
@@ -2947,7 +2982,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
         }
       },
       conservation: {
-        conservationReference: 'Common Fisheries Policy'
+        conservationReference: CONSERVATION_REFERENCE_CFP
       }
     };
 
@@ -3020,7 +3055,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
         registrationNumber: 'TEST456',
         exportedTo: { officialCountryName: 'France' }
       },
-      conservation: { conservationReference: 'Common Fisheries Policy' }
+      conservation: { conservationReference: CONSERVATION_REFERENCE_CFP }
     };
 
     // Test verifies dynamic row height calculation for long licence holder names
@@ -3038,7 +3073,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
 
     // Create multiple landings to trigger pagination
     const landings = [];
-    for (let i = 0; i < 15; i++) {
+    for (let i = 0; i < PAGE_BREAK_PRODUCT_COUNT; i++) {
       landings.push({
         model: {
           vessel: {
@@ -3049,7 +3084,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
             licenceHolder: `LICENCE HOLDER NAME ${i}`
           },
           dateLanded: "2024-01-20T00:00:00.000Z",
-          exportWeight: 50 + i,
+          exportWeight: MULTI_VESSEL_WEIGHT_BASE + i,
           faoArea: "FAO27"
         }
       });
@@ -3081,7 +3116,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
         registrationNumber: 'PAGE123',
         exportedTo: { officialCountryName: 'Spain' }
       },
-      conservation: { conservationReference: 'Common Fisheries Policy' }
+      conservation: { conservationReference: CONSERVATION_REFERENCE_CFP }
     };
 
     // Test verifies pagination logic with multiple vessels
@@ -3157,7 +3192,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
         registrationNumber: 'DETAIL01',
         exportedTo: { officialCountryName: 'Netherlands' }
       },
-      conservation: { conservationReference: 'Common Fisheries Policy' }
+      conservation: { conservationReference: CONSERVATION_REFERENCE_CFP }
     };
 
     // Test verifies handling of long licence details and homePort
@@ -3242,7 +3277,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
         registrationNumber: 'MIX789',
         exportedTo: { officialCountryName: 'Germany' }
       },
-      conservation: { conservationReference: 'Common Fisheries Policy' }
+      conservation: { conservationReference: CONSERVATION_REFERENCE_CFP }
     };
 
     // Test verifies mixed row heights are calculated correctly
@@ -3312,7 +3347,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
         registrationNumber: 'EMP012',
         exportedTo: { officialCountryName: 'Ireland' }
       },
-      conservation: { conservationReference: 'Common Fisheries Policy' }
+      conservation: { conservationReference: CONSERVATION_REFERENCE_CFP }
     };
 
     // Test verifies empty licence holders default to minimum height
@@ -3329,7 +3364,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
     };
 
     const landings = [];
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < SEVEN_ROWS_COUNT; i++) {
       landings.push({
         model: {
           vessel: {
@@ -3340,7 +3375,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
             licenceHolder: `HOLDER ${i}`
           },
           dateLanded: "2024-02-15T00:00:00.000Z",
-          exportWeight: 20 + i,
+          exportWeight: SEVEN_ROWS_WEIGHT_BASE + i,
           faoArea: "FAO27"
         }
       });
@@ -3372,7 +3407,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
         registrationNumber: 'SEV777',
         exportedTo: { officialCountryName: 'Italy' }
       },
-      conservation: { conservationReference: 'Common Fisheries Policy' }
+      conservation: { conservationReference: CONSERVATION_REFERENCE_CFP }
     };
 
     // Test verifies edge case of exactly fitting rows on one page
@@ -3443,7 +3478,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
         registrationNumber: 'SAM123',
         exportedTo: { officialCountryName: 'Portugal' }
       },
-      conservation: { conservationReference: 'Common Fisheries Policy' }
+      conservation: { conservationReference: CONSERVATION_REFERENCE_CFP }
     };
 
     // Test verifies sample mode rendering with masked document number
@@ -3498,7 +3533,7 @@ test('render processing statement - QR code NOT rendered when sample', async () 
         registrationNumber: 'SPC999',
         exportedTo: { officialCountryName: 'Denmark' }
       },
-      conservation: { conservationReference: 'Common Fisheries Policy' }
+      conservation: { conservationReference: CONSERVATION_REFERENCE_CFP }
     };
 
     // Test verifies special characters are handled correctly in text
