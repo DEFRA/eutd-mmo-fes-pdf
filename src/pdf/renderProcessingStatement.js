@@ -426,7 +426,7 @@ const findProductsNeedingSchedule = (data, products) => {
     
     for (let productIndex = 0; productIndex < products.length; productIndex++) {
         const productCatches = data.catches.filter(ctch => 
-            ctch && ctch.productIndex === productIndex
+            ctch?.productIndex === productIndex
         );
         
         if (productCatches.length > MAX_CATCHES_BEFORE_SCHEDULE) {
