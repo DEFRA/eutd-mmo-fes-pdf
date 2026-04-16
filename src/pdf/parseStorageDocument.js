@@ -88,16 +88,10 @@ const parseStorageDocument = async (pdfJson, buffer) => {
     // A problem with the editable pdf makes it difficult for us to determine whether the storage facilities
     // are provided on the front page or the schedule
     // The storage facility name on the front page and the first row in the schedule (Name) have the same field name :(
-    if (/*(raw[SCHED_FAC_NAME_KEY_PREFIX] === null || raw[SCHED_FAC_NAME_KEY_PREFIX].trim().length === 0) &&*/
-        (raw[SCHED_FAC_ADDRESS_KEY_PREFIX + '1'] === null || raw[SCHED_FAC_ADDRESS_KEY_PREFIX + '1'].trim().length === 0)
-        )
-    {
+    if ((raw[SCHED_FAC_ADDRESS_KEY_PREFIX + '1'] === null || raw[SCHED_FAC_ADDRESS_KEY_PREFIX + '1'].trim().length === 0)) {
         // no schedule - extract facility details from first page
         extractFrontPageFacilityDetails(raw, result);
-    } else if (/*(raw[FP_STORAGE_FAC_NAME_KEY] &&  raw[FP_STORAGE_FAC_NAME_KEY].trim().length > 0)
-            || */raw?.[FP_STORAGE_FAC_ADDRESS_KEY]?.trim()?.length > 0
-            )
-    {
+    } else if (raw?.[FP_STORAGE_FAC_ADDRESS_KEY]?.trim()?.length > 0) {
         // cant have items in schedule and front page facility details
         result.errors = result.errors.concat('Storage facility details have been added to both the front page and the schedule');
     } else {
@@ -131,7 +125,7 @@ const extractScheduleFacilityDetailItem = (_pageIdx, rowIdx, raw) => {
     let nameKey = SCHED_FAC_NAME_KEY_PREFIX;
     let addressKey = SCHED_FAC_ADDRESS_KEY_PREFIX;
 
-    if (1!== rowIdx) {
+    if (rowIdx !== 1) {
         nameKey = `${nameKey} ${rowIdx}`;
     }
 
@@ -317,57 +311,25 @@ const validateScheduleFacilityDetailItem = (pageIdx, rowIdx, item) => {
     return errors;
 };
 
-const validateFrontPageConsDetailItem = (item) => {
-    const errors = [];
-    if (!item.product || item.product.trim().length === 0) {
-        errors.push('Description of fishery products required');
-    }
-    if (!item.commodityCode || item.commodityCode.trim().length === 0) {
-        errors.push('Commodity code required');
-    }
-    if (!item.certificateNumber || item.certificateNumber.trim().length === 0) {
-        errors.push('Catch certificate or processing statement number required');
-    }
-    if (!item.productWeight || item.productWeight.trim().length === 0) {
-        errors.push('Weight (kg) required');
-    }
-    if (!item.dateOfUnloading || item.dateOfUnloading.trim().length === 0) {
-        errors.push('Date of unloading required');
-    }
-    if (!item.placeOfUnloading || item.placeOfUnloading.trim().length === 0) {
-        errors.push('Place of unloading required');
-    }
-    if (!item.transportUnloadedFrom || item.transportUnloadedFrom.trim().length === 0) {
-        errors.push('Details of transport unloaded from required');
-    }
-    return errors;
-};
+const CONS_ITEM_REQUIRED_FIELDS = [
+    { field: 'product', message: 'Description of fishery products required' },
+    { field: 'commodityCode', message: 'Commodity code required' },
+    { field: 'certificateNumber', message: 'Catch certificate or processing statement number required' },
+    { field: 'productWeight', message: 'Weight (kg) required' },
+    { field: 'dateOfUnloading', message: 'Date of unloading required' },
+    { field: 'placeOfUnloading', message: 'Place of unloading required' },
+    { field: 'transportUnloadedFrom', message: 'Details of transport unloaded from required' },
+];
 
-const validateScheduleConsDetailItem = (pageIdx, rowIdx, item) => {
-    const errors = [];
-    if (!item.product || item.product.trim().length === 0) {
-        errors.push(`Description of fishery products required on schedule page ${pageIdx} row ${rowIdx}`);
-    }
-    if (!item.commodityCode || item.commodityCode.trim().length === 0) {
-        errors.push(`Commodity code required on schedule page ${pageIdx} row ${rowIdx}`);
-    }
-    if (!item.certificateNumber || item.certificateNumber.trim().length === 0) {
-        errors.push(`Catch certificate or processing statement number required on schedule page ${pageIdx} row ${rowIdx}`);
-    }
-    if (!item.productWeight || item.productWeight.trim().length === 0) {
-        errors.push(`Weight (kg) required on schedule page ${pageIdx} row ${rowIdx}`);
-    }
-    if (!item.dateOfUnloading || item.dateOfUnloading.trim().length === 0) {
-        errors.push(`Date of unloading required on schedule page ${pageIdx} row ${rowIdx}`);
-    }
-    if (!item.placeOfUnloading || item.placeOfUnloading.trim().length === 0) {
-        errors.push(`Place of unloading required on schedule page ${pageIdx} row ${rowIdx}`);
-    }
-    if (!item.transportUnloadedFrom || item.transportUnloadedFrom.trim().length === 0) {
-        errors.push(`Details of transport unloaded from required on schedule page ${pageIdx} row ${rowIdx}`);
-    }
-    return errors;
-};
+const validateFrontPageConsDetailItem = (item) =>
+    CONS_ITEM_REQUIRED_FIELDS
+        .filter(({ field }) => isBlank(item[field]))
+        .map(({ message }) => message);
+
+const validateScheduleConsDetailItem = (pageIdx, rowIdx, item) =>
+    CONS_ITEM_REQUIRED_FIELDS
+        .filter(({ field }) => isBlank(item[field]))
+        .map(({ message }) => `${message} on schedule page ${pageIdx} row ${rowIdx}`);
 
 const validateRequired = (item, errorMessage) => {
     const errors = [];
