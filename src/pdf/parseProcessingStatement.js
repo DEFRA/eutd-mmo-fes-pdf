@@ -32,7 +32,6 @@ const SCHED_CATCHES_PROCESSED_WEIGHT_KEY_PREFIX = 'Processed fishery productkgRo
 
 const FP_CATCH_ROW_3 = 3;
 const FP_CATCH_ROW_4 = 4;
-const FP_CATCH_ROW_5 = 5;
 const FP_CATCH_ROW_COUNT = 5;
 
 const parseProcessingStatement = async (pdfJson, buffer) => {
@@ -188,7 +187,7 @@ const extractFrontPageCatchDetailItem = (i, raw) => {
             item.exportWeightBeforeProcessing = raw[FP_CATCHES_CATCH_PROCESSED_WEIGHT_KEY_PREFIX + ' 4'];
             item.exportWeightAfterProcessing = raw[FP_CATCHES_PROCESSED_WEIGHT_KEY_PREFIX + ' 4'];
             break;
-        case FP_CATCH_ROW_5:
+        case FP_CATCH_ROW_COUNT:
             item.species = raw[FP_CATCHES_CATCH_DESC_KEY_PREFIX + ' 5'];
             item.catchCertificateNumber = raw[FP_CATCHES_CC_NUM_KEY_PREFIX + ' 6'];
             item.totalWeightLanded = raw[FP_CATCHES_TOTAL_LANDED_WEIGHT_KEY_PREFIX + ' 5'];
