@@ -358,48 +358,50 @@ function defaultEncoding(bytes) {
 }
 
 
-function FontDecoding(pdfReader,fontObject) {
-    parseFontData(this,pdfReader,fontObject);
-}
+class FontDecoding {
+    constructor(pdfReader, fontObject) {
+        parseFontData(this, pdfReader, fontObject);
+    }
 
-FontDecoding.prototype.translate = function(encodedBytes) {
-    if(this.hasToUnicode) {
-        return {result:toUnicodeEncoding(this.toUnicodeMap,encodedBytes),method:'toUnicode'};
+    translate(encodedBytes) {
+        if(this.hasToUnicode) {
+            return {result:toUnicodeEncoding(this.toUnicodeMap,encodedBytes),method:'toUnicode'};
+        }
+        else if(this.hasSimpleEncoding) {
+            return {result:toSimpleEncoding(this.fromSimpleEncodingMap,encodedBytes),method:'simpleEncoding'};
+        }
+        else {
+            return {result:defaultEncoding(encodedBytes),method:'default'};
+        }
     }
-    else if(this.hasSimpleEncoding) {
-        return {result:toSimpleEncoding(this.fromSimpleEncodingMap,encodedBytes),method:'simpleEncoding'};
-    }
-    else {
-        return {result:defaultEncoding(encodedBytes),method:'default'};
-    }
-}
 
-FontDecoding.prototype.iterateTextDisplacements = function(encodedBytes,iterator) {
-    if(this.isSimpleFont) {
-        // one code per call
-        encodedBytes.forEach((c)=>{
-            iterator((this.widths?.[c] || this.defaultWidth || 0) / 1000,c);
-        });
-    }
-    else if(this.hasToUnicode){
-        // determine code per toUnicode (should be cmap, but i aint parsing it now, so toUnicode will do).
-        // assuming horizontal writing mode
-        let i=0;
-        while(i<encodedBytes.length) {
-            let code = encodedBytes[i];
-            i+=1;
-            while(i<encodedBytes.length && (this.toUnicodeMap[code] === undefined)) {
-                code = code*256 + encodedBytes[i];
+    iterateTextDisplacements(encodedBytes, iterator) {
+        if(this.isSimpleFont) {
+            // one code per call
+            encodedBytes.forEach((c)=>{
+                iterator((this.widths?.[c] || this.defaultWidth || 0) / 1000,c);
+            });
+        }
+        else if(this.hasToUnicode){
+            // determine code per toUnicode (should be cmap, but i aint parsing it now, so toUnicode will do).
+            // assuming horizontal writing mode
+            let i=0;
+            while(i<encodedBytes.length) {
+                let code = encodedBytes[i];
                 i+=1;
+                while(i<encodedBytes.length && (this.toUnicodeMap[code] === undefined)) {
+                    code = code*256 + encodedBytes[i];
+                    i+=1;
+                }
+                iterator((this.widths?.[code] || this.defaultWidth || 0) / 1000,code);
             }
-            iterator((this.widths?.[code] || this.defaultWidth || 0) / 1000,code);
-        }        
-    }
-    else {
-        // default to 2 bytes. though i shuld be reading the cmap. and so also get the writing mode
-        for(let j=0;j<encodedBytes.length;j+=2) {
-            const codeNew = encodedBytes[j]*256 + encodedBytes[j+1];
-            iterator((this.widths?.[codeNew] || this.defaultWidth || 0) / 1000,codeNew);
+        }
+        else {
+            // default to 2 bytes. though i shuld be reading the cmap. and so also get the writing mode
+            for(let j=0;j<encodedBytes.length;j+=2) {
+                const codeNew = encodedBytes[j]*256 + encodedBytes[j+1];
+                iterator((this.widths?.[codeNew] || this.defaultWidth || 0) / 1000,codeNew);
+            }
         }
     }
 }
