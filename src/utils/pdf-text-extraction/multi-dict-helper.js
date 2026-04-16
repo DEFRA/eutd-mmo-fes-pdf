@@ -15,11 +15,11 @@ MultiDictHelper.prototype.queryDictionaryObject = function(name,pdfReader) {
         return d.exists(name);
     });
 
-    if(!!dict) {
+    if(dict) {
         return pdfReader.queryDictionaryObject(dict,name);
-    }
-    else 
+    } else {
         return null;
+    }
 }
 
 module.exports = MultiDictHelper
