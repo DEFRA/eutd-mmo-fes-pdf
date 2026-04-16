@@ -49,9 +49,9 @@ class CollectionState {
     }
 
     pushGraphicState() {
-        this.graphicStateStack.push(cloneGraphicEnv(this.graphicStateStack[this.graphicStateStack.length-1]));
+        this.graphicStateStack.push(cloneGraphicEnv(this.graphicStateStack.at(-1)));
         if(this.inTextElement) {
-            this.textElementTextStack.push(cloneTextEnv(this.textElementTextStack[this.textElementTextStack.length-1]));
+            this.textElementTextStack.push(cloneTextEnv(this.textElementTextStack.at(-1)));
         }
     }
 
@@ -65,15 +65,15 @@ class CollectionState {
     }
 
     currentGraphicState() {
-        return this.graphicStateStack[this.graphicStateStack.length-1];
+        return this.graphicStateStack.at(-1);
     }
 
     currentTextState() {
         if(this.inTextElement) {
-            return this.textElementTextStack[this.textElementTextStack.length-1];
+            return this.textElementTextStack.at(-1);
         }
         else {
-            return this.graphicStateStack[this.graphicStateStack.length-1].text;
+            return this.graphicStateStack.at(-1).text;
         }
     }
 
