@@ -41,6 +41,29 @@ const ROW_THRESHOLD_2 = 6;
 const ROW_THRESHOLD_3 = 9;
 const ROW_THRESHOLD_4 = 12;
 
+const isBlank = (val) => !val || val.trim().length === 0;
+
+const hasFrontPageConsBasicData = (raw) =>
+    raw?.[FP_CONS_PROD_KEY]?.trim()?.length > 0
+    || raw?.[FP_CONS_CODE_KEY]?.trim()?.length > 0
+    || raw[FP_CONS_CC_KEY]?.trim()?.length > 0;
+
+const hasFrontPageConsLogisticsData = (raw) =>
+    raw?.[FP_CONS_WEIGHT_KEY]?.trim()?.length > 0
+    || raw?.[FP_CONS_DATE_KEY]?.trim()?.length > 0
+    || raw?.[FP_CONS_PLACE_KEY]?.trim()?.length > 0
+    || raw?.[FP_CONS_TRANSPORT_KEY]?.trim()?.length > 0;
+
+const hasFrontPageConsData = (raw) =>
+    hasFrontPageConsBasicData(raw) || hasFrontPageConsLogisticsData(raw);
+
+const isEmptyConsItem = (item) => {
+    const noIds = !item?.product?.trim() && !item?.commodityCode?.trim() && !item?.certificateNumber?.trim();
+    const noMeta = !item?.productWeight?.trim() && !item?.dateOfUnloading?.trim()
+        && !item?.placeOfUnloading?.trim() && !item?.transportUnloadedFrom?.trim();
+    return noIds && noMeta;
+};
+
 const parseStorageDocument = async (pdfJson, buffer) => {
     const result = {...pdfJson};
     const pdfReader = muhammara.createReader(new muhammara.PDFRStreamForBuffer(buffer));
@@ -52,15 +75,9 @@ const parseStorageDocument = async (pdfJson, buffer) => {
             && (raw[SCHED_CONS_CODE_KEY_PREFIX + '1'] === null || raw[SCHED_CONS_CODE_KEY_PREFIX + '1'].trim().length === 0)) {
         // no schedule extract catch details from first page
         extractFrontPageConsDetails(raw, result);
-    } else if (raw?.[FP_CONS_PROD_KEY]?.trim()?.length > 0
-            || raw?.[FP_CONS_CODE_KEY]?.trim()?.length > 0
-            || raw[FP_CONS_CC_KEY]?.trim()?.length > 0
-            || raw?.[FP_CONS_WEIGHT_KEY]?.trim()?.length > 0
-            || raw?.[FP_CONS_DATE_KEY]?.trim()?.length > 0
-            || raw?.[FP_CONS_PLACE_KEY]?.trim()?.length > 0
-            || raw?.[FP_CONS_TRANSPORT_KEY]?.trim()?.length > 0) {
-            // cant have items in schedule and front page product details
-            result.errors = result.errors.concat('Consignment details have been added to both the front page and the schedule');
+    } else if (hasFrontPageConsData(raw)) {
+        // cant have items in schedule and front page product details
+        result.errors = result.errors.concat('Consignment details have been added to both the front page and the schedule');
     } else {
         extractScheduleConsDetails(raw, result);
     }
@@ -196,12 +213,7 @@ const extractScheduleConsDetailItem = (pageIdx, rIdx, raw) => {
     item.placeOfUnloading = raw[placeKey];
     item.transportUnloadedFrom = raw[transportKey];
 
-    if (!item?.product?.trim() && !item?.commodityCode?.trim() && !item?.certificateNumber?.trim() && !item?.productWeight?.trim()
-        && !item?.dateOfUnloading?.trim() && !item?.placeOfUnloading?.trim() && !item?.transportUnloadedFrom?.trim()) {
-        return null;
-    } else {
-        return item;
-    }
+    return isEmptyConsItem(item) ? null : item;
 };
 
 const extractExporterDetails = (raw, result) => {
@@ -280,13 +292,7 @@ const extractFrontPageConsDetailItem = (raw) => {
         transportUnloadedFrom: raw[FP_CONS_TRANSPORT_KEY],
     };
 
-    if ((!item.product || item.product.trim().length === 0)
-        && (!item.commodityCode || item.commodityCode.trim().length === 0)
-        && (!item.certificateNumber || item.certificateNumber.trim().length === 0)) {
-        return null;
-    } else {
-        return item;
-    }
+    return (isBlank(item.product) && isBlank(item.commodityCode) && isBlank(item.certificateNumber)) ? null : item;
 };
 
 const validateFrontPageFacilityDetailItem = (item) => {
