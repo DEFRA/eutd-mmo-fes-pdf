@@ -271,44 +271,46 @@ function accumulateFieldsValues(result,fieldsArray) {
  * @constructor
  * @param {PDFParser} pdfParser - A muhammara PDF Parser for the PDF to read form from.
  */
-function PDFDigitalForm(pdfParser) {
-    this.acroformDict = parseForAcroformObject(pdfParser);
+class PDFDigitalForm {
+    constructor(pdfParser) {
+        this.acroformDict = parseForAcroformObject(pdfParser);
 
-    if(this.acroformDict) {
-        const fieldsArray = this.acroformDict.exists('Fields') ?
-            pdfParser.queryDictionaryObject(this.acroformDict,'Fields').toPDFArray() :
-            null;
-        if(fieldsArray) {
-            this.fields = parseFieldsArray(
-                pdfParser,
-                fieldsArray,
-                {},
-                '');
+        if(this.acroformDict) {
+            const fieldsArray = this.acroformDict.exists('Fields') ?
+                pdfParser.queryDictionaryObject(this.acroformDict,'Fields').toPDFArray() :
+                null;
+            if(fieldsArray) {
+                this.fields = parseFieldsArray(
+                    pdfParser,
+                    fieldsArray,
+                    {},
+                    '');
+            }
         }
     }
-}
 
-/**
- * @method hasForm
- * @return {bool} whether document has a form
- */
-PDFDigitalForm.prototype.hasForm = function() {
-    return !!this.acroformDict;
-}
-
-/**
- * @method createSimpleKeyValue
- * @return {object} dictionary mapping form full names to their respective values
- */
-PDFDigitalForm.prototype.createSimpleKeyValue = function() {
-    // create flattened simple key value mapping by recursing.
-    const result = {};
-
-    if(this.fields) {
-        accumulateFieldsValues(result,this.fields);
+    /**
+     * @method hasForm
+     * @return {bool} whether document has a form
+     */
+    hasForm() {
+        return !!this.acroformDict;
     }
 
-    return result;
+    /**
+     * @method createSimpleKeyValue
+     * @return {object} dictionary mapping form full names to their respective values
+     */
+    createSimpleKeyValue() {
+        // create flattened simple key value mapping by recursing.
+        const result = {};
+
+        if(this.fields) {
+            accumulateFieldsValues(result,this.fields);
+        }
+
+        return result;
+    }
 }
 
 module.exports = PDFDigitalForm

@@ -1,10 +1,11 @@
-const path = require('path');
+const path = require('node:path');
 const PdfStyle = require('./mmoPdfStyles');
 const PdfUtils = require('./mmoPdfUtils');
 const muhammara = require('muhammara');
 const PDFStreamForNodeJsStream = require('./PDFStreamForNodeJsStream');
 
 // QR Code rendering constants
+const QR_CODE_SCALE = 0.235;
 const QR_CODE_X_POSITION = 320;
 const QR_CODE_Y_POSITION = 100;
 const QR_TEXT_X_OFFSET = 65;
@@ -39,7 +40,7 @@ const QR_TEXT_FONT_FILE = 'fonts/arial.ttf';
 const renderBlankStorageDoc = async (data, isSample, uri, stream, pathToTemplate) => {
     const inStream = new muhammara.PDFRStreamForFile(pathToTemplate + STORAGE_DOC_TEMPLATE_FILE);
     const pdfStream = new PDFStreamForNodeJsStream(stream);
-    let pdfWriter = muhammara.createWriterToModify(inStream, pdfStream);
+    const pdfWriter = muhammara.createWriterToModify(inStream, pdfStream);
     let watermarkStreamImageXObject, imageXObject;
     if (isSample) {
         const sampleWatermarkStream = new muhammara.PDFRStreamForFile(pathToTemplate + SAMPLE_WATERMARK_FILE);
@@ -91,7 +92,7 @@ const renderSecondPage = (pdfWriter, pathToTemplate, isSample, watermarkStreamIm
 const renderQrCode = (pathToTemplate, pdfWriter, ctx, imageXObject, x, y) => {
     ctx.q()
         .cm(1,0,0,1,x,y)
-        .cm(0.235,0,0,0.235,0,0)
+        .cm(QR_CODE_SCALE,0,0,QR_CODE_SCALE,0,0)
         .doXObject(imageXObject)
         .Q();
 
@@ -112,7 +113,7 @@ const renderQrCode = (pathToTemplate, pdfWriter, ctx, imageXObject, x, y) => {
     );
 }
 
-const renderSampleWatermark = (pdfWriter, ctx, imageXObject, x, y) => {
+const renderSampleWatermark = (_pdfWriter, ctx, imageXObject, x, y) => {
     ctx.q()
         .cm(1,0,0,1,x,y)
         //.cm(0.235,0,0,0.235,0,0)
