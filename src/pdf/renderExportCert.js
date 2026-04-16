@@ -1,4 +1,4 @@
-const path = require('path');
+const path = require('node:path');
 // Date format constant to avoid duplication (SonarQube S1192)
 const DATE_FORMAT_DDMMYYYY = 'DD/MM/YYYY';
 const PdfStyle = require('./mmoPdfStyles');
