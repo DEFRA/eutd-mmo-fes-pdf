@@ -30,6 +30,9 @@ const SCHED_CATCHES_TOTAL_LANDED_WEIGHT_KEY_PREFIX = 'Total landed weightkgRow';
 const SCHED_CATCHES_CATCH_PROCESSED_WEIGHT_KEY_PREFIX = 'Catch processed kgRow';
 const SCHED_CATCHES_PROCESSED_WEIGHT_KEY_PREFIX = 'Processed fishery productkgRow';
 
+const FP_CATCH_ROW_3 = 3;
+const FP_CATCH_ROW_4 = 4;
+const FP_CATCH_ROW_5 = 5;
 const FP_CATCH_ROW_COUNT = 5;
 
 const parseProcessingStatement = async (pdfJson, buffer) => {
@@ -171,21 +174,21 @@ const extractFrontPageCatchDetailItem = (i, raw) => {
             item.exportWeightBeforeProcessing = raw[FP_CATCHES_CATCH_PROCESSED_WEIGHT_KEY_PREFIX + '21'];
             item.exportWeightAfterProcessing = raw[FP_CATCHES_PROCESSED_WEIGHT_KEY_PREFIX + '21'];
             break;
-        case 3:
+        case FP_CATCH_ROW_3:
             item.species = raw[FP_CATCHES_CATCH_DESC_KEY_PREFIX + ' 3'];
             item.catchCertificateNumber = raw[FP_CATCHES_CC_NUM_KEY_PREFIX + '3'];
             item.totalWeightLanded = raw[FP_CATCHES_TOTAL_LANDED_WEIGHT_KEY_PREFIX + ' 3'];
             item.exportWeightBeforeProcessing = raw[FP_CATCHES_CATCH_PROCESSED_WEIGHT_KEY_PREFIX + ' 3'];
             item.exportWeightAfterProcessing = raw[FP_CATCHES_PROCESSED_WEIGHT_KEY_PREFIX + ' 3'];
             break;
-        case 4:
+        case FP_CATCH_ROW_4:
             item.species = raw[FP_CATCHES_CATCH_DESC_KEY_PREFIX];
             item.catchCertificateNumber = raw[FP_CATCHES_CC_NUM_KEY_PREFIX + ' 4'];
             item.totalWeightLanded = raw[FP_CATCHES_TOTAL_LANDED_WEIGHT_KEY_PREFIX + ' 4'];
             item.exportWeightBeforeProcessing = raw[FP_CATCHES_CATCH_PROCESSED_WEIGHT_KEY_PREFIX + ' 4'];
             item.exportWeightAfterProcessing = raw[FP_CATCHES_PROCESSED_WEIGHT_KEY_PREFIX + ' 4'];
             break;
-        case 5:
+        case FP_CATCH_ROW_5:
             item.species = raw[FP_CATCHES_CATCH_DESC_KEY_PREFIX + ' 5'];
             item.catchCertificateNumber = raw[FP_CATCHES_CC_NUM_KEY_PREFIX + ' 6'];
             item.totalWeightLanded = raw[FP_CATCHES_TOTAL_LANDED_WEIGHT_KEY_PREFIX + ' 5'];

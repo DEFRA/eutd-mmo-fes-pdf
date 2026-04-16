@@ -34,6 +34,7 @@ const renderBlankProcStmnt = async (data, isSample, uri, stream, pathToTemplate)
         imageXObject = pdfWriter.createFormXObjectFromPNG(PdfImgStream);
     }
 
+    const arialFontPath = pathToTemplate + 'fonts/arial.ttf';
     let pageModifier = new muhammara.PDFPageModifier(pdfWriter, 0);
     let ctx = pageModifier.startContext().getContext();
     let docNumber = data.documentNumber;
@@ -45,13 +46,13 @@ const renderBlankProcStmnt = async (data, isSample, uri, stream, pathToTemplate)
     ctx.writeText(
         docNumber,
         DOC_NUMBER_X, DOC_NUMBER_Y,
-        {font: pdfWriter.getFontForFile(pathToTemplate + 'fonts/arial.ttf'), size: DOC_NUMBER_SIZE, colorspace: 'gray', color: 0x00}
+        {font: pdfWriter.getFontForFile(arialFontPath), size: DOC_NUMBER_SIZE, colorspace: 'gray', color: 0x00}
     );
 
     if (isSample) {
         renderSampleWatermark(ctx, watermarkStreamImageXObject, WATERMARK_X, WATERMARK_Y);
     } else {
-        renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, QR_CODE_X, QR_CODE_Y);
+        renderQrCode(arialFontPath, pdfWriter, ctx, imageXObject, QR_CODE_X, QR_CODE_Y);
     }
     pageModifier.endContext().writePage();
 
@@ -69,7 +70,7 @@ const renderBlankProcStmnt = async (data, isSample, uri, stream, pathToTemplate)
     stream.end();
 };
 
-const renderQrCode = (pathToTemplate, pdfWriter, ctx, imageXObject, x, y) => {
+const renderQrCode = (arialFontPath, pdfWriter, ctx, imageXObject, x, y) => {
     ctx.q()
         .cm(1,0,0,1,x,y)
         .cm(QR_CODE_SCALE,0,0,QR_CODE_SCALE,0,0)
@@ -79,17 +80,17 @@ const renderQrCode = (pathToTemplate, pdfWriter, ctx, imageXObject, x, y) => {
     ctx.writeText(
         'Use the QR code',
         x + QR_TEXT_OFFSET_X, y + QR_TEXT_LINE1_Y,
-        {font:pdfWriter.getFontForFile(pathToTemplate + 'fonts/arial.ttf'),size:QR_TEXT_SIZE,colorspace:'gray',color:0x00}
+        {font:pdfWriter.getFontForFile(arialFontPath),size:QR_TEXT_SIZE,colorspace:'gray',color:0x00}
     );
     ctx.writeText(
         'to check that this',
         x + QR_TEXT_OFFSET_X, y + QR_TEXT_LINE2_Y,
-        {font:pdfWriter.getFontForFile(pathToTemplate + 'fonts/arial.ttf'),size:QR_TEXT_SIZE,colorspace:'gray',color:0x00}
+        {font:pdfWriter.getFontForFile(arialFontPath),size:QR_TEXT_SIZE,colorspace:'gray',color:0x00}
     );
     ctx.writeText(
         'certificate is valid',
         x + QR_TEXT_OFFSET_X, y + QR_TEXT_LINE3_Y,
-        {font:pdfWriter.getFontForFile(pathToTemplate + 'fonts/arial.ttf'),size:QR_TEXT_SIZE,colorspace:'gray',color:0x00}
+        {font:pdfWriter.getFontForFile(arialFontPath),size:QR_TEXT_SIZE,colorspace:'gray',color:0x00}
     );
 }
 

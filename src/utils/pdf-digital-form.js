@@ -54,9 +54,9 @@ function parseOnOffValue(fieldDictionary) {
     if(fieldDictionary.exists('V')) {
         const value = fieldDictionary.queryObject('V').toString();
         return (value === 'Off' || value === '');
-    }
-    else
+    } else {
         return null;
+    }
 }
 
 function parseRadioButtonValue(pdfParser,fieldDictionary) {
