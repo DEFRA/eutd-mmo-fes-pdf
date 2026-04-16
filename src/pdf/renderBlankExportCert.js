@@ -90,54 +90,29 @@ const renderBlankExportCert = async (data, isSample, uri, stream, pathToTemplate
         pageModifier.endContext().writePage();
     }
 
-    // Page 7: Schedule 1
-    pageModifier = new muhammara.PDFPageModifier(pdfWriter, PAGE_MODIFIER_INDEX_SCHEDULE_1);
-    ctx = pageModifier.startContext().getContext();
-    ctx.writeText(
-        docNumber,
-        SCHEDULE_DOC_NUMBER_X, SCHEDULE_DOC_NUMBER_Y,
-        {font:pdfWriter.getFontForFile(pathToTemplate + ARIAL_FONT),size:DOC_NUMBER_SIZE,colorspace:'gray',color:0x00}
-    );
-    if (isSample) {
-        renderSampleWatermark(pdfWriter, ctx, watermarkStreamImageXObject, WATERMARK_SCHEDULE_X, WATERMARK_SCHEDULE_Y);
-    } else {
-        renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, SCHEDULE_QR_CODE_X, SCHEDULE_QR_CODE_Y);
-    }
-    pageModifier.endContext().writePage();
-
-    // Page 8: Schedule 2
-    pageModifier = new muhammara.PDFPageModifier(pdfWriter, PAGE_MODIFIER_INDEX_SCHEDULE_2);
-    ctx = pageModifier.startContext().getContext();
-    ctx.writeText(
-        docNumber,
-        SCHEDULE_DOC_NUMBER_X, SCHEDULE_DOC_NUMBER_Y,
-        {font:pdfWriter.getFontForFile(pathToTemplate + ARIAL_FONT),size:DOC_NUMBER_SIZE,colorspace:'gray',color:0x00}
-    );
-    if (isSample) {
-        renderSampleWatermark(pdfWriter, ctx, watermarkStreamImageXObject, WATERMARK_SCHEDULE_X, WATERMARK_SCHEDULE_Y);
-    } else {
-        renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, SCHEDULE_QR_CODE_X, SCHEDULE_QR_CODE_Y);
-    }
-    pageModifier.endContext().writePage();
-
-    // Page 9: Schedule 3
-    pageModifier = new muhammara.PDFPageModifier(pdfWriter, PAGE_MODIFIER_INDEX_SCHEDULE_3);
-    ctx = pageModifier.startContext().getContext();
-    ctx.writeText(
-        docNumber,
-        SCHEDULE_DOC_NUMBER_X, SCHEDULE_DOC_NUMBER_Y,
-        {font:pdfWriter.getFontForFile(pathToTemplate + ARIAL_FONT),size:DOC_NUMBER_SIZE,colorspace:'gray',color:0x00}
-    );
-    if (isSample) {
-        renderSampleWatermark(pdfWriter, ctx, watermarkStreamImageXObject, WATERMARK_SCHEDULE_X, WATERMARK_SCHEDULE_Y);
-    } else {
-        renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, SCHEDULE_QR_CODE_X, SCHEDULE_QR_CODE_Y);
-    }
-    pageModifier.endContext().writePage();
+    renderSchedulePage(pdfWriter, PAGE_MODIFIER_INDEX_SCHEDULE_1, docNumber, isSample, pathToTemplate, watermarkStreamImageXObject, imageXObject);
+    renderSchedulePage(pdfWriter, PAGE_MODIFIER_INDEX_SCHEDULE_2, docNumber, isSample, pathToTemplate, watermarkStreamImageXObject, imageXObject);
+    renderSchedulePage(pdfWriter, PAGE_MODIFIER_INDEX_SCHEDULE_3, docNumber, isSample, pathToTemplate, watermarkStreamImageXObject, imageXObject);
 
     pdfWriter.end();
     stream.end();
 
+};
+
+const renderSchedulePage = (pdfWriter, pageIndex, docNumber, isSample, pathToTemplate, watermarkStreamImageXObject, imageXObject) => {
+    const pageModifier = new muhammara.PDFPageModifier(pdfWriter, pageIndex);
+    const ctx = pageModifier.startContext().getContext();
+    ctx.writeText(
+        docNumber,
+        SCHEDULE_DOC_NUMBER_X, SCHEDULE_DOC_NUMBER_Y,
+        {font:pdfWriter.getFontForFile(pathToTemplate + ARIAL_FONT),size:DOC_NUMBER_SIZE,colorspace:'gray',color:0x00}
+    );
+    if (isSample) {
+        renderSampleWatermark(pdfWriter, ctx, watermarkStreamImageXObject, WATERMARK_SCHEDULE_X, WATERMARK_SCHEDULE_Y);
+    } else {
+        renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, SCHEDULE_QR_CODE_X, SCHEDULE_QR_CODE_Y);
+    }
+    pageModifier.endContext().writePage();
 };
 
 const renderQrCode = (pathToTemplate, pdfWriter, ctx, imageXObject, x, y) => {
