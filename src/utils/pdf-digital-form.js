@@ -18,24 +18,28 @@ function toText(item) {
 }
 
 function parseForAcroformObject(pdfParser) {
-    let catalogDict = pdfParser.queryDictionaryObject(pdfParser.getTrailer(),'Root').toPDFDictionary();
-    let acroformDict = catalogDict.exists('AcroForm') ? pdfParser.queryDictionaryObject(catalogDict,'AcroForm'):null;
+    const catalogDict = pdfParser.queryDictionaryObject(pdfParser.getTrailer(),'Root').toPDFDictionary();
+    const acroformDict = catalogDict.exists('AcroForm') ? pdfParser.queryDictionaryObject(catalogDict,'AcroForm'):null;
     return acroformDict?.toPDFDictionary();
 }
 
 function parseKids(pdfParser,fieldDictionary,inheritedProperties,baseFieldName) {
 
-    let localEnv = {}
+    const localEnv = {}
 
     // prep some inherited values and push env
-    if(fieldDictionary.exists('FT'))
+    if(fieldDictionary.exists('FT')) {
         localEnv['FT'] = fieldDictionary.queryObject('FT').toString();
-    if(fieldDictionary.exists('Ff'))
+    }
+    if(fieldDictionary.exists('Ff')) {
         localEnv['Ff'] = fieldDictionary.queryObject('Ff').toNumber();
-    if(fieldDictionary.exists('DA'))
+    }
+    if(fieldDictionary.exists('DA')) {
         localEnv['DA'] = toText(fieldDictionary.queryObject('DA'));
-    if(fieldDictionary.exists('Opt'))
+    }
+    if(fieldDictionary.exists('Opt')) {
         localEnv['Opt'] = fieldDictionary.queryObject('Opt').toPDFArray();
+    }
 
     // parse kids
     const result = parseFieldsArray(pdfParser,
@@ -80,21 +84,22 @@ function parseRadioButtonValue(pdfParser,fieldDictionary) {
 
 function parseTextFieldValue(pdfParser, fieldDictionary,fieldName) {
     // grab field value, may be either a text string or a text stream
-    if(!fieldDictionary.exists(fieldName))
+    if(!fieldDictionary.exists(fieldName)) {
         return null;
+    }
 
-    let valueField = pdfParser.queryDictionaryObject(fieldDictionary,fieldName);
+    const valueField = pdfParser.queryDictionaryObject(fieldDictionary,fieldName);
 
-    if(valueField.getType() == muhammara.ePDFObjectLiteralString) {
+    if(valueField.getType() === muhammara.ePDFObjectLiteralString) {
         // text string. read into value
         return toText(valueField);
-    } else if(valueField.getType() == muhammara.ePDFObjectStream) {
-        let bytes = [];
+    } else if(valueField.getType() === muhammara.ePDFObjectStream) {
+        const bytes = [];
         // stream. read it into the value
-        let readStream = pdfParser.startReadingFromStream(valueField.toPDFStream());
+        const readStream = pdfParser.startReadingFromStream(valueField.toPDFStream());
         while(readStream.notEnded())
         {
-            let readData = readStream.read(1);
+            const readData = readStream.read(1);
             // do something with the data
             bytes.push(readData[0]);
         }
@@ -108,27 +113,29 @@ function parseTextFieldValue(pdfParser, fieldDictionary,fieldName) {
 function parseChoiceValue(pdfParser, fieldDictionary) {
     if(fieldDictionary.exists('V')) {
         // might be either text or array of texts
-        let valueField = pdfParser.queryDictionaryObject(fieldDictionary,"V");
-        if(valueField.getType() == muhammara.ePDFObjectLiteralString || valueField.getType() == muhammara.ePDFObjectHexString) {
+        const valueField = pdfParser.queryDictionaryObject(fieldDictionary,"V");
+        if(valueField.getType() === muhammara.ePDFObjectLiteralString || valueField.getType() === muhammara.ePDFObjectHexString) {
             // text string. read into value
             return toText(valueField);
-        } else if(valueField.getType == muhammara.ePDFObjectArray) {
-            let arrayOfStrings = valueField.toPDFArray().toJSArray();
+        } else if(valueField.getType === muhammara.ePDFObjectArray) {
+            const arrayOfStrings = valueField.toPDFArray().toJSArray();
             return _.map(arrayOfStrings,toText);
         } else {
             return undefined;
         }
     }
-    else
+    else {
         return undefined;
+    }
 }
 
 function parseFieldsValueData(result,pdfParser,fieldDictionary,flags, inheritedProperties) {
-    let localFieldType = fieldDictionary.exists('FT') ? fieldDictionary.queryObject('FT').toString():undefined,
-        fieldType = localFieldType || inheritedProperties['FT'];
+    const localFieldType = fieldDictionary.exists('FT') ? fieldDictionary.queryObject('FT').toString():undefined;
+    const fieldType = localFieldType || inheritedProperties['FT'];
 
-    if(!fieldType)
+    if(!fieldType) {
         return null; // k. must be a widget
+    }
 
     switch(fieldType) {
         case 'Btn': {
@@ -176,27 +183,31 @@ function parseFieldsValueData(result,pdfParser,fieldDictionary,flags, inheritedP
             result['type'] = 'signature';
             break;
         }
+        default:
+            break;
     }
 }
 
 function parseField(pdfParser,fieldDictionary,inheritedProperties,baseFieldName) {
-    let localFieldNameT = fieldDictionary.exists('T') ? toText(fieldDictionary.queryObject('T')):undefined,
-        localFieldNameTU = fieldDictionary.exists('TU') ? toText(fieldDictionary.queryObject('TU')):undefined,
-        localFieldNameTM = fieldDictionary.exists('TM') ? toText(fieldDictionary.queryObject('TM')):undefined,
-        localFlags = fieldDictionary.exists('Ff') ? fieldDictionary.queryObject('Ff').toNumber():undefined,
-        flags = localFlags === undefined ? inheritedProperties['Ff'] : localFlags;
+    const localFieldNameT = fieldDictionary.exists('T') ? toText(fieldDictionary.queryObject('T')):undefined;
+    const localFieldNameTU = fieldDictionary.exists('TU') ? toText(fieldDictionary.queryObject('TU')):undefined;
+    const localFieldNameTM = fieldDictionary.exists('TM') ? toText(fieldDictionary.queryObject('TM')):undefined;
+    const localFlags = fieldDictionary.exists('Ff') ? fieldDictionary.queryObject('Ff').toNumber():undefined;
+    let flags = localFlags === undefined ? inheritedProperties['Ff'] : localFlags;
 
     // i'm gonna assume that if there's no T and no kids, this is a widget annotation WHICH IS NOT a field and i'm out of here
     if(localFieldNameT === undefined &&
         !fieldDictionary.exists('Kids') &&
         fieldDictionary.exists('Subtype') &&
-        fieldDictionary.queryObject('Subtype').toString() == 'Widget')
+        fieldDictionary.queryObject('Subtype').toString() === 'Widget') {
         return null;
+    }
 
-    if(flags === undefined || flags === null)
+    if(flags === undefined || flags === null) {
         flags = 0;
+    }
 
-    let result = {
+    const result = {
         name : localFieldNameT,
         fullName: localFieldNameT === undefined ? undefined : (baseFieldName + localFieldNameT),
         alternateName : localFieldNameTU,
@@ -206,7 +217,7 @@ function parseField(pdfParser,fieldDictionary,inheritedProperties,baseFieldName)
 
 
     if(fieldDictionary.exists('Kids')) {
-        const kids = parseKids(pdfParser,fieldDictionary,inheritedProperties,baseFieldName + localFieldNameT + '.');
+        const kids = parseKids(pdfParser,fieldDictionary,inheritedProperties,`${baseFieldName}${localFieldNameT}.`);
         if(kids) {
             // that would be a non terminal node, otherwise all kids are annotations an null would be returned
             result['kids'] = kids;
@@ -231,23 +242,26 @@ function parseFieldsArray(pdfParser,fieldsArray,inheritedProperties,baseFieldNam
         const fieldResult = parseField(pdfParser,
             pdfParser.queryArrayObject(fieldsArray,i).toPDFDictionary(),
             inheritedProperties,baseFieldName);
-        if(fieldResult)
+        if(fieldResult) {
             result.push(fieldResult);
+        }
     }
 
-    if(result.length == 0)
+    if(result.length === 0) {
         return null; // widgets parent
-    else
+    } else {
         return result;
+    }
 }
 
 
 function accumulateFieldsValues(result,fieldsArray) {
     fieldsArray.forEach(function(field) {
-        if(field.kids)
-            accumulateFieldsValues(result,field.kids)
-        else
+        if(field.kids) {
+            accumulateFieldsValues(result,field.kids);
+        } else {
             result[field.fullName] = field.value;
+        }
     });
 }
 
@@ -264,12 +278,13 @@ function PDFDigitalForm(pdfParser) {
         const fieldsArray = this.acroformDict.exists('Fields') ?
             pdfParser.queryDictionaryObject(this.acroformDict,'Fields').toPDFArray() :
             null;
-        if(fieldsArray)
+        if(fieldsArray) {
             this.fields = parseFieldsArray(
                 pdfParser,
                 fieldsArray,
                 {},
                 '');
+        }
     }
 }
 
