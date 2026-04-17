@@ -59,6 +59,19 @@ function parseOnOffValue(fieldDictionary) {
     }
 }
 
+function findKidIndex(pdfParser, kidsArray, selectedValue) {
+    for(let i = 0; i < kidsArray.getLength(); ++i) {
+        const widgetDictionary = pdfParser.queryArrayObject(kidsArray, i).toPDFDictionary();
+        // use the dictionary Ap/N dictionary for looking up the appearance stream name
+        const apDictionary = pdfParser.queryDictionaryObject(widgetDictionary, 'AP').toPDFDictionary();
+        const nAppearances = pdfParser.queryDictionaryObject(apDictionary, 'N').toPDFDictionary();
+        if(nAppearances.exists(selectedValue)) {
+            return i; // Found! save the selected index as value
+        }
+    }
+    return null;
+}
+
 function parseRadioButtonValue(pdfParser,fieldDictionary) {
     if(!fieldDictionary.exists('V')) {
         return null;
@@ -67,23 +80,11 @@ function parseRadioButtonValue(pdfParser,fieldDictionary) {
     if(selectedValue === 'Off' || selectedValue === '') {
         return null;
     }
-    let result = true; // using true cause sometimes these are actually checkboxes, and there's no underlying kids
-    // for radio button this would be an appearance name of a radio button that's turned on. we wanna look for it
-    if(fieldDictionary.exists('Kids')) {
-        const kidsArray = pdfParser.queryDictionaryObject(fieldDictionary,'Kids').toPDFArray();
-        for(let i=0;i<kidsArray.getLength();++i) {
-            const widgetDictionary = pdfParser.queryArrayObject(kidsArray,i).toPDFDictionary();
-            // use the dictionary Ap/N dictionary for looking up the appearance stream name
-            const apDictionary = pdfParser.queryDictionaryObject(widgetDictionary,'AP').toPDFDictionary();
-            const nAppearances = pdfParser.queryDictionaryObject(apDictionary,'N').toPDFDictionary();
-            if(nAppearances.exists(selectedValue)) {
-                // Found!
-                result = i; // save the selected index as value
-                break;
-            }
-        }
+    if(!fieldDictionary.exists('Kids')) {
+        return null;
     }
-    return result;
+    const kidsArray = pdfParser.queryDictionaryObject(fieldDictionary,'Kids').toPDFArray();
+    return findKidIndex(pdfParser, kidsArray, selectedValue);
 }
 
 function parseTextFieldValue(pdfParser, fieldDictionary,fieldName) {
