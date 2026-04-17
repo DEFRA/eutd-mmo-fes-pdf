@@ -11,3 +11,7 @@ tests/unit/*/output/*.pdf
 reports/
 .DS_Store
 junit.xml
+tests/test-multi-transport.pdf
+tests/unit/blank-export-cert/output/pdfService.pdf
+tests/unit/blank-processing-statements/output/pdfService.pdf
+tests/unit/blank-storage-doc/output/pdfService.pdf

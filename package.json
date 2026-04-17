@@ -1,6 +1,6 @@
 {
   "name": "mmo-ecc-pdf-svc",
-  "version": "2.4.14",
+  "version": "2.4.15",
   "description": "",
   "main": "src/index.js",
   "dependencies": {
@@ -30,7 +30,7 @@
     "test": "cross-env JEST_JUNIT_OUTPUT_DIR=test-results JEST_JUNIT_OUTPUT_NAME=test-results.xml jest tests/unit/ --coverage",
     "test:ci": "cross-env JEST_JUNIT_OUTPUT_DIR=test-results JEST_JUNIT_OUTPUT_NAME=junit.xml jest --runInBand --watchAll=false --reporters=default --reporters=jest-junit --coverage --ci",
     "test-vstack": "cross-env jest tests/unit/ --coverage --silent",
-    "test:integration": "env AZURE_STORAGE_CONNECTION_STRING='DefaultEndpointsProtocol=https;AccountName=devmmoinfsto001;AccountKey=KPG/IZQ2fKjJd4+igG7cbYRsF34yVuIzlE8/+oC4BaxmSPPcjMyc0bbwpdKIcSZ4xi4kExgugj421DVxTzmXOA==;EndpointSuffix=core.windows.net' jest --coverage"
+    "test:integration": "cross-env AZURE_STORAGE_CONNECTION_STRING=$AZURE_STORAGE_CONNECTION_STRING jest --coverage"
   },
   "repository": {
     "type": "git",
