@@ -21,7 +21,7 @@ const getJourneyName = (documentNumber) => {
         } else if (journey === 'PS' || journey === 'PM') {
           return 'ProcessingStatement';
         } else if (journey === 'SD' || journey === 'SM') {
-          return 'StorageDocument';
+          return 'NonManipulationDocument';
         }
 
         return 'CatchCertificate';

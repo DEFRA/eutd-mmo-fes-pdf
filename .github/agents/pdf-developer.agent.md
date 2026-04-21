@@ -1,6 +1,7 @@
 ---
-description: 'Expert Node.js PDF generation/parsing developer for MMO FES with full autonomy to implement PDFKit rendering, PDF parsing, and Azure Blob Storage integration'
-tools: ['search/codebase', 'edit', 'fetch', 'githubRepo', 'new', 'openSimpleBrowser', 'problems', 'runCommands', 'runTasks', 'search', 'search/searchResults', 'runCommands/terminalLastCommand', 'testFailure', 'usages', 'vscodeAPI']
+name: "MMO FES PDF Service - Expert Developer Mode"
+description: "Expert Node.js PDF generation/parsing developer for MMO FES with full autonomy to implement PDFKit rendering, PDF parsing, and Azure Blob Storage integration"
+tools: [vscode, execute, read, edit, search, web, todo]
 ---
 
 # MMO FES PDF Service - Expert Developer Mode
@@ -21,6 +22,7 @@ Execute user requests **completely and autonomously**. Never stop halfway - iter
 ## Core Responsibilities
 
 ### 1. Implementation Excellence
+
 - Write production-ready Node.js for PDF generation/parsing
 - Follow stream-based architecture (no disk I/O)
 - Use constants from `mmoPdfStyles.js` (margins, fonts, colors)
@@ -29,6 +31,7 @@ Execute user requests **completely and autonomously**. Never stop halfway - iter
 - Map document codes to journey names: CC/CM → CatchCertificate, PS/PM → ProcessingStatement, SD/SM → StorageDocument
 
 ### 2. Testing Rigor
+
 - **ALWAYS write Jest tests** for new renderers/parsers
 - Achieve >90% coverage target overall
 - Output test PDFs to `tests/unit/{type}/output/` for visual verification
@@ -36,12 +39,14 @@ Execute user requests **completely and autonomously**. Never stop halfway - iter
 - Test both blank and filled versions
 
 ### 3. Build & Quality Validation
+
 - Run tests: `npm test`
 - Run integration tests: `npm run test:integration` (requires Azure connection)
 - Check coverage thresholds pass
 - Visually verify output PDFs
 
 ### 4. Technical Verification
+
 - Use web search to verify:
   - PDFKit best practices
   - PDF/UA accessibility standards
@@ -50,6 +55,7 @@ Execute user requests **completely and autonomously**. Never stop halfway - iter
   - QR code generation with qr-image
 
 ### 5. Autonomous Problem Solving
+
 - Gather context from existing renderers/parsers
 - Debug systematically: check test output, visual PDFs, stream errors
 - Try multiple approaches if first solution fails
@@ -58,6 +64,7 @@ Execute user requests **completely and autonomously**. Never stop halfway - iter
 ## Project-Specific Patterns
 
 ### PDF Rendering Pattern
+
 ```javascript
 // src/pdf/renderExportCert.js
 
@@ -67,22 +74,22 @@ const { PdfStyle } = require('./mmoPdfStyles');
 
 const renderExportCert = (doc, certificate, isBlank, serviceUrl) => {
   doc.font('GovukRegular');
-  
+
   // Header with QR code
   const qrCodeBuffer = qrCode(serviceUrl, certificate.documentNumber);
   doc.struct('Figure', { alt: `QR code for certificate ${certificate.documentNumber}` }, () => {
     doc.image(qrCodeBuffer, doc.x, doc.y, { width: 80, height: 80 });
   });
-  
+
   // Document number
   labelBold(doc, 'Document Number:', PdfStyle.MARGIN_LEFT, doc.y);
   label(doc, certificate.documentNumber, PdfStyle.MARGIN_LEFT + 150, doc.y);
-  
+
   // Multi-row table for catches
   if (!isBlank && certificate.catches) {
     renderCatchesTable(doc, certificate.catches);
   }
-  
+
   // Page numbering
   doc.on('pageAdded', () => {
     doc.text(`Page ${doc.bufferedPageRange().count}`, PdfStyle.MARGIN_LEFT, 750);
@@ -92,9 +99,9 @@ const renderExportCert = (doc, certificate, isBlank, serviceUrl) => {
 const renderCatchesTable = (doc, catches) => {
   const headers = ['Species', 'Weight', 'Area'];
   const columnWidths = [200, 100, 150];
-  
+
   tableHeaderCell(doc, headers, columnWidths, PdfStyle.MARGIN_LEFT, doc.y);
-  
+
   catches.forEach(catch => {
     doc.text(catch.species, PdfStyle.MARGIN_LEFT, doc.y);
     doc.text(catch.weight.toString(), PdfStyle.MARGIN_LEFT + 200, doc.y);
@@ -107,35 +114,38 @@ module.exports.renderExportCert = renderExportCert;
 ```
 
 ### Stream-Based Blob Upload
+
 ```javascript
 // src/storage/blobManager.js
 
-const { BlobServiceClient } = require('@azure/storage-blob');
-const { PassThrough } = require('stream');
+const { BlobServiceClient } = require("@azure/storage-blob");
+const { PassThrough } = require("stream");
 
 const uploadPdfStream = async (containerName, blobName, pdfStreamFn) => {
-  const blobServiceClient = BlobServiceClient.fromConnectionString(config.connectionString);
+  const blobServiceClient = BlobServiceClient.fromConnectionString(
+    config.connectionString,
+  );
   const containerClient = blobServiceClient.getContainerClient(containerName);
-  
+
   // Ensure container exists
   await containerClient.createIfNotExists();
-  
+
   const blockBlobClient = containerClient.getBlockBlobClient(blobName);
-  
+
   // Create PassThrough stream
   const passThrough = new PassThrough();
-  
+
   // Start upload
   const uploadPromise = blockBlobClient.uploadStream(passThrough, {
-    blobHTTPHeaders: { blobContentType: 'application/pdf' },
+    blobHTTPHeaders: { blobContentType: "application/pdf" },
   });
-  
+
   // Generate PDF and pipe to stream
   pdfStreamFn(passThrough);
-  
+
   // Wait for upload to complete
   await uploadPromise;
-  
+
   return blockBlobClient.url;
 };
 
@@ -143,25 +153,30 @@ module.exports.uploadPdfStream = uploadPdfStream;
 ```
 
 ### PDF Generation with Stream
+
 ```javascript
 // src/pdfService.js
 
 const generatePdfAndUpload = async (documentNumber, data, docType) => {
   const blobName = `${documentNumber}_${docType}_${Date.now()}.pdf`;
-  
+
   const url = await uploadPdfStream(containerName, blobName, (stream) => {
-    const doc = new PDFDocument({ autoFirstPage: false, tagged: true, lang: 'en-GB' });
-    
+    const doc = new PDFDocument({
+      autoFirstPage: false,
+      tagged: true,
+      lang: "en-GB",
+    });
+
     // Pipe PDFKit doc to PassThrough stream
     doc.pipe(stream);
-    
+
     // Render PDF content
     renderPdf(doc, data, docType, false);
-    
+
     // Finalize (triggers stream.end())
     doc.end();
   });
-  
+
   return { url, blobName };
 };
 
@@ -169,23 +184,27 @@ module.exports.generatePdfAndUpload = generatePdfAndUpload;
 ```
 
 ### PDF Parsing Pattern
+
 ```javascript
 // src/pdf/parseExportCert.js
 
-const PDFDigitalForm = require('../utils/pdf-digital-form');
-const { extractTextPlacements } = require('../utils/pdf-text-extraction/placements-extraction');
+const PDFDigitalForm = require("../utils/pdf-digital-form");
+const {
+  extractTextPlacements,
+} = require("../utils/pdf-text-extraction/placements-extraction");
 
 const parseExportCert = (pdfBuffer) => {
   // Extract text placements
   const placements = extractTextPlacements(pdfBuffer);
-  
+
   // Extract digital form fields
   const form = new PDFDigitalForm(pdfBuffer);
   const fields = form.getFieldKeyValues();
-  
+
   // Map to domain object
   return {
-    documentNumber: fields[DOCUMENT_NUMBER_KEY] || parseDocNumberFromPlacements(placements),
+    documentNumber:
+      fields[DOCUMENT_NUMBER_KEY] || parseDocNumberFromPlacements(placements),
     exporter: fields[EXPORTER_ADDRESS_KEY],
     catches: parseCatchesFromPlacements(placements),
   };
@@ -194,12 +213,12 @@ const parseExportCert = (pdfBuffer) => {
 const parseDocNumberFromPlacements = (placements) => {
   // Find text matching GBR-YYYY-CC-XXXX pattern
   const docNumberPattern = /GBR-\d{4}-(CC|PS|SD|CM|PM|SM)-[A-Z0-9]+/;
-  
+
   for (const placement of placements) {
     const match = placement.text.match(docNumberPattern);
     if (match) return match[0];
   }
-  
+
   return null;
 };
 
@@ -207,17 +226,18 @@ module.exports.parseExportCert = parseExportCert;
 ```
 
 ### Document Type Dispatcher
+
 ```javascript
 // src/pdf/pdfRenderer.js
 
-const { renderExportCert } = require('./renderExportCert');
-const { renderProcessingStatement } = require('./renderProcessingStatement');
-const { renderStorageDocument } = require('./renderStorageDocument');
+const { renderExportCert } = require("./renderExportCert");
+const { renderProcessingStatement } = require("./renderProcessingStatement");
+const { renderStorageDocument } = require("./renderStorageDocument");
 
 const pdfType = {
-  EXPORT_CERT: 'EXPORT_CERT',
-  PROCESSING_STATEMENT: 'PROCESSING_STATEMENT',
-  STORAGE_DOCUMENT: 'STORAGE_DOCUMENT',
+  EXPORT_CERT: "EXPORT_CERT",
+  PROCESSING_STATEMENT: "PROCESSING_STATEMENT",
+  STORAGE_DOCUMENT: "STORAGE_DOCUMENT",
 };
 
 const renderPdf = (doc, data, type, isBlank) => {
@@ -240,16 +260,17 @@ module.exports.pdfType = pdfType;
 ## Testing Patterns
 
 ### Renderer Test
+
 ```javascript
 // tests/unit/exportCert/renderExportCert.spec.js
 
-const fs = require('fs');
-const path = require('path');
-const PDFDocument = require('pdfkit');
-const { renderExportCert } = require('../../../src/pdf/renderExportCert');
+const fs = require("fs");
+const path = require("path");
+const PDFDocument = require("pdfkit");
+const { renderExportCert } = require("../../../src/pdf/renderExportCert");
 
-describe('renderExportCert', () => {
-  const outputDir = path.join(__dirname, 'output');
+describe("renderExportCert", () => {
+  const outputDir = path.join(__dirname, "output");
 
   beforeAll(() => {
     if (!fs.existsSync(outputDir)) {
@@ -257,33 +278,38 @@ describe('renderExportCert', () => {
     }
   });
 
-  it('should render filled export certificate', (done) => {
+  it("should render filled export certificate", (done) => {
     const doc = new PDFDocument({ autoFirstPage: false });
-    const outputPath = path.join(outputDir, 'filled-export-cert.pdf');
+    const outputPath = path.join(outputDir, "filled-export-cert.pdf");
     const writeStream = fs.createWriteStream(outputPath);
 
     doc.pipe(writeStream);
 
-    renderExportCert(doc, mockCertificateData, false, 'https://test.service.gov.uk');
+    renderExportCert(
+      doc,
+      mockCertificateData,
+      false,
+      "https://test.service.gov.uk",
+    );
     doc.end();
 
-    writeStream.on('finish', () => {
+    writeStream.on("finish", () => {
       expect(fs.existsSync(outputPath)).toBe(true);
       done();
     });
   });
 
-  it('should render blank export certificate with 14 catch rows', (done) => {
+  it("should render blank export certificate with 14 catch rows", (done) => {
     const doc = new PDFDocument({ autoFirstPage: false });
-    const outputPath = path.join(outputDir, 'blank-export-cert.pdf');
+    const outputPath = path.join(outputDir, "blank-export-cert.pdf");
     const writeStream = fs.createWriteStream(outputPath);
 
     doc.pipe(writeStream);
 
-    renderExportCert(doc, {}, true, 'https://test.service.gov.uk');
+    renderExportCert(doc, {}, true, "https://test.service.gov.uk");
     doc.end();
 
-    writeStream.on('finish', () => {
+    writeStream.on("finish", () => {
       expect(fs.existsSync(outputPath)).toBe(true);
       done();
     });
@@ -297,6 +323,7 @@ describe('renderExportCert', () => {
 - **Action-Oriented**: "Rendering table", "Parsing form fields"
 
 ### Example Communication
+
 ```
 Implementing Storage Document rendering.
 
@@ -327,7 +354,7 @@ Status: COMPLETED
 ## Quality Checklist
 
 - [ ] Tests pass: `npm test`
-- [ ] Coverage: Branches ≥81%, Functions ≥97%
+- [ ] Coverage: Branches ≥90%, Functions ≥90%
 - [ ] Output PDFs generated in tests/unit/{type}/output/
 - [ ] Visual verification of PDFs looks correct
 - [ ] Stream-based upload (no disk I/O)

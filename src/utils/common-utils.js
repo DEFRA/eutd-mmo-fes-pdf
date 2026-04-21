@@ -4,11 +4,11 @@ const PdfUtils = require('../pdf/mmoPdfUtils');
 const path = require('path');
 
 module.exports = {
-  createBaseDocument:(uri) => {
+  createBaseDocument:(uri, documentTitle) => {
     return new PDFDocument({
       layout: 'portrait',
       size: 'A4',
-      lang: 'en_GB',
+      lang: 'en-GB',
       margins: {
           top: PdfStyle.MARGIN.TOP,
           bottom: PdfStyle.MARGIN.BOT,
@@ -19,7 +19,7 @@ module.exports = {
       tagged: true,
       displayTitle: true,
       info: {
-          Title: path.basename(uri).split`.`[0]
+          Title: documentTitle || path.basename(uri).split`.`[0]
       }
     });
   },
@@ -44,7 +44,9 @@ module.exports = {
     });
     PdfUtils.heading(doc, headingText);
   
-    doc.lineWidth(2);
-    doc.moveTo(PdfStyle.MARGIN.LEFT, startY + 70).lineTo(560, startY + 70).stroke();
+    doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
+      doc.lineWidth(2);
+      doc.moveTo(PdfStyle.MARGIN.LEFT, startY + 70).lineTo(560, startY + 70).stroke();
+    }));
   }
 }

@@ -6,6 +6,14 @@ const muhammara = require('muhammara');
 const PDFStreamForNodeJsStream = require('./PDFStreamForNodeJsStream');
 const PDFStreamForImageBuffer = require('./PDFStreamForImageBuffer');
 
+const QR_CODE_X_POSITION_PAGE_6 = 50;
+const QR_CODE_Y_POSITION_PAGE_6 = 328;
+const PAGE_MODIFIER_INDEX_SCHEDULE_3 = 9;
+const SCHEDULE_DOC_NUMBER_X = 128;
+const SCHEDULE_DOC_NUMBER_Y = 454;
+const SCHEDULE_QR_CODE_X = 617;
+const SCHEDULE_QR_CODE_Y = 405;
+
 const renderBlankExportCert = async (data, isSample, uri, stream, pathToTemplate) => {
     const inStream = new muhammara.PDFRStreamForFile(pathToTemplate + 'export-cert-blank.pdf'); // './src/resources/export-cert-blank.pdf'
     const pdfStream = new PDFStreamForNodeJsStream(stream);
@@ -56,51 +64,54 @@ const renderBlankExportCert = async (data, isSample, uri, stream, pathToTemplate
         renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, 350, 130);
         pageModifier.endContext().writePage();
 
-        pageModifier = new muhammara.PDFPageModifier(pdfWriter, 5);
+        pageModifier = new muhammara.PDFPageModifier(pdfWriter, 6);
         ctx = pageModifier.startContext().getContext();
-        renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, 70, 70);
+        renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, QR_CODE_X_POSITION_PAGE_6, QR_CODE_Y_POSITION_PAGE_6);
         pageModifier.endContext().writePage();
     }
 
-    pageModifier = new muhammara.PDFPageModifier(pdfWriter, 6);
-    ctx = pageModifier.startContext().getContext();
-    ctx.writeText(
-        docNumber,
-        128, 494,
-        {font:pdfWriter.getFontForFile(pathToTemplate + 'fonts/arial.ttf'),size:10,colorspace:'gray',color:0x00}
-    );
-    if (isSample) {
-        renderSampleWatermark(pdfWriter, ctx, watermarkStreamImageXObject, 130, 0);
-    } else {
-        renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, 617, 445);
-    }
-    pageModifier.endContext().writePage();
-
+    // Page 7: Schedule 1
     pageModifier = new muhammara.PDFPageModifier(pdfWriter, 7);
     ctx = pageModifier.startContext().getContext();
     ctx.writeText(
         docNumber,
-        128, 494,
+        SCHEDULE_DOC_NUMBER_X, SCHEDULE_DOC_NUMBER_Y,
         {font:pdfWriter.getFontForFile(pathToTemplate + 'fonts/arial.ttf'),size:10,colorspace:'gray',color:0x00}
     );
     if (isSample) {
         renderSampleWatermark(pdfWriter, ctx, watermarkStreamImageXObject, 130, 0);
     } else {
-        renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, 617, 445);
+        renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, SCHEDULE_QR_CODE_X, SCHEDULE_QR_CODE_Y);
     }
     pageModifier.endContext().writePage();
 
+    // Page 8: Schedule 2
     pageModifier = new muhammara.PDFPageModifier(pdfWriter, 8);
     ctx = pageModifier.startContext().getContext();
     ctx.writeText(
         docNumber,
-        128, 494,
+        SCHEDULE_DOC_NUMBER_X, SCHEDULE_DOC_NUMBER_Y,
         {font:pdfWriter.getFontForFile(pathToTemplate + 'fonts/arial.ttf'),size:10,colorspace:'gray',color:0x00}
     );
     if (isSample) {
         renderSampleWatermark(pdfWriter, ctx, watermarkStreamImageXObject, 130, 0);
     } else {
-        renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, 617, 445);
+        renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, SCHEDULE_QR_CODE_X, SCHEDULE_QR_CODE_Y);
+    }
+    pageModifier.endContext().writePage();
+
+    // Page 9: Schedule 3
+    pageModifier = new muhammara.PDFPageModifier(pdfWriter, PAGE_MODIFIER_INDEX_SCHEDULE_3);
+    ctx = pageModifier.startContext().getContext();
+    ctx.writeText(
+        docNumber,
+        SCHEDULE_DOC_NUMBER_X, SCHEDULE_DOC_NUMBER_Y,
+        {font:pdfWriter.getFontForFile(pathToTemplate + 'fonts/arial.ttf'),size:10,colorspace:'gray',color:0x00}
+    );
+    if (isSample) {
+        renderSampleWatermark(pdfWriter, ctx, watermarkStreamImageXObject, 130, 0);
+    } else {
+        renderQrCode(pathToTemplate, pdfWriter, ctx, imageXObject, SCHEDULE_QR_CODE_X, SCHEDULE_QR_CODE_Y);
     }
     pageModifier.endContext().writePage();
 

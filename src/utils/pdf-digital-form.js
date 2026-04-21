@@ -91,7 +91,7 @@ function parseTextFieldValue(pdfParser, fieldDictionary,fieldName) {
     } else if(valueField.getType() == muhammara.ePDFObjectStream) {
         let bytes = [];
         // stream. read it into the value
-        let readStream = pdfReader.startReadingFromStream(valueField.toPDFStream());
+        let readStream = pdfParser.startReadingFromStream(valueField.toPDFStream());
         while(readStream.notEnded())
         {
             let readData = readStream.read(1);
@@ -99,7 +99,7 @@ function parseTextFieldValue(pdfParser, fieldDictionary,fieldName) {
             bytes.push(readData[0]);
         }
         // now turn to text string
-        return new PDFTextString(bytes).toString();
+        return new muhammara.PDFTextString(bytes).toString();
     } else {
         return null;
     }

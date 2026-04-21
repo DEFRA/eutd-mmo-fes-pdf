@@ -81,7 +81,7 @@ describe('dom pdf utils', () => {
       }
     };
 
-    // xtest for leading 0s on month numbers
+    // test for leading 0s on month numbers
 
     ourdate = new Date('2023-06-15');
 
@@ -89,13 +89,29 @@ describe('dom pdf utils', () => {
 
     expect(todaysDate).toEqual('15/06/2023');
 
-    // xtest for leading 1s e.g. 10 
+    // test for leading 1s e.g. 10 
 
     ourdate = new Date('2023-10-15');
 
     todaysDate = mmoPdfUtils.todaysDate();
 
     expect(todaysDate).toEqual('15/10/2023');
+
+    // test for leading 0s on single-digit day
+
+    ourdate = new Date('2023-12-05');
+
+    todaysDate = mmoPdfUtils.todaysDate();
+
+    expect(todaysDate).toEqual('05/12/2023');
+
+    // test for leading 0s on single-digit month and day
+
+    ourdate = new Date('2023-01-05');
+
+    todaysDate = mmoPdfUtils.todaysDate();
+
+    expect(todaysDate).toEqual('05/01/2023');
 
     // restore the global date object
     global.Date = realDate;
@@ -475,5 +491,162 @@ describe('dom pdf utils', () => {
     expect(doc.fillColor).toHaveBeenCalled();
     expect(doc.font).toHaveBeenCalledWith(PdfStyle.FONT.REGULAR);
     expect(doc.fontSize).toHaveBeenCalledWith(PdfStyle.FONT_SIZE.SMALL);
+  });
+
+  test('it should create a cellNoEllipsis with text array and ellipsis set to false', () => {
+    const x = 50;
+    const y = 50;
+    const width = 100;
+    const height = 30;
+    const textArr = ['Long text that should not be truncated with ellipsis'];
+    const trimWidth = false;
+    const isBold = false;
+    const lineColor = '#767676';
+    const textColor = '#6B6B6B';
+    const bgColour = '#f1f4ff';
+    const numberOfLines = 1;
+
+    mmoPdfUtils.cellNoEllipsis({doc, x, y, width, height, textArr, trimWidth, isBold, lineColor, textColor, bgColour, numberOfLines});
+
+    // Test assertions
+    expect(doc.rect).toHaveBeenCalledWith(x, y, width, height);
+    expect(doc.fillAndStroke).toHaveBeenCalledWith(bgColour, lineColor);
+    expect(doc.fillColor).toHaveBeenCalledWith(textColor);
+    expect(doc.font).toHaveBeenCalledWith(PdfStyle.FONT.REGULAR);
+    expect(doc.fontSize).toHaveBeenCalledWith(PdfStyle.FONT_SIZE.SMALL);
+    expect(doc.text).toHaveBeenCalledWith(textArr[0], x + 4, y + 4, {
+      width: width - 4,
+      lineBreak: true,
+      ellipsis: false
+    });
+  });
+
+  test('it should create a cellNoEllipsis with multiple lines of text', () => {
+    const x = 50;
+    const y = 50;
+    const width = 100;
+    const height = 60;
+    const textArr = ['First line of text', 'Second line of text', 'Third line of text'];
+    const trimWidth = false;
+    const isBold = true;
+    const lineColor = '#767676';
+    const textColor = '#6B6B6B';
+    const bgColour = '#f1f4ff';
+    const numberOfLines = 3;
+
+    mmoPdfUtils.cellNoEllipsis({doc, x, y, width, height, textArr, trimWidth, isBold, lineColor, textColor, bgColour, numberOfLines});
+
+    // Test assertions
+    expect(doc.rect).toHaveBeenCalledWith(x, y, width, height);
+    expect(doc.fillAndStroke).toHaveBeenCalledWith(bgColour, lineColor);
+    expect(doc.fillColor).toHaveBeenCalledWith(textColor);
+    expect(doc.font).toHaveBeenCalledWith(PdfStyle.FONT.BOLD);
+    expect(doc.fontSize).toHaveBeenCalledWith(PdfStyle.FONT_SIZE.SMALL);
+    
+    // Check first line
+    expect(doc.text).toHaveBeenCalledWith(textArr[0], x + 4, y + 4, {
+      width: width - 4,
+      lineBreak: true,
+      ellipsis: false
+    });
+    
+    // Check subsequent lines also have ellipsis: false
+    const textCalls = doc.text.mock.calls;
+    textCalls.forEach(call => {
+      if (call[2] && typeof call[2] === 'object' && 'ellipsis' in call[2]) {
+        expect(call[2].ellipsis).toBe(false);
+      }
+    });
+  });
+
+  test('it should use wrappedFieldNoEllipsis wrapper function', () => {
+    const x = 50;
+    const y = 50;
+    const width = 200;
+    const height = 90;
+    const text = 'Vehicle: MV Long Ship Name - Flag State';
+
+    mmoPdfUtils.wrappedFieldNoEllipsis(doc, x, y, width, height, text);
+
+    // Test assertions
+    expect(doc.rect).toHaveBeenCalledWith(x, y, width, height);
+    expect(doc.fillColor).toHaveBeenCalledWith('#6B6B6B');
+    expect(doc.font).toHaveBeenCalledWith(PdfStyle.FONT.REGULAR);
+    expect(doc.fontSize).toHaveBeenCalledWith(PdfStyle.FONT_SIZE.SMALL);
+    expect(doc.text).toHaveBeenCalledWith(text, x + 4, y + 4, {
+      width: width - 4,
+      lineBreak: true,
+      ellipsis: false
+    });
+  });
+
+  test('it should use wrappedFieldNoEllipsis with array of text', () => {
+    const x = 50;
+    const y = 50;
+    const width = 200;
+    const height = 90;
+    const textArr = ['Container: CONT1234567', 'CONT7654321', 'CONT9999999'];
+
+    mmoPdfUtils.wrappedFieldNoEllipsis(doc, x, y, width, height, textArr);
+
+    // Test assertions
+    expect(doc.rect).toHaveBeenCalledWith(x, y, width, height);
+    expect(doc.fillColor).toHaveBeenCalledWith('#6B6B6B');
+    
+    // Verify ellipsis is false for all text calls
+    const textCalls = doc.text.mock.calls;
+    textCalls.forEach(call => {
+      if (call[2] && typeof call[2] === 'object' && 'ellipsis' in call[2]) {
+        expect(call[2].ellipsis).toBe(false);
+      }
+    });
+  });
+
+  test('it should create cellImpl with ellipsis parameter defaulting to true', () => {
+    const x = 50;
+    const y = 50;
+    const width = 100;
+    const height = 30;
+    const textArr = ['Test text'];
+    const trimWidth = false;
+    const isBold = false;
+    const lineColor = '#767676';
+    const textColor = '#6B6B6B';
+    const bgColour = '#f1f4ff';
+    const numberOfLines = 1;
+    const ellipsis = true;
+
+    mmoPdfUtils.cellImpl({doc, x, y, width, height, textArr, trimWidth, isBold, lineColor, textColor, bgColour, numberOfLines, ellipsis});
+
+    // Test assertions
+    expect(doc.text).toHaveBeenCalledWith(textArr[0], x + 4, y + 4, {
+      width: width - 4,
+      lineBreak: true,
+      ellipsis: true
+    });
+  });
+
+  test('it should create cellImpl with ellipsis set to false', () => {
+    const x = 50;
+    const y = 50;
+    const width = 100;
+    const height = 30;
+    const textArr = ['Test text without ellipsis'];
+    const trimWidth = false;
+    const isBold = false;
+    const lineColor = '#767676';
+    const textColor = '#6B6B6B';
+    const bgColour = '#f1f4ff';
+    const numberOfLines = 1;
+    const ellipsis = false;
+
+    mmoPdfUtils.cellImpl({doc, x, y, width, height, textArr, trimWidth, isBold, lineColor, textColor, bgColour, numberOfLines, ellipsis});
+
+    // Test assertions
+    expect(doc.text).toHaveBeenCalledWith(textArr[0], x + 4, y + 4, {
+      width: width - 4,
+      lineBreak: true,
+      ellipsis: false
+    });
   });
 });
