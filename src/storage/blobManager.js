@@ -21,7 +21,7 @@ const deleteBlob = async (containerName, blobName) => {
 };
 
 const writeStreamForBlob = async (containerName, blobName) => {
-    const { PassThrough } = require('stream');
+    const { PassThrough } = require('node:stream');
     const blobServiceClient = getBlobServiceClient();
     const containerClient = blobServiceClient.getContainerClient(containerName);
     const blockBlobClient = containerClient.getBlockBlobClient(blobName);

@@ -30,12 +30,37 @@ const SCHED_CATCHES_TOTAL_LANDED_WEIGHT_KEY_PREFIX = 'Total landed weightkgRow';
 const SCHED_CATCHES_CATCH_PROCESSED_WEIGHT_KEY_PREFIX = 'Catch processed kgRow';
 const SCHED_CATCHES_PROCESSED_WEIGHT_KEY_PREFIX = 'Processed fishery productkgRow';
 
+const FP_CATCH_ROW_3 = 3;
+const FP_CATCH_ROW_4 = 4;
+const FP_CATCH_ROW_COUNT = 5;
+
+const FRONT_PAGE_CATCH_KEYS = [
+    FP_CATCHES_CATCH_DESC_KEY_PREFIX + '0',
+    FP_CATCHES_CC_NUM_KEY_PREFIX + '10',
+    FP_CATCHES_TOTAL_LANDED_WEIGHT_KEY_PREFIX + '0',
+    FP_CATCHES_CATCH_PROCESSED_WEIGHT_KEY_PREFIX,
+    FP_CATCHES_PROCESSED_WEIGHT_KEY_PREFIX,
+];
+
+const isBlank = (val) => !val || val.trim().length === 0;
+
+const hasFrontPageCatchData = (raw) =>
+    FRONT_PAGE_CATCH_KEYS.some(key => raw[key]?.trim()?.length > 0);
+
+const CATCH_ITEM_REQUIRED_FIELDS = [
+    { field: 'species', message: 'Catch description required' },
+    { field: 'catchCertificateNumber', message: 'Catch certificate number required' },
+    { field: 'totalWeightLanded', message: 'Total landed weight (kg) required' },
+    { field: 'exportWeightBeforeProcessing', message: 'Catch processed (kg) required' },
+    { field: 'exportWeightAfterProcessing', message: 'Processed fishery product (kg) required' },
+];
+
 const parseProcessingStatement = async (pdfJson, buffer) => {
 
-    let result = {...pdfJson};
-    let pdfReader = muhammara.createReader(new muhammara.PDFRStreamForBuffer(buffer));
-    let form = new PDFDigitalForm(pdfReader);
-    let raw = form.createSimpleKeyValue();
+    const result = {...pdfJson};
+    const pdfReader = muhammara.createReader(new muhammara.PDFRStreamForBuffer(buffer));
+    const form = new PDFDigitalForm(pdfReader);
+    const raw = form.createSimpleKeyValue();
     result.errors = [];
 
     result.consignmentDescription = raw[PROD_DESC_KEY];
@@ -68,30 +93,28 @@ const parseProcessingStatement = async (pdfJson, buffer) => {
     result.dateIssued = raw[DATE_ISSUED_KEY];
     result.errors = result.errors.concat(validateRequired(result.dateIssued, 'The date issued is required'));
 
+    routeCatchDetails(raw, result);
+
+    return result;
+};
+
+const routeCatchDetails = (raw, result) => {
     if (raw[SCHED_CATCHES_CC_NUM_KEY_PREFIX + '1'] === null || raw[SCHED_CATCHES_CATCH_DESC_KEY_PREFIX + '1'].trim().length === 0) {
-        // no schedule extract catch details from first page
         extractFrontPageCatchDetails(raw, result);
-    } else if ((raw[FP_CATCHES_CATCH_DESC_KEY_PREFIX + '0'] &&  raw[FP_CATCHES_CATCH_DESC_KEY_PREFIX + '0'].trim().length > 0)
-        || (raw[FP_CATCHES_CC_NUM_KEY_PREFIX + '10'] &&  raw[FP_CATCHES_CC_NUM_KEY_PREFIX + '10'].trim().length > 0)
-        || (raw[FP_CATCHES_TOTAL_LANDED_WEIGHT_KEY_PREFIX + '0'] && raw[FP_CATCHES_TOTAL_LANDED_WEIGHT_KEY_PREFIX + '0'].trim().length > 0)
-        || (raw[FP_CATCHES_CATCH_PROCESSED_WEIGHT_KEY_PREFIX] &&  raw[FP_CATCHES_CATCH_PROCESSED_WEIGHT_KEY_PREFIX].trim().length > 0)
-        || (raw[FP_CATCHES_PROCESSED_WEIGHT_KEY_PREFIX] &&  raw[FP_CATCHES_PROCESSED_WEIGHT_KEY_PREFIX].trim().length > 0)) {
-        // cant have items in schedule and front page product details
+    } else if (hasFrontPageCatchData(raw)) {
         result.errors = result.errors.concat('Catch details have been added to both the front page and the schedule');
     } else {
         extractScheduleCatchDetails(raw, result);
     }
-    
-    return result;
 };
 
 const extractScheduleCatchDetails = (raw, result) => {
-    let catches = [];
+    const catches = [];
     let pageIdx;
     let rowIdx;
     for (pageIdx = 2; pageIdx <= 4; pageIdx++) {
         for (rowIdx = 1; rowIdx <= 24; rowIdx++) {
-            let item = extractScheduleCatchDetailItem(pageIdx, rowIdx, raw);
+            const item = extractScheduleCatchDetailItem(pageIdx, rowIdx, raw);
             if (item) {
                 catches.push(item);
                 result.errors = result.errors.concat(validateScheduleCatchDetailItem(pageIdx, rowIdx, item));
@@ -102,19 +125,20 @@ const extractScheduleCatchDetails = (raw, result) => {
 };
 
 const extractScheduleCatchDetailItem = (pageIdx, rowIdx, raw) => {
-    let item = {};
+    const item = {};
     let speciesKey = SCHED_CATCHES_CATCH_DESC_KEY_PREFIX + rowIdx;
     let catchCertificateNumberKey = SCHED_CATCHES_CC_NUM_KEY_PREFIX + rowIdx;
     let totalWeightLandedKey = SCHED_CATCHES_TOTAL_LANDED_WEIGHT_KEY_PREFIX + rowIdx;
     let exportWeightBeforeProcessingKey = SCHED_CATCHES_CATCH_PROCESSED_WEIGHT_KEY_PREFIX + rowIdx;
     let exportWeightAfterProcessingKey = SCHED_CATCHES_PROCESSED_WEIGHT_KEY_PREFIX + rowIdx;
 
-    if (2!== pageIdx) {
-        speciesKey = speciesKey + '_' + (pageIdx - 1);
-        catchCertificateNumberKey = catchCertificateNumberKey + '_' + (pageIdx - 1);
-        totalWeightLandedKey = totalWeightLandedKey + '_' + (pageIdx - 1);
-        exportWeightBeforeProcessingKey = exportWeightBeforeProcessingKey + '_' + (pageIdx - 1);
-        exportWeightAfterProcessingKey = exportWeightAfterProcessingKey + '_' + (pageIdx - 1);
+    if (pageIdx !== 2) {
+        const pageSuffix = `_${pageIdx - 1}`;
+        speciesKey = `${speciesKey}${pageSuffix}`;
+        catchCertificateNumberKey = `${catchCertificateNumberKey}${pageSuffix}`;
+        totalWeightLandedKey = `${totalWeightLandedKey}${pageSuffix}`;
+        exportWeightBeforeProcessingKey = `${exportWeightBeforeProcessingKey}${pageSuffix}`;
+        exportWeightAfterProcessingKey = `${exportWeightAfterProcessingKey}${pageSuffix}`;
     }
 
     item.species = raw[speciesKey];
@@ -123,22 +147,15 @@ const extractScheduleCatchDetailItem = (pageIdx, rowIdx, raw) => {
     item.exportWeightBeforeProcessing = raw[exportWeightBeforeProcessingKey];
     item.exportWeightAfterProcessing = raw[exportWeightAfterProcessingKey];
 
-    if ((!item.species || item.species.trim().length === 0)
-        && (!item.catchCertificateNumber || item.catchCertificateNumber.trim().length === 0)
-        && (!item.totalWeightLanded || item.totalWeightLanded.trim().length === 0)
-        && (!item.exportWeightBeforeProcessing || item.exportWeightBeforeProcessing.trim().length === 0)
-        && (!item.exportWeightAfterProcessing || item.exportWeightAfterProcessing.trim().length === 0)) {
-        return null;
-    } else {
-        return item;
-    }
+    const isEmpty = CATCH_ITEM_REQUIRED_FIELDS.every(({ field }) => isBlank(item[field]));
+    return isEmpty ? null : item;
 };
 
 const extractFrontPageCatchDetails = (raw, result) => {
-    let catches = [];
+    const catches = [];
     let i;
-    for (i = 1; i <= 5; i++) {
-        let item = extractFrontPageCatchDetailItem(i, raw);
+    for (i = 1; i <= FP_CATCH_ROW_COUNT; i++) {
+        const item = extractFrontPageCatchDetailItem(i, raw);
         if (item) {
             catches.push(item);
             result.errors = result.errors.concat(validateFrontPageCatchDetailItem(i, item));
@@ -152,7 +169,7 @@ const extractFrontPageCatchDetails = (raw, result) => {
 
 const extractFrontPageCatchDetailItem = (i, raw) => {
     // Unfortunately the editable PDF has been badly created with random keys for catch cert rows!
-    let item = {};
+    const item = {};
     switch (i) {
         case 1:
             item.species = raw[FP_CATCHES_CATCH_DESC_KEY_PREFIX + '0'];
@@ -168,26 +185,28 @@ const extractFrontPageCatchDetailItem = (i, raw) => {
             item.exportWeightBeforeProcessing = raw[FP_CATCHES_CATCH_PROCESSED_WEIGHT_KEY_PREFIX + '21'];
             item.exportWeightAfterProcessing = raw[FP_CATCHES_PROCESSED_WEIGHT_KEY_PREFIX + '21'];
             break;
-        case 3:
+        case FP_CATCH_ROW_3:
             item.species = raw[FP_CATCHES_CATCH_DESC_KEY_PREFIX + ' 3'];
             item.catchCertificateNumber = raw[FP_CATCHES_CC_NUM_KEY_PREFIX + '3'];
             item.totalWeightLanded = raw[FP_CATCHES_TOTAL_LANDED_WEIGHT_KEY_PREFIX + ' 3'];
             item.exportWeightBeforeProcessing = raw[FP_CATCHES_CATCH_PROCESSED_WEIGHT_KEY_PREFIX + ' 3'];
             item.exportWeightAfterProcessing = raw[FP_CATCHES_PROCESSED_WEIGHT_KEY_PREFIX + ' 3'];
             break;
-        case 4:
+        case FP_CATCH_ROW_4:
             item.species = raw[FP_CATCHES_CATCH_DESC_KEY_PREFIX];
             item.catchCertificateNumber = raw[FP_CATCHES_CC_NUM_KEY_PREFIX + ' 4'];
             item.totalWeightLanded = raw[FP_CATCHES_TOTAL_LANDED_WEIGHT_KEY_PREFIX + ' 4'];
             item.exportWeightBeforeProcessing = raw[FP_CATCHES_CATCH_PROCESSED_WEIGHT_KEY_PREFIX + ' 4'];
             item.exportWeightAfterProcessing = raw[FP_CATCHES_PROCESSED_WEIGHT_KEY_PREFIX + ' 4'];
             break;
-        case 5:
+        case FP_CATCH_ROW_COUNT:
             item.species = raw[FP_CATCHES_CATCH_DESC_KEY_PREFIX + ' 5'];
             item.catchCertificateNumber = raw[FP_CATCHES_CC_NUM_KEY_PREFIX + ' 6'];
             item.totalWeightLanded = raw[FP_CATCHES_TOTAL_LANDED_WEIGHT_KEY_PREFIX + ' 5'];
             item.exportWeightBeforeProcessing = raw[FP_CATCHES_CATCH_PROCESSED_WEIGHT_KEY_PREFIX + ' 5'];
             item.exportWeightAfterProcessing = raw[FP_CATCHES_PROCESSED_WEIGHT_KEY_PREFIX + ' 5'];
+            break;
+        default:
             break;
     }
 
@@ -200,57 +219,22 @@ const extractFrontPageCatchDetailItem = (i, raw) => {
 };
 
 const parseExporter = (raw) => {
-    let exporter = {};
-    exporter.exporterCompanyName = raw[EXPORTER_COMPANY_KEY];
-    exporter.exporterAddress = raw[EXPORTER_ADDRESS_KEY]; // ! not a direct match to online form
+    const exporter = {
+        exporterCompanyName: raw[EXPORTER_COMPANY_KEY],
+        exporterAddress: raw[EXPORTER_ADDRESS_KEY], // ! not a direct match to online form
+    };
     return exporter;
 };
 
-const validateFrontPageCatchDetailItem = (idx, item) => {
-    const errors = [];
-    if (!item.species || item.species.trim().length === 0) {
-        errors.push('Catch description required on row ' + idx);
-    }
-    if (!item.catchCertificateNumber || item.catchCertificateNumber.trim().length === 0) {
-        errors.push('Catch certificate number required on row ' + idx);
-    }
+const validateFrontPageCatchDetailItem = (idx, item) =>
+    CATCH_ITEM_REQUIRED_FIELDS
+        .filter(({ field }) => isBlank(item[field]))
+        .map(({ message }) => `${message} on row ${idx}`);
 
-    if (!item.totalWeightLanded || item.totalWeightLanded.trim().length === 0) {
-        errors.push('Total landed weight (kg) required on row ' + idx);
-    }
-
-    if (!item.exportWeightBeforeProcessing || item.exportWeightBeforeProcessing.trim().length === 0) {
-        errors.push('Catch processed (kg) required on row ' + idx);
-    }
-
-    if (!item.exportWeightAfterProcessing || item.exportWeightAfterProcessing.trim().length === 0) {
-        errors.push('Processed fishery product (kg) required on row ' + idx);
-    }
-    return errors;
-}
-
-const validateScheduleCatchDetailItem = (pageIdx, rowIdx, item) => {
-    const errors = [];
-    if (!item.species || item.species.trim().length === 0) {
-        errors.push('Catch description required on schedule page ' + pageIdx + ' row ' + rowIdx);
-    }
-    if (!item.catchCertificateNumber || item.catchCertificateNumber.trim().length === 0) {
-        errors.push('Catch certificate number required on schedule page ' + pageIdx + ' row ' + rowIdx);
-    }
-
-    if (!item.totalWeightLanded || item.totalWeightLanded.trim().length === 0) {
-        errors.push('Total landed weight (kg) required on schedule page ' + pageIdx + ' row ' + rowIdx);
-    }
-
-    if (!item.exportWeightBeforeProcessing || item.exportWeightBeforeProcessing.trim().length === 0) {
-        errors.push('Catch processed (kg) required on schedule page ' + pageIdx + ' row ' + rowIdx);
-    }
-
-    if (!item.exportWeightAfterProcessing || item.exportWeightAfterProcessing.trim().length === 0) {
-        errors.push('Processed fishery product (kg) required on schedule page ' + pageIdx + ' row ' + rowIdx);
-    }
-    return errors;
-}
+const validateScheduleCatchDetailItem = (pageIdx, rowIdx, item) =>
+    CATCH_ITEM_REQUIRED_FIELDS
+        .filter(({ field }) => isBlank(item[field]))
+        .map(({ message }) => `${message} on schedule page ${pageIdx} row ${rowIdx}`);
 
 const validateRequired = (item, errorMessage) => {
     const errors = [];

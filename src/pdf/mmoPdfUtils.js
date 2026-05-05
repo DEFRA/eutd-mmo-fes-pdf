@@ -1,24 +1,38 @@
+/* eslint-disable no-magic-numbers */
 const PdfStyle = require('./mmoPdfStyles');
-const path = require('path');
+const path = require('node:path');
 const qr = require('qr-image');
+
+const DEFAULT_LINE_WIDTH = 0.75;
+const PAGE_SEPARATOR_X_END = 600;
+const FOOTER_LINE_Y = 795;
+const FOOTER_LINE_X_END = 560;
+const FOOTER_PAGE_NUMBER_Y = 800;
+const QR_FIT_SIZE = 55;
+const QR_TEXT_X_OFFSET = 90;
+const QR_TEXT_LINE1_Y_OFFSET = 10;
+const QR_TEXT_LINE2_Y_OFFSET = 25;
+const QR_TEXT_LINE3_Y_OFFSET = 40;
+const HEADER_RIGHT_X = 450;
+const SUBHEADING_Y = 75;
 
 module.exports = {
 
     separator: function(doc, startY) {
         doc.addStructure(doc.struct('Artifact', { type: 'Layout' }, () => {
-            doc.lineWidth(0.75);
-            doc.moveTo(0, startY).lineTo(600, startY).dash(2, {space: 2}).stroke('#767676');
+            doc.lineWidth(DEFAULT_LINE_WIDTH);
+            doc.moveTo(0, startY).lineTo(PAGE_SEPARATOR_X_END, startY).dash(2, {space: 2}).stroke('#767676');
         }));
     },
     endOfPage: function(doc, page) {
         doc.addStructure(doc.struct('Artifact', { type: 'Pagination' }, () => {
             doc.undash();
             doc.lineWidth(2);
-            doc.moveTo(PdfStyle.MARGIN.LEFT, 795).lineTo(560, 795).stroke('#353535');
+            doc.moveTo(PdfStyle.MARGIN.LEFT, FOOTER_LINE_Y).lineTo(FOOTER_LINE_X_END, FOOTER_LINE_Y).stroke('#353535');
             doc.font(PdfStyle.FONT.REGULAR);
             doc.fontSize(PdfStyle.FONT_SIZE.SMALL);
             doc.fillColor('#353535');
-            doc.text(page, 0, 800, {
+            doc.text(page, 0, FOOTER_PAGE_NUMBER_Y, {
                 align: 'center'
             });
         }));
@@ -31,21 +45,21 @@ module.exports = {
         doc.addStructure(doc.struct('Figure', {
             alt: 'QR Code'
         }, () => {
-            doc.image(buff, startX, startY, {fit: [55, 55]});
+            doc.image(buff, startX, startY, {fit: [QR_FIT_SIZE, QR_FIT_SIZE]});
         }));
         doc.addStructure(doc.struct('P', () => {
-            this.labelBold(doc, startX + 90,startY + 10,
+            this.labelBold(doc, startX + QR_TEXT_X_OFFSET, startY + QR_TEXT_LINE1_Y_OFFSET,
                 'Use the QR code');
-            this.labelBold(doc, startX + 90,startY + 25,
+            this.labelBold(doc, startX + QR_TEXT_X_OFFSET, startY + QR_TEXT_LINE2_Y_OFFSET,
                 'to check that this');
-            this.labelBold(doc, startX + 90,startY + 40,
+            this.labelBold(doc, startX + QR_TEXT_X_OFFSET, startY + QR_TEXT_LINE3_Y_OFFSET,
                 'certificate is valid');
         }));
     },
     generateQRCode: function(uri) {
         return new Promise(((resolve, reject) => {
-            let stream = qr.image(uri, {type: 'PNG'});
-            let data = [];
+            const stream = qr.image(uri, {type: 'PNG'});
+            const data = [];
 
             stream.on('data', (chunk) => {
                 data.push(chunk);
@@ -80,7 +94,7 @@ module.exports = {
         if (!text || Array.isArray(text)) {
             this.cell({doc, x, y, width, height, textArr: text, trimWidth: false, isBold: false, lineColor: '#767676', textColor: '#353535', bgColour: '', numberOfLines: 1 });
         } else {
-            let textArr = [text];
+            const textArr = [text];
             this.cell({doc, x, y, width, height, textArr, trimWidth: false, isBold: false, lineColor: '#767676', textColor: '#353535', bgColour: '', numberOfLines: 1 });
         }
     },
@@ -88,7 +102,7 @@ module.exports = {
         if (!text || Array.isArray(text)) {
             this.cell({doc, x, y, width, height, textArr: text, trimWidth: false, isBold: true, lineColor: '#767676', textColor: '#353535', bgColour: '', numberOfLines: 1 });
         } else {
-            let textArr = [text];
+            const textArr = [text];
             this.cell({doc, x, y, width, height, textArr, trimWidth: false, isBold: true, lineColor: '#767676', textColor: '#353535', bgColour: '', numberOfLines: 1 });
         }
     },
@@ -96,7 +110,7 @@ module.exports = {
         if (!text || Array.isArray(text)) {
             this.cell({doc, x, y, width, height, textArr: text, trimWidth: true, isBold: false, lineColor: '#767676', textColor: '#6B6B6B', bgColour:'#f1f4ff', numberOfLines});
         } else {
-            let textArr = [text];
+            const textArr = [text];
             this.cell({doc, x, y, width, height, textArr, trimWidth: true, isBold: false, lineColor: '#767676', textColor: '#6B6B6B', bgColour:'#f1f4ff', numberOfLines});
         }
     },
@@ -113,7 +127,7 @@ module.exports = {
         if (!text || Array.isArray(text)) {
             this.cell({doc, x, y, width, height, textArr: text, trimWidth: false, isBold: false, lineColor: '#767676', textColor: '#6B6B6B', bgColour:'#f1f4ff', numberOfLines: 1 });
         } else {
-            let textArr = [text];
+            const textArr = [text];
             this.cell({doc, x, y, width, height, textArr, trimWidth: false, isBold: false, lineColor: '#767676', textColor: '#6B6B6B', bgColour:'#f1f4ff', numberOfLines: 1 });
         }
     },
@@ -130,7 +144,7 @@ module.exports = {
 
         let yPos = y;
         doc.undash();
-        doc.lineWidth(0.75);
+        doc.lineWidth(DEFAULT_LINE_WIDTH);
         doc.rect(x, y, width, height);
         if (bgColour) {
             doc.fillAndStroke(bgColour, lineColor);
@@ -157,9 +171,9 @@ module.exports = {
             });
 
             doc.font(PdfStyle.FONT.REGULAR);
-            let arrlength = textArr.length;
+            const arrlength = textArr.length;
             for (let idx = 1; idx < arrlength; idx++) {
-                let prevTxt = textArr[idx-1];
+                const prevTxt = textArr[idx-1];
                 const prevTextWidth = doc.widthOfString(prevTxt);
                 const prevTextLines = Math.ceil(prevTextWidth/width);
                 yPos += 10 + ((PdfStyle.ROW.HEIGHT)*(prevTextLines - 1));
@@ -183,7 +197,7 @@ module.exports = {
         this.cellImpl({ ...params, ellipsis: false });
     },
     heading: function(doc, text) {
-        let imageFile = path.join(__dirname, '../resources/hmgovlogo.png');
+        const imageFile = path.join(__dirname, '../resources/hmgovlogo.png');
         doc.addStructure(doc.struct('Figure', {
             alt: 'HM Government logo'
         }, () => {
@@ -196,11 +210,11 @@ module.exports = {
         doc.fontSize(PdfStyle.FONT_SIZE.LARGEST);
         doc.font(PdfStyle.FONT.BOLD);
         doc.addStructure(doc.struct('H1', {}, () => {
-            doc.text('UNITED KINGDOM', 450, PdfStyle.MARGIN.TOP);
+            doc.text('UNITED KINGDOM', HEADER_RIGHT_X, PdfStyle.MARGIN.TOP);
         }))
         doc.fontSize(PdfStyle.FONT_SIZE.LARGE);
         doc.addStructure(doc.struct('H2', {}, () => {
-            doc.text(text, 0, 75, {
+            doc.text(text, 0, SUBHEADING_Y, {
                 align: 'center'
             });
         }))
