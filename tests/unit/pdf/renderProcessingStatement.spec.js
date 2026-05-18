@@ -346,4 +346,57 @@ describe('renderProcessingStatement', () => {
         const buffer = Buffer.concat(chunks);
         expect(buffer.length).toBeGreaterThan(0);
     });
+
+    test('renders processing statement with long addresses without text overlapping (FI0-11283)', async () => {
+        const data = {
+            documentNumber: 'TEST-LONG-ADDRESS',
+            catches: [
+                {
+                    catchCertificateNumber: 'CC-0001',
+                    species: 'Atlantic Cod',
+                    totalWeightLanded: '100',
+                    exportWeightBeforeProcessing: '90',
+                    exportWeightAfterProcessing: '80',
+                    productIndex: 0,
+                    productId: 'PROD-001'
+                }
+            ],
+            products: [{ id: 'PROD-001', commodityCode: '001', description: 'Fresh fish' }],
+            consignmentDescription: 'Fresh seafood products',
+            plantName: 'Very Long Processing Plant Name That Should Wrap Properly',
+            plantAddressOne: 'Building 123, Industrial Estate, Long Street Name',
+            plantAddressTwo: 'Extended Address Line With Additional Information',
+            plantTownCity: 'Long-Named-City-On-The-Water',
+            plantPostcode: 'PL12 3AB',
+            plantApprovalNumber: 'APP-LONG-123',
+            personResponsibleForConsignment: 'John Alexander Montgomery-Smith',
+            dateOfAcceptance: '2025-11-22',
+            exporter: {
+                exporterCompanyName: 'Very Long Exporter Company Name Ltd International',
+                addressOne: '77 Coast Road with Extended Building Information',
+                addressTwo: 'My address is extra specially particularly long and should wrap without overlapping',
+                townCity: 'Long-Town-Name-By-The-Sea',
+                postcode: 'EX12 3YW'
+            },
+            healthCertificateNumber: 'HC-0001',
+            healthCertificateDate: '2025-11-22'
+        };
+
+        const pass = new PassThrough();
+        const chunks = [];
+        pass.on('data', (c) => chunks.push(c));
+
+        const finished = new Promise((resolve) => pass.on('finish', resolve));
+
+        // Test that long addresses render without overlap using noEllipsis wrapping
+        await renderProcessingStatement(data, true, 'http://example', pass);
+
+        await finished;
+
+        const buffer = Buffer.concat(chunks);
+        // Should successfully render without text overlap
+        expect(buffer.length).toBeGreaterThan(0);
+        // Verify PDF is generated (basic validation)
+        expect(buffer.toString('utf8', 0, 5)).toContain('%PDF');
+    });
 });

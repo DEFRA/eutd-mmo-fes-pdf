@@ -98,7 +98,7 @@ const section2 = (doc, data, startY) => {
 
     const cells = [
         { x: PdfStyle.MARGIN.LEFT + TABLE_COL_OFFSET_15, width: TABLE_COL_WIDTH_110, height: PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_3 - ROW_HEIGHT_ADJUSTMENT_9, content: data.plantName, isWrapped: true, yOffset: cellHeight },
-        { x: PdfStyle.MARGIN.LEFT + TABLE_COL_OFFSET_125, width: TABLE_COL_WIDTH_155, height: PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_3 - ROW_HEIGHT_ADJUSTMENT_9, content: ppAddress, isWrapped: true, yOffset: cellHeight },
+        { x: PdfStyle.MARGIN.LEFT + TABLE_COL_OFFSET_125, width: TABLE_COL_WIDTH_155, height: PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_3 - ROW_HEIGHT_ADJUSTMENT_9, content: ppAddress, isWrapped: true, noEllipsis: true, yOffset: cellHeight },
         { x: PdfStyle.MARGIN.LEFT + TABLE_COL_OFFSET_280, width: TABLE_COL_WIDTH_95, height: PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_3 - ROW_HEIGHT_ADJUSTMENT_9, content: data.plantApprovalNumber, isWrapped: false, yOffset: cellHeight },
         { x: PdfStyle.MARGIN.LEFT + TABLE_COL_OFFSET_375, width: TABLE_COL_WIDTH_85, height: PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_3 - ROW_HEIGHT_ADJUSTMENT_9, content: data.personResponsibleForConsignment, isWrapped: true, yOffset: cellHeight },
         { x: PdfStyle.MARGIN.LEFT + TABLE_COL_OFFSET_460, width: TABLE_COL_WIDTH_70, height: PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_3 - ROW_HEIGHT_ADJUSTMENT_9, content: data.dateOfAcceptance, isWrapped: false, yOffset: cellHeight }
@@ -189,7 +189,7 @@ const section4 = (doc, data, startY) => {
 
     const cells = [
         { x: PdfStyle.MARGIN.LEFT + TABLE_COL_OFFSET_15, width: TABLE_COL_WIDTH_160, height: cellHeight, content: data.exporter.exporterCompanyName, isWrapped: false, yOffset: PdfStyle.ROW.HEIGHT },
-        { x: PdfStyle.MARGIN.LEFT + TABLE_COL_OFFSET_175, width: TABLE_COL_WIDTH_355, height: cellHeight, content: exporterAddress, isWrapped: true, yOffset: PdfStyle.ROW.HEIGHT }
+        { x: PdfStyle.MARGIN.LEFT + TABLE_COL_OFFSET_175, width: TABLE_COL_WIDTH_355, height: cellHeight, content: exporterAddress, isWrapped: true, noEllipsis: true, yOffset: PdfStyle.ROW.HEIGHT }
     ];
 
     createTableBodyWithRow(doc, myTable, cells, yPos);

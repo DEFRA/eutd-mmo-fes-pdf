@@ -40,13 +40,17 @@ const createTableHeaderCell = (doc, tableHeadRow, x, y, width, height, content) 
     tableHead.end();
 };
 
-const createTableDataCell = (doc, tableBodyRow, { x, y, width, height }, content, isWrapped = false) => {
+const createTableDataCell = (doc, tableBodyRow, { x, y, width, height }, content, isWrapped = false, noEllipsis = false) => {
     const td = doc.struct('TD');
     tableBodyRow.add(td);
     const tdContent = doc.markStructureContent('TD');
     td.add(tdContent);
     if (isWrapped) {
-        PdfUtils.wrappedField(doc, x, y, width, height, content);
+        if (noEllipsis) {
+            PdfUtils.wrappedFieldNoEllipsis(doc, x, y, width, height, content);
+        } else {
+            PdfUtils.wrappedField(doc, x, y, width, height, content);
+        }
     } else {
         PdfUtils.field(doc, x, y, width, height, content);
     }
@@ -66,7 +70,7 @@ const createTableBodyWithRow = (doc, myTable, cells, startY) => {
             y: startY + (cell.yOffset || 0),
             width: cell.width,
             height: cell.height
-        }, cell.content, cell.isWrapped);
+        }, cell.content, cell.isWrapped, cell.noEllipsis);
     });
 
     tableBodyRow.end();
