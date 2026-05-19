@@ -364,10 +364,10 @@ describe('renderProcessingStatement', () => {
             products: [{ id: 'PROD-001', commodityCode: '001', description: 'Fresh fish' }],
             consignmentDescription: 'Fresh seafood products',
             plantName: 'Very Long Processing Plant Name That Should Wrap Properly',
-            plantAddressOne: 'Building 123, Industrial Estate, Long Street Name',
-            plantAddressTwo: 'Extended Address Line With Additional Information',
-            plantTownCity: 'Long-Named-City-On-The-Water',
-            plantPostcode: 'PL12 3AB',
+            plantAddressOne: 'HORNBEAM HOUSE, DEPARTMENT FOR ENVIRONMENT FOOD & RURAL AFFAIRS (D E F R A)',
+            plantAddressTwo: 'ELECTRA WAY',
+            plantTownCity: 'CREWE',
+            plantPostcode: 'CW1 6GJ',
             plantApprovalNumber: 'APP-LONG-123',
             personResponsibleForConsignment: 'John Alexander Montgomery-Smith',
             dateOfAcceptance: '2025-11-22',
@@ -388,7 +388,7 @@ describe('renderProcessingStatement', () => {
 
         const finished = new Promise((resolve) => pass.on('finish', resolve));
 
-        // Test that long addresses render without overlap using noEllipsis wrapping
+        // Test that long addresses render without overlap using noEllipsis wrapping and increased cell height
         await renderProcessingStatement(data, true, 'http://example', pass);
 
         await finished;
