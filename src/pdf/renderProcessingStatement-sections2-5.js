@@ -3,14 +3,14 @@ const PdfUtils = require('./mmoPdfUtils');
 const { createTableHeaderRow, createTableBodyWithRow } = require('./renderProcessingStatement-table-utils');
 
 const SECTION_HEADER_Y_OFFSET = 12;
-const SEPARATOR_SPACING = 8;
+const SEPARATOR_SPACING = 5;
 const FOOTNOTE_TEXT_X_OFFSET = 15;
 
 const ROW_HEIGHT_MULTIPLIER_2 = 2;
 const ROW_HEIGHT_MULTIPLIER_3 = 3;
 const ROW_HEIGHT_MULTIPLIER_4 = 4;
 const ROW_HEIGHT_MULTIPLIER_5 = 5;
-const ROW_HEIGHT_MULTIPLIER_7 = 7;
+const ROW_HEIGHT_MULTIPLIER_6 = 6;
 const ROW_HEIGHT_ADJUSTMENT_5 = 5;
 const ROW_HEIGHT_ADJUSTMENT_9 = 9;
 
@@ -22,19 +22,23 @@ const TABLE_COL_OFFSET_175 = 175;
 const TABLE_COL_OFFSET_250 = 250;
 const TABLE_COL_OFFSET_255 = 255;
 const TABLE_COL_OFFSET_280 = 280;
+const TABLE_COL_OFFSET_310 = 310;
 const TABLE_COL_OFFSET_375 = 375;
+const TABLE_COL_OFFSET_385 = 385;
 const TABLE_COL_OFFSET_400 = 400;
 const TABLE_COL_OFFSET_450 = 450;
 const TABLE_COL_OFFSET_460 = 460;
 
 const TABLE_COL_WIDTH_50 = 50;
 const TABLE_COL_WIDTH_70 = 70;
+const TABLE_COL_WIDTH_75 = 75;
 const TABLE_COL_WIDTH_80 = 80;
 const TABLE_COL_WIDTH_85 = 85;
 const TABLE_COL_WIDTH_95 = 95;
 const TABLE_COL_WIDTH_110 = 110;
 const TABLE_COL_WIDTH_130 = 130;
 const TABLE_COL_WIDTH_155 = 155;
+const TABLE_COL_WIDTH_185 = 185;
 const TABLE_COL_WIDTH_160 = 160;
 const TABLE_COL_WIDTH_200 = 200;
 const TABLE_COL_WIDTH_235 = 235;
@@ -90,25 +94,25 @@ const section2 = (doc, data, startY) => {
 
     const headers = [
         { x: PdfStyle.MARGIN.LEFT + TABLE_COL_OFFSET_15, width: TABLE_COL_WIDTH_110, height: cellHeight, content: ['Processing plant'] },
-        { x: PdfStyle.MARGIN.LEFT + TABLE_COL_OFFSET_125, width: TABLE_COL_WIDTH_155, height: cellHeight, content: 'Address' },
-        { x: PdfStyle.MARGIN.LEFT + TABLE_COL_OFFSET_280, width: TABLE_COL_WIDTH_95, height: cellHeight, content: ['Plant approval', 'number'] },
-        { x: PdfStyle.MARGIN.LEFT + TABLE_COL_OFFSET_375, width: TABLE_COL_WIDTH_85, height: cellHeight, content: ['Responsible', 'person'] },
+        { x: PdfStyle.MARGIN.LEFT + TABLE_COL_OFFSET_125, width: TABLE_COL_WIDTH_185, height: cellHeight, content: 'Address' },
+        { x: PdfStyle.MARGIN.LEFT + TABLE_COL_OFFSET_310, width: TABLE_COL_WIDTH_75, height: cellHeight, content: ['Plant approval', 'number'] },
+        { x: PdfStyle.MARGIN.LEFT + TABLE_COL_OFFSET_385, width: TABLE_COL_WIDTH_75, height: cellHeight, content: ['Responsible', 'person'] },
         { x: PdfStyle.MARGIN.LEFT + TABLE_COL_OFFSET_460, width: TABLE_COL_WIDTH_70, height: cellHeight, content: ['Date of', 'acceptance (*)'] }
     ];
 
     createTableHeaderRow(doc, myTable, headers, yPos);
 
     const cells = [
-        { x: PdfStyle.MARGIN.LEFT + TABLE_COL_OFFSET_15, width: TABLE_COL_WIDTH_110, height: PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_7 - ROW_HEIGHT_ADJUSTMENT_9, content: data.plantName, isWrapped: true, yOffset: cellHeight },
-        { x: PdfStyle.MARGIN.LEFT + TABLE_COL_OFFSET_125, width: TABLE_COL_WIDTH_155, height: PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_7 - ROW_HEIGHT_ADJUSTMENT_9, content: ppAddress, isWrapped: true, noEllipsis: true, yOffset: cellHeight },
-        { x: PdfStyle.MARGIN.LEFT + TABLE_COL_OFFSET_280, width: TABLE_COL_WIDTH_95, height: PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_7 - ROW_HEIGHT_ADJUSTMENT_9, content: data.plantApprovalNumber, isWrapped: false, yOffset: cellHeight },
-        { x: PdfStyle.MARGIN.LEFT + TABLE_COL_OFFSET_375, width: TABLE_COL_WIDTH_85, height: PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_7 - ROW_HEIGHT_ADJUSTMENT_9, content: data.personResponsibleForConsignment, isWrapped: true, yOffset: cellHeight },
-        { x: PdfStyle.MARGIN.LEFT + TABLE_COL_OFFSET_460, width: TABLE_COL_WIDTH_70, height: PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_7 - ROW_HEIGHT_ADJUSTMENT_9, content: data.dateOfAcceptance, isWrapped: false, yOffset: cellHeight }
+        { x: PdfStyle.MARGIN.LEFT + TABLE_COL_OFFSET_15, width: TABLE_COL_WIDTH_110, height: PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_6 - ROW_HEIGHT_ADJUSTMENT_9, content: data.plantName, isWrapped: true, yOffset: cellHeight },
+        { x: PdfStyle.MARGIN.LEFT + TABLE_COL_OFFSET_125, width: TABLE_COL_WIDTH_185, height: PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_6 - ROW_HEIGHT_ADJUSTMENT_9, content: ppAddress, isWrapped: true, noEllipsis: true, yOffset: cellHeight },
+        { x: PdfStyle.MARGIN.LEFT + TABLE_COL_OFFSET_310, width: TABLE_COL_WIDTH_75, height: PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_6 - ROW_HEIGHT_ADJUSTMENT_9, content: data.plantApprovalNumber, isWrapped: false, yOffset: cellHeight },
+        { x: PdfStyle.MARGIN.LEFT + TABLE_COL_OFFSET_385, width: TABLE_COL_WIDTH_75, height: PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_6 - ROW_HEIGHT_ADJUSTMENT_9, content: data.personResponsibleForConsignment, isWrapped: true, yOffset: cellHeight },
+        { x: PdfStyle.MARGIN.LEFT + TABLE_COL_OFFSET_460, width: TABLE_COL_WIDTH_70, height: PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_6 - ROW_HEIGHT_ADJUSTMENT_9, content: data.dateOfAcceptance, isWrapped: false, yOffset: cellHeight }
     ];
 
     createTableBodyWithRow(doc, myTable, cells, yPos);
 
-    yPos += cellHeight + PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_7 - ROW_HEIGHT_ADJUSTMENT_9 + ROW_HEIGHT_ADJUSTMENT_5;
+    yPos += cellHeight + PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_6 - ROW_HEIGHT_ADJUSTMENT_9 + ROW_HEIGHT_ADJUSTMENT_5;
     doc.addStructure(doc.struct('P', () => {
         doc.text('* Date of acceptance by the process plant\'s responsible person of the veracity of the contents of this processing statement', PdfStyle.MARGIN.LEFT + FOOTNOTE_TEXT_X_OFFSET, yPos);
     }));

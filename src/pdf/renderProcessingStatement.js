@@ -11,7 +11,7 @@ const { startNewPage } = require('./renderProcessingStatement-product-table');
 const PAGE_HEIGHT = 780;
 const PAGINATION_RESERVED_SPACE = 50;
 const NEW_PAGE_START_Y_OFFSET = 25;
-const SECTION_SPACING = 20;
+const SECTION_SPACING = 5;
 
 // Y offset constants
 const SECTION_HEADER_Y_OFFSET = 12;
@@ -19,25 +19,26 @@ const STATEMENT_HEADER_Y_START = 55;
 const SECTION1_Y_START = 95;
 
 // Separator and spacing constants
-const SEPARATOR_SPACING = 8;
+const SEPARATOR_SPACING = 5;
 const SEPARATOR_HEIGHT = 3;
 
 // Row height multipliers
 const ROW_HEIGHT_MULTIPLIER_2 = 2;
 const ROW_HEIGHT_MULTIPLIER_3 = 3;
 const ROW_HEIGHT_MULTIPLIER_5 = 5;
+const ROW_HEIGHT_MULTIPLIER_6 = 6;
 
 // Row height adjustments
 const ROW_HEIGHT_ADJUSTMENT_5 = 5;
 const ROW_HEIGHT_ADJUSTMENT_9 = 9;
 
 // Endorsement section constants
-const ENDORSEMENT_FOOTER_SPACING = 4;
+const ENDORSEMENT_FOOTER_SPACING = 2;
 const ENDORSEMENT_FOOTER_HEIGHT = 60;
 
 const estimateSection2Height = () => {
     const headerHeight = PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_2 - ROW_HEIGHT_ADJUSTMENT_5;
-    const bodyHeight = PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_3 - ROW_HEIGHT_ADJUSTMENT_9;
+    const bodyHeight = PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_6 - ROW_HEIGHT_ADJUSTMENT_9;
     const footerTextHeight = PdfStyle.ROW.HEIGHT;
     const separatorHeight = SEPARATOR_SPACING;
 
