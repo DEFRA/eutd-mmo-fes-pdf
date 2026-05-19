@@ -8,7 +8,9 @@ const FOOTNOTE_TEXT_X_OFFSET = 15;
 
 const ROW_HEIGHT_MULTIPLIER_2 = 2;
 const ROW_HEIGHT_MULTIPLIER_3 = 3;
+const ROW_HEIGHT_MULTIPLIER_4 = 4;
 const ROW_HEIGHT_MULTIPLIER_5 = 5;
+const ROW_HEIGHT_MULTIPLIER_7 = 7;
 const ROW_HEIGHT_ADJUSTMENT_5 = 5;
 const ROW_HEIGHT_ADJUSTMENT_9 = 9;
 
@@ -97,16 +99,16 @@ const section2 = (doc, data, startY) => {
     createTableHeaderRow(doc, myTable, headers, yPos);
 
     const cells = [
-        { x: PdfStyle.MARGIN.LEFT + TABLE_COL_OFFSET_15, width: TABLE_COL_WIDTH_110, height: PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_3 - ROW_HEIGHT_ADJUSTMENT_9, content: data.plantName, isWrapped: true, yOffset: cellHeight },
-        { x: PdfStyle.MARGIN.LEFT + TABLE_COL_OFFSET_125, width: TABLE_COL_WIDTH_155, height: PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_3 - ROW_HEIGHT_ADJUSTMENT_9, content: ppAddress, isWrapped: true, noEllipsis: true, yOffset: cellHeight },
-        { x: PdfStyle.MARGIN.LEFT + TABLE_COL_OFFSET_280, width: TABLE_COL_WIDTH_95, height: PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_3 - ROW_HEIGHT_ADJUSTMENT_9, content: data.plantApprovalNumber, isWrapped: false, yOffset: cellHeight },
-        { x: PdfStyle.MARGIN.LEFT + TABLE_COL_OFFSET_375, width: TABLE_COL_WIDTH_85, height: PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_3 - ROW_HEIGHT_ADJUSTMENT_9, content: data.personResponsibleForConsignment, isWrapped: true, yOffset: cellHeight },
-        { x: PdfStyle.MARGIN.LEFT + TABLE_COL_OFFSET_460, width: TABLE_COL_WIDTH_70, height: PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_3 - ROW_HEIGHT_ADJUSTMENT_9, content: data.dateOfAcceptance, isWrapped: false, yOffset: cellHeight }
+        { x: PdfStyle.MARGIN.LEFT + TABLE_COL_OFFSET_15, width: TABLE_COL_WIDTH_110, height: PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_7 - ROW_HEIGHT_ADJUSTMENT_9, content: data.plantName, isWrapped: true, yOffset: cellHeight },
+        { x: PdfStyle.MARGIN.LEFT + TABLE_COL_OFFSET_125, width: TABLE_COL_WIDTH_155, height: PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_7 - ROW_HEIGHT_ADJUSTMENT_9, content: ppAddress, isWrapped: true, noEllipsis: true, yOffset: cellHeight },
+        { x: PdfStyle.MARGIN.LEFT + TABLE_COL_OFFSET_280, width: TABLE_COL_WIDTH_95, height: PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_7 - ROW_HEIGHT_ADJUSTMENT_9, content: data.plantApprovalNumber, isWrapped: false, yOffset: cellHeight },
+        { x: PdfStyle.MARGIN.LEFT + TABLE_COL_OFFSET_375, width: TABLE_COL_WIDTH_85, height: PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_7 - ROW_HEIGHT_ADJUSTMENT_9, content: data.personResponsibleForConsignment, isWrapped: true, yOffset: cellHeight },
+        { x: PdfStyle.MARGIN.LEFT + TABLE_COL_OFFSET_460, width: TABLE_COL_WIDTH_70, height: PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_7 - ROW_HEIGHT_ADJUSTMENT_9, content: data.dateOfAcceptance, isWrapped: false, yOffset: cellHeight }
     ];
 
     createTableBodyWithRow(doc, myTable, cells, yPos);
 
-    yPos += cellHeight + PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_3 - ROW_HEIGHT_ADJUSTMENT_9 + ROW_HEIGHT_ADJUSTMENT_5;
+    yPos += cellHeight + PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_7 - ROW_HEIGHT_ADJUSTMENT_9 + ROW_HEIGHT_ADJUSTMENT_5;
     doc.addStructure(doc.struct('P', () => {
         doc.text('* Date of acceptance by the process plant\'s responsible person of the veracity of the contents of this processing statement', PdfStyle.MARGIN.LEFT + FOOTNOTE_TEXT_X_OFFSET, yPos);
     }));
@@ -174,7 +176,7 @@ const section4 = (doc, data, startY) => {
         PdfUtils.labelBold(doc, PdfStyle.MARGIN.LEFT, startY, '4.  Exporter details');
     }));
     const yPos = startY + SECTION_HEADER_Y_OFFSET;
-    const cellHeight = PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_2;
+    const cellHeight = PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_4;
     const exporterAddress = PdfUtils.constructAddress([data.exporter.addressOne, data.exporter.addressTwo, data.exporter.townCity, data.exporter.postcode]);
 
     const myTable = doc.struct('Table');
