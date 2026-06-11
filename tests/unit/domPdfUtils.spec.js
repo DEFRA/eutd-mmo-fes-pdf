@@ -248,8 +248,15 @@ describe('dom pdf utils', () => {
     const width = 100;
     const height = 30;
     const text = ['Header Text 1', 'Header Text 2'];
+    const initialTextCallCount = doc.text.mock.calls.length;
+    const initialRectCallCount = doc.rect.mock.calls.length;
 
     mmoPdfUtils.tableHeaderCell(doc, x, y, width, height, text);
+
+    const newTextCalls = doc.text.mock.calls.slice(initialTextCallCount);
+    expect(newTextCalls).toHaveLength(2);
+    expect(newTextCalls.map(call => call[0])).toEqual(text);
+    expect(doc.rect.mock.calls[initialRectCallCount]).toEqual([x, y, width, height]);
   });
 
   test('it should create a table header cell with default colors if no text is provided', () => {
@@ -290,10 +297,15 @@ describe('dom pdf utils', () => {
     const width = 100;
     const height = 30;
     const text = ['Header Text 1', 'Header Text 2'];
+    const initialTextCallCount = doc.text.mock.calls.length;
+    const initialRectCallCount = doc.rect.mock.calls.length;
 
     mmoPdfUtils.tableHeaderCellBold(doc, x, y, width, height, text);
 
-
+    const newTextCalls = doc.text.mock.calls.slice(initialTextCallCount);
+    expect(newTextCalls).toHaveLength(2);
+    expect(newTextCalls.map(call => call[0])).toEqual(text);
+    expect(doc.rect.mock.calls[initialRectCallCount]).toEqual([x, y, width, height]);
   });
 
   test('it should create a table header cell with default colors if no text is provided', () => {
@@ -333,8 +345,15 @@ describe('dom pdf utils', () => {
     const width = 100;
     const height = 30;
     const text = ['Field Text 1', 'Field Text 2'];
+    const initialTextCallCount = doc.text.mock.calls.length;
+    const initialRectCallCount = doc.rect.mock.calls.length;
 
     mmoPdfUtils.field(doc, x, y, width, height, text);
+
+    const newTextCalls = doc.text.mock.calls.slice(initialTextCallCount);
+    expect(newTextCalls).toHaveLength(2);
+    expect(newTextCalls.map(call => call[0])).toEqual(text);
+    expect(doc.rect.mock.calls[initialRectCallCount]).toEqual([x, y, width, height]);
   });
 
   test('it should create a field cell with default colors if no text is provided', () => {
@@ -393,8 +412,15 @@ describe('dom pdf utils', () => {
     const width = 100;
     const height = 60; // Increased height for multiple lines
     const text = ['Wrapped Field Text 1', 'Wrapped Field Text 2'];
+    const initialTextCallCount = doc.text.mock.calls.length;
+    const initialRectCallCount = doc.rect.mock.calls.length;
 
     mmoPdfUtils.wrappedField(doc, x, y, width, height, text);
+
+    const newTextCalls = doc.text.mock.calls.slice(initialTextCallCount);
+    expect(newTextCalls).toHaveLength(2);
+    expect(newTextCalls.map(call => call[0])).toEqual(text);
+    expect(doc.rect.mock.calls[initialRectCallCount]).toEqual([x, y, width, height]);
   });
 
   test('it should create a wrapped field cell with default colors if no text is provided', () => {

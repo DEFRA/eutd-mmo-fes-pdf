@@ -1,10 +1,12 @@
 const PdfStyle = require('../../../src/pdf/mmoPdfStyles');
+const PdfUtils = require('../../../src/pdf/mmoPdfUtils');
 const {
   calculateRowHeight,
   calculateMaxRowHeightForLicenceHolder,
   calculatePageDimensions,
   paginateRows,
   calculateRequiredCellHeightStatic,
+  renderMultiVesselScheduleHeader,
   multiVesselScheduleHeading,
   multiVesselScheduleHeadingDynamic
 } = require('../../../src/pdf/renderExportCert');
@@ -14,8 +16,39 @@ jest.mock('../../../src/pdf/mmoPdfStyles');
 
 PdfStyle.ROW = { HEIGHT: 15 };
 PdfStyle.FONT_SIZE = { SMALLER: 8 };
-PdfStyle.MARGIN = { LEFT: 30 };
+PdfStyle.MARGIN = { LEFT: 30, TOP: 30, BOT: 15, RIGHT: 30 };
 PdfStyle.FONT = { REGULAR: 'Helvetica' };
+
+const createMockDoc = () => ({
+  struct: jest.fn((type, arg) => {
+    if (typeof arg === 'function') {
+      arg();
+    }
+    return {
+      add: jest.fn(),
+      end: jest.fn()
+    };
+  }),
+  addStructure: jest.fn(),
+  image: jest.fn(),
+  font: jest.fn(),
+  fontSize: jest.fn(),
+  fillColor: jest.fn(),
+  text: jest.fn(),
+  undash: jest.fn(),
+  lineWidth: jest.fn(),
+  rect: jest.fn(),
+  fill: jest.fn(),
+  fillAndStroke: jest.fn(),
+  stroke: jest.fn(),
+  strokeColor: jest.fn(),
+  widthOfString: jest.fn(() => 50),
+  moveDown: jest.fn(),
+  moveUp: jest.fn(),
+  save: jest.fn(),
+  restore: jest.fn(),
+  page: { dictionary: { data: {} } }
+});
 
 describe('renderExportCert helper functions', () => {
   describe('calculateRequiredCellHeightStatic', () => {
@@ -341,19 +374,23 @@ describe('renderExportCert helper functions', () => {
 
   describe('renderMultiVesselScheduleHeader', () => {
     test('should handle blank template with no document number', () => {
-      const data = { isBlankTemplate: true };
-      const isSample = false;
-      
-      const documentNumber = '';
-      expect(documentNumber).toBe('');
+      const doc = createMockDoc();
+      const data = { isBlankTemplate: true, documentNumber: 'GBR-2024-CC-ABC123' };
+      const result = renderMultiVesselScheduleHeader(doc, data, false, null, PdfStyle.MARGIN.TOP);
+
+      expect(result).toEqual(expect.objectContaining({ yPos: expect.any(Number) }));
+      expect(PdfUtils.todaysDate).not.toHaveBeenCalled();
+      expect(PdfUtils.qrCode).not.toHaveBeenCalled();
     });
 
     test('should use sample document number when isSample is true', () => {
-      const data = { isBlankTemplate: false };
-      const isSample = true;
-      
-      const documentNumber = '###-####-##-#########';
-      expect(documentNumber).toBe('###-####-##-#########');
+      const doc = createMockDoc();
+      const data = { isBlankTemplate: false, documentNumber: 'GBR-2024-CC-ABC123' };
+      const result = renderMultiVesselScheduleHeader(doc, data, true, null, PdfStyle.MARGIN.TOP);
+
+      expect(result).toEqual(expect.objectContaining({ yPos: expect.any(Number) }));
+      expect(PdfUtils.todaysDate).toHaveBeenCalled();
+      expect(PdfUtils.qrCode).not.toHaveBeenCalled();
     });
 
     test('should use actual document number when not blank or sample', () => {

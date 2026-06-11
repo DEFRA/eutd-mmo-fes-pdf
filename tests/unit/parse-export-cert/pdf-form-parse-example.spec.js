@@ -12,7 +12,9 @@ describe('PDFParser', function() {
         let pdfReader = muhammara.createReader(new muhammara.PDFRStreamForBuffer(data));
 
         let form = new PDFDigitalForm(pdfReader);
-        form.createSimpleKeyValue();
+        const result = form.createSimpleKeyValue();
+
+        expect(result).toEqual(expect.any(Object));
 
     });
 });

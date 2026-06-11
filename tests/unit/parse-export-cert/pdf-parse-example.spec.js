@@ -73,5 +73,7 @@ describe('PDFParser', function() {
         const catalog = pdfReader.queryDictionaryObject(pdfReader.getTrailer(),'Root');
         iterateObjectTypes(catalog,pdfReader);
         fs.closeSync(outputFile);
+
+        expect(fs.existsSync(__dirname + '/output/parseLog.txt')).toBe(true);
     });
 });
