@@ -174,9 +174,13 @@ module.exports = {
             const arrlength = textArr.length;
             for (let idx = 1; idx < arrlength; idx++) {
                 const prevTxt = textArr[idx-1];
-                const prevTextWidth = doc.widthOfString(prevTxt);
-                const prevTextLines = Math.ceil(prevTextWidth/width);
-                yPos += 10 + ((PdfStyle.ROW.HEIGHT)*(prevTextLines - 1));
+                const prevTextHeight = doc.heightOfString(prevTxt, {
+                    width: width - 4,
+                    lineBreak: true,
+                    ellipsis
+                });
+                const prevTextLines = Math.max(1, Math.ceil(prevTextHeight / PdfStyle.ROW.HEIGHT));
+                yPos += 10 + ((PdfStyle.ROW.HEIGHT) * (prevTextLines - 1));
                 doc.moveDown(1);
                 let txt = textArr[idx];
                 if (trimWidth) {

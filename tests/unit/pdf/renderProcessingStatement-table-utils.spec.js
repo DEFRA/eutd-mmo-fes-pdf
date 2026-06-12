@@ -53,6 +53,7 @@ describe('renderProcessingStatement-table-utils', () => {
             fontSize: jest.fn().mockReturnThis(),
             text: jest.fn().mockReturnThis(),
             widthOfString: jest.fn(() => 50),
+            heightOfString: jest.fn(() => 15),
             moveDown: jest.fn().mockReturnThis(),
             undash: jest.fn().mockReturnThis(),
             lineWidth: jest.fn().mockReturnThis()
