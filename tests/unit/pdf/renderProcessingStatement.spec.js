@@ -181,6 +181,55 @@ describe('renderProcessingStatement', () => {
         expect(buffer.length).toBeGreaterThan(10000);
     });
 
+    test('renders processing statement with a long exporter address without overlap', async () => {
+        const data = {
+            documentNumber: 'TEST-EXPORTER-ADDRESS',
+            catches: [
+                {
+                    catchCertificateNumber: 'CC-0001',
+                    species: 'Cod',
+                    totalWeightLanded: '100',
+                    exportWeightBeforeProcessing: '80',
+                    exportWeightAfterProcessing: '70',
+                    productIndex: 0,
+                    productId: 'PROD-001'
+                }
+            ],
+            products: [{ id: 'PROD-001', commodityCode: '001', description: 'Sample product' }],
+            consignmentDescription: 'Test consignment',
+            plantName: 'Test Plant',
+            plantAddressOne: '1 Plant St',
+            plantAddressTwo: '',
+            plantTownCity: 'Plantville',
+            plantPostcode: 'PL1 1NT',
+            plantApprovalNumber: 'APP-123',
+            personResponsibleForConsignment: 'John Doe',
+            dateOfAcceptance: '2025-11-22',
+            exporter: {
+                exporterCompanyName: 'Exporter Ltd',
+                addressOne: '123 Long Exporter Road with multiple components and a very long street name',
+                addressTwo: 'Unit 10, Large Industrial Estate, Some District',
+                townCity: 'Large Export Town with extended name',
+                postcode: 'EX12 3YZ'
+            },
+            healthCertificateNumber: 'HC-0001',
+            healthCertificateDate: '2025-11-22'
+        };
+
+        const pass = new PassThrough();
+        const chunks = [];
+        pass.on('data', (c) => chunks.push(c));
+
+        const finished = new Promise((resolve) => pass.on('finish', resolve));
+
+        await renderProcessingStatement(data, true, 'http://example', pass);
+
+        await finished;
+
+        const buffer = Buffer.concat(chunks);
+        expect(buffer.length).toBeGreaterThan(0);
+    });
+
     test('renders processing statement with catches requiring schedule pages', async () => {
         const catches = [];
         

@@ -5,6 +5,7 @@ const PdfStyle = require('../../src/pdf/mmoPdfStyles');
 
 const doc = {
   widthOfString: jest.fn(input => input.length),
+  heightOfString: jest.fn(() => 15),
   lineWidth: jest.fn(value => doc),
   moveTo: jest.fn(value => doc),
   lineTo: jest.fn(value => doc),
@@ -132,6 +133,41 @@ describe('dom pdf utils', () => {
 
     expect(result).toEqual('t');
 
+  });
+
+  test('should calculate wrapped array text position using heightOfString', async () => {
+    const x = 10;
+    const y = 20;
+    const width = 100;
+    const height = 100;
+    const textArr = ['A very long first line that wraps', 'Second line'];
+
+    doc.heightOfString.mockReturnValueOnce(30);
+    mmoPdfUtils.cellImpl({
+      doc,
+      x,
+      y,
+      width,
+      height,
+      textArr,
+      trimWidth: false,
+      isBold: false,
+      lineColor: '#767676',
+      textColor: '#6B6B6B',
+      bgColour: '#f1f4ff',
+      numberOfLines: 1
+    });
+
+    expect(doc.heightOfString).toHaveBeenCalledWith(textArr[0], {
+      width: width - 4,
+      lineBreak: true,
+      ellipsis: true
+    });
+    expect(doc.text).toHaveBeenNthCalledWith(2, textArr[1], x + 4, y + 25 + 4, {
+      width: width - 4,
+      lineBreak: true,
+      ellipsis: true
+    });
   });
 
   test('should draw a line seperator', async () => {

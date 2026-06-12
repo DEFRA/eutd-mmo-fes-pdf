@@ -25,6 +25,7 @@ const SEPARATOR_HEIGHT = 3;
 // Row height multipliers
 const ROW_HEIGHT_MULTIPLIER_2 = 2;
 const ROW_HEIGHT_MULTIPLIER_3 = 3;
+const ROW_HEIGHT_MULTIPLIER_4 = 4;
 const ROW_HEIGHT_MULTIPLIER_5 = 5;
 const ROW_HEIGHT_MULTIPLIER_6 = 6;
 
@@ -54,7 +55,7 @@ const estimateSection3Height = () => {
 
 const estimateSection4Height = () => {
     const headerHeight = PdfStyle.ROW.HEIGHT;
-    const bodyHeight = PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_2;
+    const bodyHeight = PdfStyle.ROW.HEIGHT * ROW_HEIGHT_MULTIPLIER_4;
     const separatorHeight = SEPARATOR_SPACING;
 
     return SECTION_HEADER_Y_OFFSET + headerHeight + bodyHeight + separatorHeight;
