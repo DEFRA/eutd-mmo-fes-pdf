@@ -394,13 +394,18 @@ describe('renderExportCert helper functions', () => {
     });
 
     test('should use actual document number when not blank or sample', () => {
+      const doc = createMockDoc();
       const data = { 
         isBlankTemplate: false,
         documentNumber: 'GBR-2024-CC-ABC123'
       };
       const isSample = false;
       
-      expect(data.documentNumber).toBe('GBR-2024-CC-ABC123');
+      const result = renderMultiVesselScheduleHeader(doc, data, isSample, null, PdfStyle.MARGIN.TOP);
+      
+      expect(result).toEqual(expect.objectContaining({ yPos: expect.any(Number) }));
+      expect(PdfUtils.todaysDate).toHaveBeenCalled();
+      expect(doc.text).toHaveBeenCalled();
     });
 
     test('should calculate correct yPos after header rendering', () => {
@@ -419,15 +424,11 @@ describe('renderExportCert helper functions', () => {
 
   describe('processMultiData pagination logic', () => {
     test('should calculate correct available height', () => {
-      const pageHeight = 595;
-      const bottomMargin = 30;
-      const rowsStartY = 229;
-      const pageCountHeight = 20;
-      const safetyMargin = 15;
+      const result = calculatePageDimensions();
       
-      const availableHeight = pageHeight - rowsStartY - bottomMargin - pageCountHeight - safetyMargin;
-      
-      expect(availableHeight).toBe(301);
+      expect(result).toBe(301);
+      expect(typeof result).toBe('number');
+      expect(result).toBeGreaterThan(0);
     });
 
     test('should split rows across pages when exceeding available height', () => {
