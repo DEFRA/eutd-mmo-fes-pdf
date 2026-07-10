@@ -68,64 +68,17 @@ describe('renderExportCert helper functions', () => {
       expect(result).toBe(minHeight);
     });
 
-    test('should calculate height for short text', () => {
-      const text = "SHORT";
-      const width = 45;
-      const fontSize = 8;
-      
+    test.each([
+      ['short text', 'SHORT', 45, 8, 40],
+      ['long text requiring multiple lines', 'RUSSELL A HENRY & SON WELDING AND FABRICATION', 45, 8, 73],
+      ['text that fits exactly in available width', 'EXACTFIT', 75, 8, 40],
+      ['medium-length text in narrow column', 'COMPANY NAME LIMITED', 45, 8, 43],
+      ['medium length text', 'MEDIUM LENGTH TEXT HERE', 45, 8, 43],
+      ['wider column licence detail', 'LIC123456 - 31/12/2025 HOMEPORT NAME', 75, 8, 43],
+    ])('should calculate height for %s', (_, text, width, fontSize, expectedHeight) => {
       const result = calculateRequiredCellHeightStatic(text, width, fontSize);
-      
-      expect(result).toBe(40);
-    });
 
-    test('should calculate height for long text requiring multiple lines', () => {
-      const text = "RUSSELL A HENRY & SON WELDING AND FABRICATION";
-      const width = 45;
-      const fontSize = 8;
-      
-      const result = calculateRequiredCellHeightStatic(text, width, fontSize);
-      
-      expect(result).toBe(73);
-    });
-
-    test('should handle text that fits exactly in available width', () => {
-      const text = "EXACTFIT";
-      const width = 75;
-      const fontSize = 8;
-      
-      const result = calculateRequiredCellHeightStatic(text, width, fontSize);
-      
-      expect(result).toBe(40);
-    });
-
-    test('should calculate correct height for medium-length text in narrow column', () => {
-      const text = "COMPANY NAME LIMITED";
-      const width = 45;
-      const fontSize = 8;
-      
-      const result = calculateRequiredCellHeightStatic(text, width, fontSize);
-      
-      expect(result).toBe(43);
-    });
-
-    test('should calculate height for medium length text', () => {
-      const text = "MEDIUM LENGTH TEXT HERE";
-      const width = 45;
-      const fontSize = 8;
-      
-      const result = calculateRequiredCellHeightStatic(text, width, fontSize);
-      
-      expect(result).toBe(43);
-    });
-
-    test('should calculate correct height for wider column (licence detail)', () => {
-      const text = "LIC123456 - 31/12/2025 HOMEPORT NAME";
-      const width = 75;
-      const fontSize = 8;
-      
-      const result = calculateRequiredCellHeightStatic(text, width, fontSize);
-      
-      expect(result).toBe(43);
+      expect(result).toBe(expectedHeight);
     });
   });
 

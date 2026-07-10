@@ -295,7 +295,7 @@ describe('dom pdf utils', () => {
     expect(doc.rect.mock.calls[initialRectCallCount]).toEqual([x, y, width, height]);
   });
 
-  test('it should create a table header cell with default colors if no text is provided', () => {
+  test('it should create a table header cell with default colors', () => {
     const x = 50;
     const y = 50;
     const width = 100;
@@ -344,7 +344,7 @@ describe('dom pdf utils', () => {
     expect(doc.rect.mock.calls[initialRectCallCount]).toEqual([x, y, width, height]);
   });
 
-  test('it should create a table header cell with default colors if no text is provided', () => {
+  test('it should create a bold table header cell with default colors if no text is provided', () => {
     const x = 50;
     const y = 50;
     const width = 100;
