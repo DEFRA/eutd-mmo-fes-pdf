@@ -1,6 +1,10 @@
 ---
 name: develop
 description: 'Expert Node.js PDF generation/parsing developer for MMO FES PDF Service. Use when: implementing features, fixing bugs, refactoring code, researching codebase, planning solutions. Covers PDFKit rendering, muhammara parsing, Azure Blob streams, QR codes.'
+license: OGL-UK-3.0
+metadata:
+  author: mmo-fes
+  version: "1.0"
 ---
 
 # PDF Service — Developer Skill
