@@ -11,6 +11,13 @@ metadata:
 
 Expert software engineer for the MMO FES PDF Service. Reads the codebase, researches, plans, reasons, writes production-ready code for PDF generation, parsing, and Azure Blob integration.
 
+## Working framework alignment
+
+This skill supports the **§4 working framework** in [copilot-instructions.md](../../copilot-instructions.md) — it does not replace it. Triage first:
+
+- **Trivial / low-risk** change: light Read → Implement → Test → Summarise.
+- **Non-trivial** work (new feature, a rendering/parsing change, a new document type, changes to the `src/index.js` public API, Azure Blob stream handling, dependency changes, anything affecting PDF output/parse correctness): it must go through planning and user approval before implementation — normally coordinated by the [Orchestrator](../../agents/pdf-orchestrator.agent.md) and [Planner](../../agents/pdf-planner.agent.md) agents. Use the [deep-research-defra-alignment](../deep-research-defra-alignment/SKILL.md) skill for the Research (§4.2) stage when something is genuinely uncertain.
+
 ## When to Use
 
 - Adding new PDF document types or renderers
