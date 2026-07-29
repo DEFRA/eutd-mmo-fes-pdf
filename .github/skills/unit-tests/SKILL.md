@@ -21,10 +21,11 @@ Expert in writing and maintaining unit tests for the MMO FES PDF generation and 
 
 ## Coverage Requirements
 
-- **Branches**: 90%
-- **Functions**: 90%
-- **Lines**: 90%
-- **Statements**: 90%
+Tiered targets (never drop below the project or SonarCloud baseline):
+
+- **≥90% global** — Statements, Branches, Functions, Lines
+- **≥95%** — core business logic (renderers, parsers, stream/blob handling)
+- **100%** — error-handling and security-critical paths
 - Run tests: `npm test`
 - Run CI tests: `npm run test:ci`
 - Run integration tests: `npm run test:integration`
