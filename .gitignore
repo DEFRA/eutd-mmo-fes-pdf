@@ -1,4 +1,4 @@
-.vscode
+.vscode/mcp.json
 .idea/
 node_modules/
 .nyc_output/
