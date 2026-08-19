@@ -15,8 +15,11 @@ Expert software engineer for the MMO FES PDF Service. Reads the codebase, resear
 
 This skill supports the **§4 working framework** in [copilot-instructions.md](../../copilot-instructions.md) — it does not replace it. Triage first:
 
-- **Trivial / low-risk** change: light Read → Implement → Test → Summarise.
-- **Non-trivial** work (new feature, a rendering/parsing change, a new document type, changes to the `src/index.js` public API, Azure Blob stream handling, dependency changes, anything affecting PDF output/parse correctness): it must go through planning and user approval before implementation — normally coordinated by the [Orchestrator](../../agents/pdf-orchestrator.agent.md) and [Planner](../../agents/pdf-planner.agent.md) agents. Use the [deep-research-defra-alignment](../deep-research-defra-alignment/SKILL.md) skill for the Research (§4.2) stage when something is genuinely uncertain.
+- **Trivial** change: light Read → Implement → Test → Summarise.
+- **Standard** work (a normal rendering/parsing change or fix with no new document type, `src/index.js` public API change, external integration, or security surface): a lightweight inline plan (authored by the Developer, no heavyweight Planner) plus user approval before implementation.
+- **Complex** work (a new document type, `src/index.js` public API changes, Azure Blob stream handling changes, dependency changes, a security surface): full planning and user approval before implementation — normally coordinated by the [Orchestrator](../../agents/pdf-orchestrator.agent.md) and [Planner](../../agents/pdf-planner.agent.md) agents.
+
+Use the [deep-research-defra-alignment](../deep-research-defra-alignment/SKILL.md) skill for the single, risk-scoped Research (§4.2) pass when something is genuinely uncertain.
 
 ## When to Use
 
