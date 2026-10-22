@@ -34,7 +34,7 @@ const generatePdfAndUpload = async (containerName, type, data, isSample, { getSt
         const blobName = `${journey}-${documentNumber}.pdf`;
         const sasJson = generate(containerName, blobName);
         const stream = await getStream(containerName, blobName);
-        renderPdf(type, data, isSample, sasJson.qrUri, stream, pathToTemplate);
+        await renderPdf(type, data, isSample, sasJson.qrUri, stream, pathToTemplate);
         return sasJson;
     } catch (e) {
         throw new Error(e);

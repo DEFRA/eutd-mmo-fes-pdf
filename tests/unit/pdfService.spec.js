@@ -34,6 +34,65 @@ const spyGetTestStream = jest.fn(() => {
   return fakeStream;
 });
 
+describe('PDF rendering completion', () => {
+  let isolatedPdfService;
+  let mockRenderPdf;
+
+  beforeEach(() => {
+    mockRenderPdf = jest.fn();
+    jest.isolateModules(() => {
+      jest.doMock('../../src/pdf/pdfRenderer', () => ({ renderPdf: mockRenderPdf }));
+      jest.doMock('../../src/storage/blobManager', () => ({
+        createContainer: jest.fn().mockResolvedValue(undefined)
+      }));
+      isolatedPdfService = require('../../src/pdfService');
+    });
+  });
+
+  afterEach(() => {
+    jest.dontMock('../../src/pdf/pdfRenderer');
+    jest.dontMock('../../src/storage/blobManager');
+  });
+
+  test('waits for rendering before returning the SAS details', async () => {
+    const rendering = Promise.withResolvers();
+    const renderingStarted = Promise.withResolvers();
+    const onComplete = jest.fn();
+    const data = { documentNumber: 'GBR-2024-CC-68B4B18A8' };
+    mockRenderPdf.mockImplementation(() => {
+      renderingStarted.resolve();
+      return rendering.promise;
+    });
+
+    const generation = isolatedPdfService.generatePdfAndUpload('export-certificates',
+      pdfType.BLANK_EXPORT_CERT, data, false, { getStream: spyGetTestStream },
+      data.documentNumber, './src/resources/').then(result => {
+        onComplete();
+        return result;
+      });
+
+    await renderingStarted.promise;
+  await Promise.resolve();
+    expect(onComplete).not.toHaveBeenCalled();
+    rendering.resolve();
+    const result = await generation;
+
+    expect(result.blobName).toBe('CatchCertificate-GBR-2024-CC-68B4B18A8.pdf');
+    expect(mockRenderPdf).toHaveBeenCalledWith(pdfType.BLANK_EXPORT_CERT, data,
+      false, result.qrUri, fakeStream, './src/resources/');
+    expect(onComplete).toHaveBeenCalledTimes(1);
+  });
+
+  test('propagates rendering failures through the existing error handler', async () => {
+    mockRenderPdf.mockRejectedValue(new Error('Rendering failed'));
+
+    await expect(isolatedPdfService.generatePdfAndUpload('export-certificates',
+      pdfType.BLANK_EXPORT_CERT, {}, false, { getStream: spyGetTestStream },
+      'GBR-2024-CC-68B4B18A8', './src/resources/'))
+      .rejects.toThrow('Error: Rendering failed');
+  });
+});
+
 describe('test the pdfService itself', () => {
 
   let mockCreateContainer;
@@ -115,7 +174,7 @@ describe('test the pdfService itself', () => {
     };
 
     await expect(() => pdfService.generatePdfAndUpload(container, pdfType.BLANK_EXPORT_CERT,
-        data, false, { getStream: testGetStream }, './src/resources/')).rejects.toThrowError('Error: CreateContainerIfNotExistsError');
+        data, false, { getStream: testGetStream }, './src/resources/')).rejects.toThrow('Error: CreateContainerIfNotExistsError');
   });
 
   test('should upload a zip', async () => {
@@ -126,7 +185,7 @@ describe('test the pdfService itself', () => {
 
   test('should fail to upload a zip', async () => {
     mockCreateContainer.mockRejectedValue(new Error('CreateContainerIfNotExistsError'));
-    await expect(pdfService.uploadZip('asdf', 'asdf', {getStream: testGetStream})).rejects.toThrowError('Error: CreateContainerIfNotExistsError');
+    await expect(pdfService.uploadZip('asdf', 'asdf', {getStream: testGetStream})).rejects.toThrow('Error: CreateContainerIfNotExistsError');
   });
 
   test('should parse pdf buffer', async () => {
@@ -264,7 +323,7 @@ describe('test the pdfService itself', () => {
 
   test('should fail to overwrite a PDF', async () => {
     mockCreateContainer.mockRejectedValue(new Error('CreateContainerIfNotExistsError'));
-    await expect(pdfService.overwritePdf('test', 'test', 'buffer', {getStream: spyGetTestStream})).rejects.toThrowError('Error: CreateContainerIfNotExistsError');
+    await expect(pdfService.overwritePdf('test', 'test', 'buffer', {getStream: spyGetTestStream})).rejects.toThrow('Error: CreateContainerIfNotExistsError');
   });
 
 });

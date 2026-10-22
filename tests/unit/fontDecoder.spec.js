@@ -1,5 +1,6 @@
 const muhammara = require('muhammara');
 const FontDecoding = require("../../src/utils/pdf-text-extraction/font-decoding")
+const PDFInterpreter = require('../../src/utils/pdf-text-extraction/pdf-interpreter');
 
 const { beToNum, besToUnicodes, getStandardEncodingMap, parseToUnicode, parseSimpleFontEncoding, setupDifferencesEncodingMap } = FontDecoding;
 
@@ -199,6 +200,80 @@ describe('font encoder', () => {
 
     expect(result).toEqual(258)
   })
+
+  test.each([
+    [[0xD8, 0x00, 0xDC, 0x00], [0x10000]],
+    [[0xDB, 0xFF, 0xDF, 0xFF], [0x10FFFF]],
+    [[0xDC, 0x00], [0xDC00]],
+    [[], []]
+  ])('decodes Unicode boundary bytes %j', (bytes, expected) => {
+    expect(besToUnicodes(bytes)).toEqual(expected);
+  });
+
+  test('decodes explicit Unicode range entries and ignores unrelated operators', () => {
+    const byteString = bytes => ({ toBytesArray: () => bytes });
+    const entries = [byteString([0, 66]), byteString([0xD8, 0, 0xDC, 0])];
+    const unicodeArray = {
+      getType: () => muhammara.ePDFObjectArray,
+      toPDFArray: () => ({ queryObject: index => entries[index] })
+    };
+    const interpretStream = jest.spyOn(PDFInterpreter.prototype, 'interpretStream')
+      .mockImplementation((reader, stream, onOperator) => {
+        onOperator('beginbfrange', []);
+        onOperator('endbfrange', [byteString([65]), byteString([66]), unicodeArray]);
+      });
+    toPDFStreamResult = {};
+
+    try {
+      expect(parseToUnicode(pdfReaderMock, 1)).toEqual({
+        65: [66],
+        66: [0x10000]
+      });
+    } finally {
+      interpretStream.mockRestore();
+    }
+  });
+
+  test.each([
+    [0, 'A'],
+    [4, 'Alpha']
+  ])('uses font descriptor flags %i to choose fallback encoding', (flags, glyph) => {
+    const descriptor = {};
+    const font = { exists: key => key === 'FontDescriptor' };
+    const encoding = { exists: () => false };
+    const reader = {
+      queryDictionaryObject: (dictionary, key) => key === 'FontDescriptor'
+        ? { toPDFDictionary: () => descriptor }
+        : { value: flags }
+    };
+
+    expect(setupDifferencesEncodingMap(reader, font, encoding)[65]).toBe(glyph);
+  });
+
+  test('parses a direct encoding dictionary without resolving an indirect reference', () => {
+    const state = {};
+    const encoding = {
+      getType: () => muhammara.ePDFObjectDictionary,
+      exists: () => false
+    };
+    const reader = { parseNewObject: jest.fn() };
+
+    parseSimpleFontEncoding(state, reader, fontMock, encoding);
+
+    expect(state.hasSimpleEncoding).toBe(true);
+    expect(state.fromSimpleEncodingMap).toEqual(standardEncodingMap);
+    expect(reader.parseNewObject).not.toHaveBeenCalled();
+  });
+
+  test('marks unsupported font encodings as unavailable', () => {
+    const state = {};
+    const encoding = { getType: () => muhammara.ePDFObjectArray };
+
+    parseSimpleFontEncoding(state, pdfReaderMock, fontMock, encoding);
+
+    expect(state.hasSimpleEncoding).toBe(false);
+    expect(state.fromSimpleEncodingMap).toBeUndefined();
+  });
 
   test('should return besToUnicodes', async () => {
     const results = besToUnicodes([1, 2, 3, 4]);
