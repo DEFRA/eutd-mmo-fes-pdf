@@ -174,7 +174,7 @@ describe('dom pdf utils', () => {
     const startY = 1;
     mmoPdfUtils.separator(doc, startY);
 
-    expect(doc.lineWidth).toBeCalledWith(0.75);
+    expect(doc.lineWidth).toHaveBeenCalledWith(0.75);
     expect(doc.moveTo).toHaveBeenCalledWith(0, startY);
     expect(doc.lineTo).toHaveBeenCalledWith(600, startY);
     expect(doc.dash).toHaveBeenCalledWith(2, { space: 2 });
@@ -188,8 +188,8 @@ describe('dom pdf utils', () => {
 
     mmoPdfUtils.qrCode(doc, buff, startX, startY);
 
-    expect(doc.image).toBeCalledWith(buff, startX, startY, { fit: [55, 55] });
-    expect(doc.fontSize).toBeCalledWith(PdfStyle.FONT_SIZE.MEDIUM);
+    expect(doc.image).toHaveBeenCalledWith(buff, startX, startY, { fit: [55, 55] });
+    expect(doc.fontSize).toHaveBeenCalledWith(PdfStyle.FONT_SIZE.MEDIUM);
 
   });
 
@@ -200,9 +200,9 @@ describe('dom pdf utils', () => {
 
     mmoPdfUtils.subHeading(doc, x, y, text)
 
-    expect(doc.fillColor).toBeCalledWith('#353535');
-    expect(doc.fontSize).toBeCalledWith(PdfStyle.FONT_SIZE.MEDIUM);
-    expect(doc.text).toBeCalledWith(text, x, y, { align: 'center' });
+    expect(doc.fillColor).toHaveBeenCalledWith('#353535');
+    expect(doc.fontSize).toHaveBeenCalledWith(PdfStyle.FONT_SIZE.MEDIUM);
+    expect(doc.text).toHaveBeenCalledWith(text, x, y, { align: 'center' });
   });
 
   test('should generate QR code', async () => {
@@ -233,13 +233,13 @@ describe('dom pdf utils', () => {
 
     mmoPdfUtils.endOfPage(doc, 2);
 
-    expect(doc.undash).toBeCalledWith();
-    expect(doc.lineWidth).toBeCalledWith(2);
-    expect(doc.fontSize).toBeCalledWith(PdfStyle.FONT_SIZE.SMALL);
-    expect(doc.moveTo).toBeCalledWith(PdfStyle.MARGIN.LEFT, 795);
-    expect(doc.font).toBeCalledWith(PdfStyle.FONT.REGULAR);
-    expect(doc.fillColor).toBeCalledWith('#353535');
-    expect(doc.text).toBeCalledWith(page, 0, 800, {
+    expect(doc.undash).toHaveBeenCalledWith();
+    expect(doc.lineWidth).toHaveBeenCalledWith(2);
+    expect(doc.fontSize).toHaveBeenCalledWith(PdfStyle.FONT_SIZE.SMALL);
+    expect(doc.moveTo).toHaveBeenCalledWith(PdfStyle.MARGIN.LEFT, 795);
+    expect(doc.font).toHaveBeenCalledWith(PdfStyle.FONT.REGULAR);
+    expect(doc.fillColor).toHaveBeenCalledWith('#353535');
+    expect(doc.text).toHaveBeenCalledWith(page, 0, 800, {
       align: 'center'
     });
   });
@@ -253,10 +253,10 @@ describe('dom pdf utils', () => {
     mmoPdfUtils.labelBold(doc, x, y, text);
     mmoPdfUtils.labelBoldItalic(doc, x, y, text);
 
-    expect(doc.fontSize).toBeCalledWith(PdfStyle.FONT_SIZE.SMALL);
-    expect(doc.font).toBeCalledWith(PdfStyle.FONT.REGULAR);
-    expect(doc.fillColor).toBeCalledWith('#353535');
-    expect(doc.text).toBeCalledWith(text, x, y);
+    expect(doc.fontSize).toHaveBeenCalledWith(PdfStyle.FONT_SIZE.SMALL);
+    expect(doc.font).toHaveBeenCalledWith(PdfStyle.FONT.REGULAR);
+    expect(doc.fillColor).toHaveBeenCalledWith('#353535');
+    expect(doc.text).toHaveBeenCalledWith(text, x, y);
   });
 
   test('it should create a table header cell with text', () => {
@@ -267,7 +267,7 @@ describe('dom pdf utils', () => {
     const text = 'Header Text';
 
     mmoPdfUtils.tableHeaderCell(doc, x, y, width, height, text);
-    expect(doc.undash).toBeCalledWith();
+    expect(doc.undash).toHaveBeenCalledWith();
 
     // Test assertions
     expect(doc.text).toHaveBeenCalledWith(text, x + 4, y + 4, {
@@ -497,7 +497,7 @@ describe('dom pdf utils', () => {
     mmoPdfUtils.cell({doc, x, y, width, height, textArr, numberOfLines: 1});
 
     // Test assertions
-    expect(doc.lineWidth).toBeCalledWith(0.75);
+    expect(doc.lineWidth).toHaveBeenCalledWith(0.75);
     expect(doc.rect).toHaveBeenCalledWith(x, y, width, height);
     expect(doc.stroke).toHaveBeenCalled();
     expect(doc.fillColor).toHaveBeenCalled();
