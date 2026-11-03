@@ -1,9 +1,9 @@
 const renderBlankStorageDoc = require('../../src/pdf/renderBlankStorageDoc');
 const PdfUtils = require('../../src/pdf/mmoPdfUtils');
-const muhammara = require('muhammara');
+const muhammara = require('@muhammara/native');
 const PDFStreamForNodeJsStream = require('../../src/pdf/PDFStreamForNodeJsStream');
 
-jest.mock('muhammara');
+jest.mock('@muhammara/native');
 jest.mock('../../src/pdf/mmoPdfUtils');
 jest.mock('../../src/pdf/PDFStreamForNodeJsStream');
 

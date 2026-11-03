@@ -1,7 +1,7 @@
 const path = require('node:path');
 const PdfStyle = require('./mmoPdfStyles');
 const PdfUtils = require('./mmoPdfUtils');
-const muhammara = require('muhammara');
+const muhammara = require('@muhammara/native');
 const PDFStreamForNodeJsStream = require('./PDFStreamForNodeJsStream');
 
 // QR Code rendering constants

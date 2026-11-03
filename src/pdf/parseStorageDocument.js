@@ -1,4 +1,4 @@
-const muhammara = require('muhammara');
+const muhammara = require('@muhammara/native');
 const PDFDigitalForm = require('../utils/pdf-digital-form');
 
 const DEPT_PLACE_KEY = 'Date  Port or Place of Departure';

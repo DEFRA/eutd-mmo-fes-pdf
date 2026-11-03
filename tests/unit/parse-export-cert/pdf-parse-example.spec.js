@@ -1,4 +1,4 @@
-const muhammara = require('muhammara');
+const muhammara = require('@muhammara/native');
 const fs = require('fs');
 
 describe('PDFParser', function() {

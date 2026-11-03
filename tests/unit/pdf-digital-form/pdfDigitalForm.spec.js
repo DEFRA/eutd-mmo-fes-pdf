@@ -1,5 +1,5 @@
 const fs = require('fs');
-const muhammara = require('muhammara');
+const muhammara = require('@muhammara/native');
 const PDFDigitalForm = require("../../../src/utils/pdf-digital-form")
 
 describe('pdf digital form', () => {

@@ -2,7 +2,7 @@ const path = require('node:path');
 const PdfStyle = require('./mmoPdfStyles');
 const PdfUtils = require('./mmoPdfUtils');
 const moment = require ('moment');
-const muhammara = require('muhammara');
+const muhammara = require('@muhammara/native');
 const PDFStreamForNodeJsStream = require('./PDFStreamForNodeJsStream');
 const PDFStreamForImageBuffer = require('./PDFStreamForImageBuffer');
 

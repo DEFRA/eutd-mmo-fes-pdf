@@ -2,7 +2,7 @@ const parseExportCert = require('./parseExportCert');
 const parseProcessingStatement = require('./parseProcessingStatement');
 const parseStorageDocument = require('./parseStorageDocument');
 const extractText = require('../utils/pdf-text-extraction/text-extraction');
-const muhammara = require('muhammara');
+const muhammara = require('@muhammara/native');
 
 const EXPORT_CERT_PAGE_COUNT = 9;
 const EXPORT_CERT_TEXT_COUNT = 79;

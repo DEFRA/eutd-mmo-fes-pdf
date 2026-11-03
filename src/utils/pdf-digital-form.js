@@ -4,7 +4,7 @@
  */
 
 const _ = require('lodash'),
-muhammara = require('muhammara');
+muhammara = require('@muhammara/native');
 
 function toText(item) {
     if(item.getType() === muhammara.ePDFObjectLiteralString) {

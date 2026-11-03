@@ -1,4 +1,4 @@
-const muhammara = require('muhammara');
+const muhammara = require('@muhammara/native');
 const PDFDigitalForm = require('../utils/pdf-digital-form');
 
 const EXPORTER_ADDRESS_KEY = 'Name and address of Exporter';
