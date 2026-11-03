@@ -29,7 +29,7 @@
   },
   "engines": {
     "node": "26.x",
-    "npm": "11.x"
+    "npm": "11.x || 12.x"
   },
   "scripts": {
     "pretest": "rm -rf coverage/ && rm -rf test-results/",
