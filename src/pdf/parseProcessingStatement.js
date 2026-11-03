@@ -1,4 +1,4 @@
-const muhammara = require('muhammara');
+const muhammara = require('@muhammara/native');
 const PDFDigitalForm = require('../utils/pdf-digital-form');
 
 const PROD_DESC_KEY = 'Fishery product description';

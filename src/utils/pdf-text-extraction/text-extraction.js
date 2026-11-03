@@ -1,4 +1,4 @@
-const muhammara = require('muhammara');
+const muhammara = require('@muhammara/native');
 const _ = require('lodash');
 const extractPlacements = require('./placements-extraction');
 const transformations = require('./transformations');

@@ -1,4 +1,4 @@
-const muhammara = require('muhammara');
+const muhammara = require('@muhammara/native');
 
 function interpretContentStream(objectParser,onOperatorHandler) {
         

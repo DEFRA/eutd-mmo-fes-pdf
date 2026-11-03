@@ -16,7 +16,7 @@ const QR_CODE_SCALE = 0.235;
 const QR_TEXT_SIZE = 11;
 const PdfUtils = require('./mmoPdfUtils');
 const moment = require ('moment');
-const muhammara = require('muhammara');
+const muhammara = require('@muhammara/native');
 const PDFStreamForNodeJsStream = require('./PDFStreamForNodeJsStream');
 const PDFStreamForImageBuffer = require('./PDFStreamForImageBuffer');
 

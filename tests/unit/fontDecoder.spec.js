@@ -1,4 +1,4 @@
-const muhammara = require('muhammara');
+const muhammara = require('@muhammara/native');
 const FontDecoding = require("../../src/utils/pdf-text-extraction/font-decoding")
 const PDFInterpreter = require('../../src/utils/pdf-text-extraction/pdf-interpreter');
 

@@ -1,4 +1,4 @@
-const muhammara = require('muhammara');
+const muhammara = require('@muhammara/native');
 const _ = require('lodash');
 const PDFInterpreter = require('./pdf-interpreter');
 const WinAnsiEncoding = require('./encoding/win-ansi-encoding');

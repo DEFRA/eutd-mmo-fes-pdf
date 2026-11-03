@@ -8,11 +8,11 @@ class PDFStreamForNodeJsStream {
         this.position = 0;
     }
 
-    write(inBytesArray) {
-        if (inBytesArray.length > 0) {
-            this.stream.write(Buffer.from(inBytesArray));
-            this.position += inBytesArray.length;
-            return inBytesArray.length;
+    write(bytes) {
+        if (bytes.length > 0) {
+            this.stream.write(Buffer.isBuffer(bytes) ? bytes : Buffer.from(bytes));
+            this.position += bytes.length;
+            return bytes.length;
         }
 
         return 0;
@@ -20,8 +20,6 @@ class PDFStreamForNodeJsStream {
 
     getCurrentPosition() {
         return this.position;
-        // return this.bytesWritten;
-        // or pos ?
     }
 }
 
