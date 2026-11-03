@@ -1,6 +1,6 @@
 {
   "name": "mmo-ecc-pdf-svc",
-  "version": "2.4.36",
+  "version": "2.4.37",
   "description": "",
   "main": "src/index.js",
   "dependencies": {
@@ -28,8 +28,8 @@
     "@xmldom/xmldom": "^0.9.12"
   },
   "engines": {
-    "node": "24.19.0",
-    "npm": "12.0.2"
+    "node": "26.x",
+    "npm": "11.x"
   },
   "scripts": {
     "pretest": "rm -rf coverage/ && rm -rf test-results/",
@@ -73,6 +73,8 @@
     }
   },
   "allowScripts": {
-    "muhammara@6.0.6": true
+    "muhammara@6.0.6": true,
+    "@parcel/watcher@2.6.0": true,
+    "unrs-resolver@1.12.2": true
   }
 }
